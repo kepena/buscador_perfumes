@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Buscador de Perfumes Pro — Encuentra tu fragancia ideal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- Fondo ambiental -->
+  <div class="atmosfera" aria-hidden="true">
+    <div class="mota mota-1"></div>
+    <div class="mota mota-2"></div>
+    <div class="mota mota-3"></div>
+  </div>
+
+  <div class="contenedor-app">
+
+    <!-- ============ CABECERA ============ -->
+    <header class="cabecera">
+      <div class="marca">
+        <span class="marca-icono">✦</span>
+        <span class="marca-texto">Buscador de Perfumes <em>Pro</em></span>
+      </div>
+      <a href="catalogo.html" class="enlace-catalogo">Ver catálogo completo →</a>
+    </header>
+
+    <!-- ============ PANTALLA DE INICIO ============ -->
+    <section id="pantalla-inicio" class="pantalla pantalla-inicio activa">
+      <div class="inicio-contenido">
+        <p class="inicio-eyebrow">Test olfativo · 7 pasos</p>
+        <h1 class="inicio-titulo">Cada persona tiene<br><span class="resaltado">un aroma que le pertenece.</span></h1>
+        <p class="inicio-descripcion">
+          Responde siete preguntas sobre tu estilo, el clima y el momento en que lo usarás.
+          Cruzamos tus respuestas contra un catálogo de fragancias de Diseñador, Árabes y Lujo
+          para encontrar tu <strong>Match</strong> perfecto.
+        </p>
+        <button type="button" id="btn-empezar" class="boton boton-primario boton-grande">
+          Empezar el test <span class="flecha">→</span>
+        </button>
+        <div class="inicio-meta">
+          <span>🕐 Toma ~90 segundos</span>
+          <span>🧪 50 fragancias en catálogo</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ PANTALLA DEL TEST ============ -->
+    <section id="pantalla-test" class="pantalla pantalla-test">
+
+      <!-- Barra de progreso -->
+      <div class="progreso-wrap">
+        <div class="progreso-info">
+          <span id="progreso-texto">Paso 1 de 7</span>
+          <span id="progreso-porcentaje">14%</span>
+        </div>
+        <div class="progreso-barra">
+          <div id="progreso-relleno" class="progreso-relleno"></div>
+        </div>
+      </div>
+
+      <!-- Contenedor dinámico de preguntas -->
+      <div id="pregunta-contenedor" class="pregunta-contenedor">
+        <!-- Renderizado por JS -->
+      </div>
+
+      <!-- Navegación -->
+      <div class="nav-botones">
+        <button type="button" id="btn-atras" class="boton boton-fantasma">
+          <span class="flecha">←</span> Atrás
+        </button>
+        <button type="button" id="btn-siguiente" class="boton boton-primario" disabled>
+          Siguiente <span class="flecha">→</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- ============ PANTALLA DE RESULTADOS ============ -->
+    <section id="pantalla-resultados" class="pantalla pantalla-resultados">
+      <div class="resultados-cabecera">
+        <p class="resultados-eyebrow">Tu perfil olfativo está listo</p>
+        <h2 class="resultados-titulo">Tus mejores coincidencias</h2>
+        <p class="resultados-sub">Ordenadas por porcentaje de compatibilidad (Match %)</p>
+      </div>
+
+      <div id="tarjetas-resultado" class="grid-tarjetas">
+        <!-- Renderizado por JS -->
+      </div>
+
+      <div class="resultados-acciones">
+        <button type="button" id="btn-reiniciar" class="boton boton-primario">
+          🔄 Volver a hacer el Test
+        </button>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- Plantilla de tarjeta de perfume (usada por JS) -->
+  <template id="plantilla-tarjeta">
+    <article class="tarjeta-perfume">
+      <div class="tarjeta-imagen-wrap">
+        <span class="tarjeta-match" data-campo="match"></span>
+        <img class="tarjeta-imagen" data-campo="imagen" alt="" />
+      </div>
+      <div class="tarjeta-cuerpo">
+        <h3 class="tarjeta-nombre" data-campo="nombre"></h3>
+        <span class="tarjeta-tipo" data-campo="tipo"></span>
+
+        <div class="tarjeta-notas">
+          <span class="notas-titulo">
+            <span class="notas-titulo-icono">✨</span>
+            Notas olfativas
+          </span>
+          <div class="notas-valor" data-campo="notas"></div>
+        </div>
+
+        <ul class="tarjeta-detalles">
+          <li>
+            <span class="detalle-etiqueta"><span class="detalle-icono">🧴</span>Aroma</span>
+            <span class="detalle-valor" data-campo="aroma"></span>
+          </li>
+          <li>
+            <span class="detalle-etiqueta"><span class="detalle-icono">💧</span>Sub-aroma</span>
+            <span class="detalle-valor" data-campo="subaroma"></span>
+          </li>
+          <li>
+            <span class="detalle-etiqueta"><span class="detalle-icono">🕐</span>Momento</span>
+            <span class="detalle-valor" data-campo="momento"></span>
+          </li>
+          <li>
+            <span class="detalle-etiqueta"><span class="detalle-icono">❄️</span>Clima</span>
+            <span class="detalle-valor" data-campo="clima"></span>
+          </li>
+          <li>
+            <span class="detalle-etiqueta"><span class="detalle-icono">👤</span>Estilo</span>
+            <span class="detalle-valor" data-campo="estilo"></span>
+          </li>
+          <li>
+            <span class="detalle-etiqueta"><span class="detalle-icono">💥</span>Potencia</span>
+            <span class="detalle-valor" data-campo="potencia"></span>
+          </li>
+          <li>
+            <span class="detalle-etiqueta"><span class="detalle-icono">💰</span>Presupuesto</span>
+            <span class="detalle-valor" data-campo="precio"></span>
+          </li>
+        </ul>
+      </div>
+    </article>
+  </template>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
