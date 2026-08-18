@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Catálogo completo — Buscador de Perfumes Pro</title>
+<meta name="robots" content="noindex, nofollow" />
+<title>Panel — Kaiketek</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -12,13 +13,34 @@
 </head>
 <body>
 
+  <!-- ============ PANTALLA DE ACCESO PROTEGIDO ============ -->
+  <div id="pantalla-acceso" class="pantalla-acceso">
+    <div class="acceso-card">
+      <span class="acceso-icono">🔒</span>
+      <h1 class="acceso-titulo">Acceso al catálogo</h1>
+      <p class="acceso-sub">Esta sección es privada. Ingresa la contraseña para continuar.</p>
+      <form id="form-acceso" class="acceso-form" autocomplete="off">
+        <input
+          type="password"
+          id="input-clave-acceso"
+          class="acceso-input"
+          placeholder="Contraseña"
+          autocomplete="new-password"
+          autofocus
+        />
+        <button type="submit" class="acceso-boton">Entrar</button>
+      </form>
+      <p id="acceso-error" class="acceso-error" hidden>Contraseña incorrecta. Intenta de nuevo.</p>
+    </div>
+  </div>
+
   <div class="atmosfera" aria-hidden="true">
     <div class="mota mota-1"></div>
     <div class="mota mota-2"></div>
     <div class="mota mota-3"></div>
   </div>
 
-  <div class="contenedor-catalogo">
+  <div class="contenedor-catalogo" id="contenido-catalogo" hidden>
 
     <header class="catalogo-cabecera">
       <div class="marca">
@@ -29,9 +51,9 @@
     </header>
 
     <div class="catalogo-titulo-wrap">
-      <p class="catalogo-eyebrow">Catálogo completo · 100 fragancias</p>
-      <h1 class="catalogo-titulo">Todos los perfumes y sus precios</h1>
-      <p class="catalogo-sub">Ajusta el precio de todo el catálogo con un porcentaje, edita cada fragancia individualmente, o desactiva las que no quieres que salgan en los resultados del test. Los cambios se guardan en este navegador.</p>
+      <p class="catalogo-eyebrow" id="txt-eyebrow"></p>
+      <h1 class="catalogo-titulo" id="txt-titulo"></h1>
+      <p class="catalogo-sub" id="txt-sub"></p>
     </div>
 
     <!-- ============ PANEL DE AJUSTE GLOBAL ============ -->
@@ -116,6 +138,7 @@
     </article>
   </template>
 
+  <script src="auth-catalogo.js"></script>
   <script src="data.js"></script>
   <script src="catalogo.js"></script>
 </body>
