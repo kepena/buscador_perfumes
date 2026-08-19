@@ -31,7 +31,7 @@
       { valor: "Cítrico", emoji: "🍋", titulo: "Cítrico / Chispeante", desc: "" },
       { valor: "Dulce / Gourmand", emoji: "🍦", titulo: "Dulce / Comestible / Postre", desc: "" },
       { valor: "Cálido / Especiado", emoji: "🍯", titulo: "Canela / Especias / Ámbar", desc: "" },
-      { valor: "Madera", emoji: "🌲", titulo: "Maderas / Resinas / Oud", desc: "" },
+      { valor: "Madera", emoji: "🌲", titulo: "Maderas / Resinas / Especiada fuerte", desc: "" },
       { valor: "Cuero / Tabaco", emoji: "🚬", titulo: "Cuero / Tabaco / Ahumado", desc: "" },
       { valor: "Limpio / Empolvado", emoji: "🧼", titulo: "Jabón fino / Iris / Talco", desc: "" }
     ]
@@ -76,7 +76,7 @@
       titulo: "Perfecto, un poco más de detalle sobre esa madera \u2192",
       opciones: [
         { valor: "Madera suave / Cedro", emoji: "🪵", titulo: "Madera suave / Cedro", desc: "Cedro de Virginia, sándalo cremoso, vetiver y madera de guayaco" },
-        { valor: "Oud exótico", emoji: "🕌", titulo: "Oud exótico", desc: "Oud camboyano, incienso, mirra y resinas orientales" }
+        { valor: "Oud exótico", emoji: "🔥", titulo: "Madera especiada fuerte", desc: "Madera intensa y ahumada, con incienso, mirra y resinas orientales" }
       ]
     },
     "Cuero / Tabaco": {
@@ -93,6 +93,114 @@
       opciones: [
         { valor: "Jabón fino", emoji: "🧼", titulo: "Jabón fino", desc: "Lavanda, neroli, flor de azahar y musgo blanco" },
         { valor: "Iris elegante", emoji: "💄", titulo: "Iris elegante", desc: "Iris italiano empolvado, violeta, cacao y cuero suave" }
+      ]
+    }
+  };
+
+  // Subpreguntas 2.6 — solo existen para algunas subfamilias (las más
+  // grandes del catálogo). La clave siempre es "notaEspecifica".
+  // Se indexan por el valor de subAroma elegido en el paso 2.5.
+  const SUBSUBPREGUNTAS = {
+    // ===== MADERA =====
+    "Madera suave / Cedro": {
+      numero: "2.6 de 9",
+      titulo: "Ya casi, una última precisión sobre esa madera \u2192",
+      opciones: [
+        { valor: "cedro-citrico", emoji: "🍍", titulo: "Cítrico-amaderado", desc: "Con piña o bergamota en la apertura" },
+        { valor: "cedro-seco", emoji: "🌲", titulo: "Amaderado seco puro", desc: "Sin cítrico dominante, más clásico" }
+      ]
+    },
+    "Oud exótico": {
+      numero: "2.6 de 9",
+      titulo: "Ya casi, una última precisión sobre esa madera \u2192",
+      opciones: [
+        { valor: "fuerte-dulce", emoji: "🍯", titulo: "Con dulzura", desc: "Vainilla, praliné o ámbar suavizan la madera" },
+        { valor: "fuerte-resinoso", emoji: "🔥", titulo: "Puro y resinoso", desc: "Incienso y resinas, más intenso y seco" }
+      ]
+    },
+    // ===== DULCE / GOURMAND =====
+    "Frutal jugoso": {
+      numero: "2.6 de 9",
+      titulo: "Ya casi, una última precisión sobre ese dulzor \u2192",
+      opciones: [
+        { valor: "frutal-tropical", emoji: "🍍", titulo: "Piña / tropical", desc: "Piña, mango y frutas tropicales dulces" },
+        { valor: "frutal-citrico", emoji: "🍏", titulo: "Manzana / cítrico dulce", desc: "Manzana, cítricos y toques acaramelados" }
+      ]
+    },
+    "Vainilla / Caramelo": {
+      numero: "2.6 de 9",
+      titulo: "Ya casi, una última precisión sobre ese dulzor \u2192",
+      opciones: [
+        { valor: "vainilla-especiada", emoji: "🌶️", titulo: "Vainilla con especias", desc: "Canela, cacao o cardamomo junto a la vainilla" },
+        { valor: "vainilla-pura", emoji: "🍦", titulo: "Vainilla pura / almizclada", desc: "Vainilla suave, sin especias marcadas" }
+      ]
+    },
+    // ===== CÁLIDO / ESPECIADO =====
+    "Miel / Canela": {
+      numero: "2.6 de 9",
+      titulo: "Ya casi, una última precisión sobre ese calor \u2192",
+      opciones: [
+        { valor: "cafe-datiles", emoji: "☕", titulo: "Café / dátiles", desc: "Perfil árabe, con café o dátiles" },
+        { valor: "canela-clasica", emoji: "🍂", titulo: "Canela clásica", desc: "Canela como protagonista, sin café" }
+      ]
+    },
+    "Ámbar / Pimienta": {
+      numero: "2.6 de 9",
+      titulo: "Ya casi, una última precisión sobre ese calor \u2192",
+      opciones: [
+        { valor: "especiado-fresco", emoji: "🍊", titulo: "Especiado fresco", desc: "Con toronja o bergamota en la apertura" },
+        { valor: "especiado-intenso", emoji: "🌶️", titulo: "Especiado intenso", desc: "Más denso y envolvente" }
+      ]
+    },
+    // ===== FRESCO =====
+    "Marina / Salada": {
+      numero: "2.6 de 9",
+      titulo: "Ya casi, una última precisión sobre ese frescor \u2192",
+      opciones: [
+        { valor: "marino-suave", emoji: "🌤️", titulo: "Marino suave", desc: "Ligero, ideal para uso diario" },
+        { valor: "marino-intenso", emoji: "🌊", titulo: "Marino intenso", desc: "Más potente y envolvente" }
+      ]
+    },
+    "Menta / Té / Verde": {
+      numero: "2.6 de 9",
+      titulo: "Ya casi, una última precisión sobre ese frescor \u2192",
+      opciones: [
+        { valor: "menta-dominante", emoji: "🌿", titulo: "Menta dominante", desc: "Menta helada muy presente" },
+        { valor: "citrico-verde-suave", emoji: "🍋", titulo: "Cítrico verde suave", desc: "Verde y cítrico, sin tanta menta" }
+      ]
+    },
+    // ===== CÍTRICO =====
+    "Cítrico puro": {
+      numero: "2.6 de 9",
+      titulo: "Ya casi, una última precisión sobre ese cítrico \u2192",
+      opciones: [
+        { valor: "citrico-simple", emoji: "🍋", titulo: "Cítrico fresco simple", desc: "Directo, poca complejidad de fondo" },
+        { valor: "citrico-flor-madera", emoji: "🌸", titulo: "Cítrico con flor y madera", desc: "Con más cuerpo floral o amaderado" }
+      ]
+    },
+    "Piña / Frutal ahumado": {
+      numero: "2.6 de 9",
+      titulo: "Ya casi, una última precisión sobre ese cítrico \u2192",
+      opciones: [
+        { valor: "citrico-amaderado-potente", emoji: "💪", titulo: "Cítrico-amaderado potente", desc: "Apertura cítrica con fondo amaderado marcado" },
+        { valor: "citrico-lujo-complejo", emoji: "✨", titulo: "Cítrico de lujo complejo", desc: "Muchas capas, más sofisticado" }
+      ]
+    },
+    // ===== CUERO / TABACO =====
+    "Cuero elegante": {
+      numero: "2.6 de 9",
+      titulo: "Ya casi, una última precisión sobre ese cuero \u2192",
+      opciones: [
+        { valor: "cuero-fresco", emoji: "🍊", titulo: "Cuero fresco/cítrico", desc: "Con toques cítricos en la apertura" },
+        { valor: "cuero-calido", emoji: "🔥", titulo: "Cuero cálido/especiado", desc: "Más denso, con especias o ámbar" }
+      ]
+    },
+    "Tabaco dulce": {
+      numero: "2.6 de 9",
+      titulo: "Ya casi, una última precisión sobre ese tabaco \u2192",
+      opciones: [
+        { valor: "tabaco-cacao", emoji: "🍫", titulo: "Tabaco con cacao", desc: "Tabaco junto a cacao o chocolate" },
+        { valor: "tabaco-miel", emoji: "🍯", titulo: "Tabaco con miel", desc: "Tabaco junto a miel o especias dulces" }
       ]
     }
   };
@@ -252,7 +360,12 @@
   const tarjetasResultado = $("#tarjetas-resultado");
   const plantillaTarjeta = $("#plantilla-tarjeta");
 
-  const TOTAL_PASOS_VISUALES = 7; // para el indicador "Paso X de 7", aunque el camino real tenga 8 nodos (2.5)
+  // El total de pasos visuales ya no es fijo: depende de si el camino
+  // actual tiene subpregunta 2.5 (8 pasos) y/o 2.6 (9 pasos), o ninguna
+  // de las dos todavía (7, mientras se responde la pregunta 2).
+  function totalPasosVisuales() {
+    return estado.camino.length - 1; // el camino tiene N nodos, pero P2.5/P2.6 comparten el número "2"
+  }
 
   let avanceAutomaticoTimeout = null; // controla el avance automático tras seleccionar una opción
 
@@ -280,7 +393,10 @@
   }
 
   function construirCaminoTrasPregunta2() {
-    // Inserta la subpregunta correspondiente justo después de la pregunta 2
+    // Inserta la subpregunta 2.5 correspondiente justo después de la
+    // pregunta 2. La 2.6 (si existe para esa subfamilia) se agrega más
+    // adelante, cuando el usuario responda la 2.5 — ver
+    // construirCaminoTrasSubpregunta().
     const aroma = estado.respuestas.aromaPrincipal;
     const sub = SUBPREGUNTAS[aroma];
     const subPregunta = {
@@ -300,16 +416,56 @@
       PREGUNTA_6,
       PREGUNTA_7
     ];
+    // Si ya había una respuesta de notaEspecifica de un camino anterior
+    // (el usuario retrocedió y cambió de familia), la limpiamos.
+    delete estado.respuestas.notaEspecifica;
+  }
+
+  function construirCaminoTrasSubpregunta() {
+    // Si la subfamilia elegida tiene una pregunta 2.6 definida, la
+    // insertamos justo después del nodo de subAroma (índice 2). Si no
+    // existe (subfamilias pequeñas), el camino se queda en 8 pasos como
+    // antes, sin pregunta extra.
+    const sub = estado.respuestas.subAroma;
+    const subsub = SUBSUBPREGUNTAS[sub];
+
+    // Reconstruimos el camino desde cero para no duplicar el nodo si el
+    // usuario va y viene entre subfamilias distintas.
+    const aroma = estado.respuestas.aromaPrincipal;
+    const spCfg = SUBPREGUNTAS[aroma];
+    const subPregunta = {
+      clave: "subAroma",
+      numero: spCfg.numero,
+      titulo: spCfg.titulo,
+      opciones: spCfg.opciones
+    };
+
+    const nuevoCamino = [PREGUNTA_1, PREGUNTA_2, subPregunta];
+
+    if (subsub) {
+      nuevoCamino.push({
+        clave: "notaEspecifica",
+        numero: subsub.numero,
+        titulo: subsub.titulo,
+        opciones: subsub.opciones
+      });
+    } else {
+      delete estado.respuestas.notaEspecifica;
+    }
+
+    nuevoCamino.push(PREGUNTA_3, PREGUNTA_4, PREGUNTA_5, PREGUNTA_6, PREGUNTA_7);
+    estado.camino = nuevoCamino;
   }
 
   function renderizarPregunta() {
     const pregunta = estado.camino[estado.pasoActual];
     const respuestaActual = estado.respuestas[pregunta.clave];
 
-    // Indicador de progreso: mapeamos el paso real a un "paso visual" de 7
+    // Indicador de progreso: "Paso X de N", donde N depende del camino real
     const pasoVisual = calcularPasoVisual();
-    progresoTexto.textContent = `Paso ${pasoVisual} de ${TOTAL_PASOS_VISUALES}`;
-    const pct = Math.round((pasoVisual / TOTAL_PASOS_VISUALES) * 100);
+    const totalVisual = totalPasosVisuales();
+    progresoTexto.textContent = `Paso ${pasoVisual} de ${totalVisual}`;
+    const pct = Math.round((pasoVisual / totalVisual) * 100);
     progresoPorcentaje.textContent = `${pct}%`;
     progresoRelleno.style.width = `${pct}%`;
 
@@ -373,23 +529,35 @@
   }
 
   function calcularPasoVisual() {
-    // Pasos 0,1 -> visual 1,2. Si estamos en la subpregunta (índice 2 cuando existe), sigue siendo "2".
-    // A partir de ahí, el índice real se corre +1 respecto al visual (por el nodo de subpregunta).
+    // Preguntas 1 y 2 siempre son los primeros dos nodos del camino.
     const idx = estado.pasoActual;
-    if (idx <= 1) return idx + 1; // preguntas 1 y 2
-    if (estado.camino.length === 8) {
-      if (idx === 2) return 2; // subpregunta 2.5 sigue mostrando "2"
-      return idx; // idx=3->3, 4->4, 5->5, 6->6, 7->7
-    }
-    return idx + 1;
+    if (idx <= 1) return idx + 1;
+
+    // A partir de aquí, el camino puede tener 0, 1 o 2 nodos extra antes
+    // de llegar a la Pregunta 3 (subAroma en el índice 2, y notaEspecifica
+    // en el índice 3 si existe). Todos esos nodos "extra" se muestran
+    // como parte del paso 2 en el indicador, y el resto de preguntas se
+    // corre según cuántos nodos extra haya.
+    const tieneSubAroma = estado.camino[2] && estado.camino[2].clave === "subAroma";
+    const tieneNotaEspecifica = estado.camino[3] && estado.camino[3].clave === "notaEspecifica";
+    const nodosExtra = (tieneSubAroma ? 1 : 0) + (tieneNotaEspecifica ? 1 : 0);
+
+    if (idx <= 1 + nodosExtra) return 2; // subAroma y/o notaEspecifica muestran "2"
+    return idx - nodosExtra;
   }
 
   function seleccionarOpcion(clave, valor) {
     estado.respuestas[clave] = valor;
 
-    // Si acabamos de responder la pregunta 2, construir el camino con la subpregunta correcta
+    // Si acabamos de responder la pregunta 2, construir el camino con la subpregunta 2.5 correcta
     if (clave === "aromaPrincipal") {
       construirCaminoTrasPregunta2();
+    }
+
+    // Si acabamos de responder la subpregunta 2.5, insertar (o no) la 2.6
+    // según corresponda a esa subfamilia.
+    if (clave === "subAroma") {
+      construirCaminoTrasSubpregunta();
     }
 
     renderizarPregunta();
@@ -458,17 +626,20 @@
   function calcularScore(perfume, categoriaPerfume, r) {
     let score = 0;
 
-    // Familia Olfativa Principal (Paso 2): +30
-    if (perfume.aromaPrincipal === r.aromaPrincipal) score += 30;
+    // Familia Olfativa Principal (Paso 2): +25
+    if (perfume.aromaPrincipal === r.aromaPrincipal) score += 25;
 
-    // Nota / Sub-aroma específico (Paso 2.5): +20
-    if (perfume.subAroma === r.subAroma) score += 20;
+    // Sub-aroma (Paso 2.5): +15
+    if (perfume.subAroma === r.subAroma) score += 15;
+
+    // Nota específica (Paso 2.6, solo cuando existe en el camino): +15
+    if (r.notaEspecifica && perfume.notaEspecifica === r.notaEspecifica) score += 15;
 
     // Tipo/Marca (Paso 1): +15 (o si eligió "Cualquiera")
     if (r.tipo === "Cualquiera" || perfume.tipo === r.tipo) score += 15;
 
-    // Ocasión / Momento (Paso 3): +15
-    if (perfume.momento === r.momento) score += 15;
+    // Ocasión / Momento (Paso 3): +12
+    if (perfume.momento === r.momento) score += 12;
 
     // Clima (Paso 4): +10
     if (perfume.clima === r.clima) score += 10;
@@ -476,10 +647,10 @@
     // Estilo/Edad (Paso 5): +5
     if (perfume.estilo === r.estilo) score += 5;
 
-    // Presupuesto exacto (Paso 7): +5 (o si eligió "Sin límite")
-    if (r.presupuesto === "Sin límite" || categoriaPerfume === r.presupuesto) score += 5;
+    // Presupuesto exacto (Paso 7): +3 (o si eligió "Sin límite")
+    if (r.presupuesto === "Sin límite" || categoriaPerfume === r.presupuesto) score += 3;
 
-    return score; // máximo teórico: 100
+    return score; // máximo teórico: 100 (o 85 si el camino no tuvo Paso 2.6)
   }
 
   function obtenerTop4() {
