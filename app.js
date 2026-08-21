@@ -33,7 +33,7 @@
       { valor: "Cálido / Especiado", emoji: "🍯", titulo: "Canela / Especias / Ámbar", desc: "" },
       { valor: "Madera", emoji: "🌲", titulo: "Maderas / Resinas / Especiada fuerte", desc: "" },
       { valor: "Cuero / Tabaco", emoji: "🚬", titulo: "Cuero / Tabaco / Ahumado", desc: "" },
-      { valor: "Limpio / Empolvado", emoji: "🧼", titulo: "Jabón fino / Iris / Talco", desc: "" }
+      { valor: "Limpio y Suave", emoji: "🧼", titulo: "Jabón fino / Iris / Talco", desc: "" }
     ]
   };
 
@@ -52,7 +52,7 @@
       titulo: "Perfecto, un poco más de detalle sobre ese cítrico \u2192",
       opciones: [
         { valor: "Cítrico puro", emoji: "🍋", titulo: "Cítrico puro", desc: "Bergamota de Calabria, limón italiano, mandarina y pomelo" },
-        { valor: "Piña / Frutal ahumado", emoji: "🍍", titulo: "Piña / Frutal ahumado", desc: "Piña jugosa, bergamota, grosella negra y abedul ahumado" }
+        { valor: "Cítrico verde / aromático", emoji: "🌿", titulo: "Cítrico verde / aromático", desc: "Cítrico combinado con menta, salvia, romero o lavanda" }
       ]
     },
     "Dulce / Gourmand": {
@@ -87,12 +87,12 @@
         { valor: "Tabaco dulce", emoji: "🍂", titulo: "Tabaco dulce", desc: "Hoja de tabaco rubio, vainilla ahumada y tonka" }
       ]
     },
-    "Limpio / Empolvado": {
+    "Limpio y Suave": {
       numero: "2.5 de 7",
       titulo: "Perfecto, un poco más de detalle sobre ese aroma limpio \u2192",
       opciones: [
         { valor: "Jabón fino", emoji: "🧼", titulo: "Jabón fino", desc: "Lavanda, neroli, flor de azahar y musgo blanco" },
-        { valor: "Iris elegante", emoji: "💄", titulo: "Iris elegante", desc: "Iris italiano empolvado, violeta, cacao y cuero suave" }
+        { valor: "Iris elegante", emoji: "💄", titulo: "Iris elegante", desc: "Iris italiano suave, violeta, cacao y cuero delicado" }
       ]
     }
   };
@@ -176,14 +176,6 @@
       opciones: [
         { valor: "citrico-simple", emoji: "🍋", titulo: "Cítrico fresco simple", desc: "Directo, poca complejidad de fondo" },
         { valor: "citrico-flor-madera", emoji: "🌸", titulo: "Cítrico con flor y madera", desc: "Con más cuerpo floral o amaderado" }
-      ]
-    },
-    "Piña / Frutal ahumado": {
-      numero: "2.6 de 9",
-      titulo: "Ya casi, una última precisión sobre ese cítrico \u2192",
-      opciones: [
-        { valor: "citrico-amaderado-potente", emoji: "💪", titulo: "Cítrico-amaderado potente", desc: "Apertura cítrica con fondo amaderado marcado" },
-        { valor: "citrico-lujo-complejo", emoji: "✨", titulo: "Cítrico de lujo complejo", desc: "Muchas capas, más sofisticado" }
       ]
     },
     // ===== CUERO / TABACO =====
@@ -347,6 +339,7 @@
   const pantallaInicio = $("#pantalla-inicio");
   const pantallaTest = $("#pantalla-test");
   const pantallaResultados = $("#pantalla-resultados");
+  const pantallaSetOcasion = $("#pantalla-set-ocasion");
 
   const btnEmpezar = $("#btn-empezar");
   const btnAtras = $("#btn-atras");
@@ -359,6 +352,8 @@
   const progresoRelleno = $("#progreso-relleno");
   const tarjetasResultado = $("#tarjetas-resultado");
   const plantillaTarjeta = $("#plantilla-tarjeta");
+  const zonaFormatos = $("#zona-formatos-formato");
+  const contenidoSetOcasion = $("#contenido-set-ocasion");
 
   // El total de pasos visuales ya no es fijo: depende de si el camino
   // actual tiene subpregunta 2.5 (8 pasos) y/o 2.6 (9 pasos), o ninguna
@@ -372,7 +367,7 @@
   /* ============ NAVEGACIÓN ============ */
 
   function irAPantalla(pantalla) {
-    [pantallaInicio, pantallaTest, pantallaResultados].forEach((p) =>
+    [pantallaInicio, pantallaTest, pantallaResultados, pantallaSetOcasion].forEach((p) =>
       p.classList.remove("activa")
     );
     pantalla.classList.add("activa");
@@ -760,6 +755,7 @@
 
     top4.forEach((perfume) => {
       const nodo = plantillaTarjeta.content.cloneNode(true);
+      const articulo = nodo.querySelector(".tarjeta-perfume");
 
       const imgEl = nodo.querySelector('[data-campo="imagen"]');
       imgEl.src = perfume.imagen;
@@ -782,10 +778,388 @@
 
       renderizarNotas(nodo, perfume.notas);
 
+      articulo.addEventListener("click", () => seleccionarPerfumeResultado(perfume, articulo));
+
       tarjetasResultado.appendChild(nodo);
     });
 
+    zonaFormatos.innerHTML = "";
     irAPantalla(pantallaResultados);
+  }
+
+  /* ============ SET OCASIÓN: elegir formato tras seleccionar un resultado ============ */
+
+  function seleccionarPerfumeResultado(perfume, articuloEl) {
+    estadoSetOcasion.perfumeSeleccionado = perfume;
+
+    tarjetasResultado.querySelectorAll(".tarjeta-perfume").forEach((a) => a.classList.remove("seleccionada"));
+    articuloEl.classList.add("seleccionada");
+
+    zonaFormatos.innerHTML = `
+      <div class="formatos-desplegados">
+        <div class="formatos-opciones">
+          <div class="formato-card" id="btn-formato-probar">
+            <div class="formato-emoji">🧪</div>
+            <div class="formato-titulo">Probar</div>
+            <div class="formato-desc">Decant de 5ml de esta fragancia</div>
+          </div>
+          <div class="formato-card destacada" id="btn-formato-set">
+            <div class="formato-emoji">🎁</div>
+            <div class="formato-titulo">Set Ocasión</div>
+            <div class="formato-desc">3 decants de 5ml para cada momento</div>
+          </div>
+          <div class="formato-card" id="btn-formato-botella">
+            <div class="formato-emoji">🍾</div>
+            <div class="formato-titulo">Botella</div>
+            <div class="formato-desc">El frasco completo</div>
+          </div>
+        </div>
+      </div>
+    `;
+    $("#btn-formato-set").addEventListener("click", () => {
+      renderSetOcasion();
+      irAPantalla(pantallaSetOcasion);
+    });
+    $("#btn-formato-probar").addEventListener("click", () =>
+      alert(`(Próximamente) Comprar decant de 5ml de ${perfume.nombre}`)
+    );
+    $("#btn-formato-botella").addEventListener("click", () =>
+      alert(`(Próximamente) Comprar botella completa de ${perfume.nombre}`)
+    );
+
+    setTimeout(() => {
+      if (zonaFormatos && typeof zonaFormatos.scrollIntoView === "function") {
+        zonaFormatos.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }
+    }, 50);
+  }
+
+  /* ============ SET OCASIÓN: motor y flujo completo ============ */
+
+  const CASILLAS_SET_OCASION = [
+    { id: "calido", etiqueta: "Clima cálido / Día", emoji: "☀️", climaValor: "Caliente / Sol" },
+    { id: "frio", etiqueta: "Clima frío / Noche", emoji: "❄️", climaValor: "Frío / Noche" },
+    { id: "libre", etiqueta: "Ocasión libre / Fin de semana", emoji: "🎲", climaValor: "Templado" },
+  ];
+
+  function mapearClimaACasillaSet(climaPerfume) {
+    if (climaPerfume === "Caliente / Sol") return "calido";
+    if (climaPerfume === "Frío / Noche") return "frio";
+    return "libre";
+  }
+
+  // Para "Clima cálido / Día" solo dejamos familias frescas y ligeras. Para
+  // "Frío / Noche" solo las que el catálogo respalda con datos reales.
+  // "Ocasión libre" no pasa por preguntas de aroma (ver renderListaVersatiles).
+  const AROMAS_PERMITIDOS_SET_OCASION = {
+    "Caliente / Sol": ["Cítrico", "Fresco"],
+    "Frío / Noche": ["Cálido / Especiado", "Madera", "Cuero / Tabaco", "Dulce / Gourmand"],
+    Templado: null,
+  };
+
+  function preguntaAromaFiltradaSet(climaValor) {
+    const permitidos = AROMAS_PERMITIDOS_SET_OCASION[climaValor];
+    const opciones = PREGUNTA_2.opciones.filter((op) =>
+      permitidos ? permitidos.includes(op.valor) : true
+    );
+    return { titulo: PREGUNTA_2.titulo, opciones };
+  }
+
+  const estadoSetOcasion = {
+    perfumeSeleccionado: null,
+    porCasilla: {},
+    filtroTipoLibre: "Todos",
+  };
+  let respuestasCasillaTemp = {};
+
+  function buscarMejorMatchSet(filtros) {
+    let mejorScore = -1;
+    let empatados = [];
+    PERFUMES.forEach((p) => {
+      if (!estaActivo(p, leerOverridesActivo())) return;
+      let score = 0;
+      if (filtros.aromaPrincipal && p.aromaPrincipal === filtros.aromaPrincipal) score += 22;
+      if (filtros.subAroma && p.subAroma === filtros.subAroma) score += 13;
+      if (filtros.notaEspecifica && p.notaEspecifica === filtros.notaEspecifica) score += 12;
+      if (filtros.tipo === "Cualquiera") score += 13;
+      else if (filtros.tipo && p.tipo === filtros.tipo) score += 13;
+      if (filtros.clima && p.clima === filtros.clima) score += 15;
+      if (filtros.estilo && p.estilo === filtros.estilo) score += 9;
+      if (filtros.potencia && p.potencia === filtros.potencia) score += 4;
+      if (filtros.presupuesto === "Sin límite" || filtros.presupuesto === p.presupuesto) score += 2;
+
+      if (score > mejorScore) {
+        mejorScore = score;
+        empatados = [p];
+      } else if (score === mejorScore) {
+        empatados.push(p);
+      }
+    });
+    if (empatados.length === 0) return null;
+    return empatados[Math.floor(Math.random() * empatados.length)];
+  }
+
+  function renderSetOcasion() {
+    // Llenamos la casilla correspondiente al perfume que el usuario eligió
+    // en el Top4, si esa casilla todavía no tenía nada.
+    const p = estadoSetOcasion.perfumeSeleccionado;
+    if (p) {
+      const casillaDelElegido = mapearClimaACasillaSet(p.clima);
+      if (!estadoSetOcasion.porCasilla[casillaDelElegido]) {
+        estadoSetOcasion.porCasilla[casillaDelElegido] = p;
+      }
+    }
+
+    contenidoSetOcasion.innerHTML = `
+      <button class="btn-volver-setocasion" id="btn-volver-a-resultados">← Volver al resultado</button>
+      <h2 class="set-ocasion-titulo">Arma tu Set Ocasión</h2>
+      <p class="set-ocasion-sub">Un decant de 5ml para cada momento. Completa las que faltan.</p>
+      <div class="casillas-set-ocasion" id="lista-casillas-set"></div>
+    `;
+    $("#btn-volver-a-resultados").addEventListener("click", () => irAPantalla(pantallaResultados));
+    renderCasillasSet();
+  }
+
+  function imgConFallbackSet(perfume, clase) {
+    const img = document.createElement("img");
+    img.className = clase;
+    img.src = perfume.imagen;
+    img.alt = `Frasco de ${perfume.nombre}`;
+    img.addEventListener("error", function manejarError() {
+      img.removeEventListener("error", manejarError);
+      img.src = FALLBACK_IMG;
+    });
+    return img;
+  }
+
+  function renderCasillasSet() {
+    const cont = $("#lista-casillas-set");
+    cont.innerHTML = "";
+    CASILLAS_SET_OCASION.forEach((cfg) => {
+      const perfume = estadoSetOcasion.porCasilla[cfg.id];
+      const div = document.createElement("div");
+
+      if (perfume) {
+        div.className = "casilla-set llena";
+        const iconoSlot = document.createElement("div");
+        iconoSlot.className = "casilla-set-icono";
+        iconoSlot.appendChild(imgConFallbackSet(perfume, ""));
+
+        const info = document.createElement("div");
+        info.className = "casilla-set-info";
+        info.innerHTML = `
+          <div class="casilla-set-etiqueta">${cfg.etiqueta}</div>
+          <p class="casilla-set-nombre">${perfume.nombre}</p>
+          <div class="casilla-set-notas">${perfume.notas}</div>
+        `;
+
+        const check = document.createElement("div");
+        check.className = "casilla-set-check";
+        check.textContent = "✓";
+
+        div.appendChild(iconoSlot);
+        div.appendChild(info);
+        div.appendChild(check);
+      } else {
+        div.className = "casilla-set vacia";
+        div.innerHTML = `
+          <div class="casilla-set-icono">${cfg.emoji}</div>
+          <div class="casilla-set-info">
+            <div class="casilla-set-etiqueta">${cfg.etiqueta}</div>
+            <div class="casilla-set-vacio-texto">Toca para completar esta casilla</div>
+          </div>
+          <div class="casilla-set-cta">Completar →</div>
+        `;
+        div.addEventListener("click", () => iniciarPreguntasCasillaSet(cfg));
+      }
+      cont.appendChild(div);
+    });
+  }
+
+  function iniciarPreguntasCasillaSet(cfg) {
+    respuestasCasillaTemp = { clima: cfg.climaValor };
+    if (cfg.id === "libre") {
+      renderListaVersatilesSet(cfg);
+    } else {
+      renderPreguntaMarcaSet(cfg);
+    }
+  }
+
+  function renderListaVersatilesSet(cfg) {
+    const overridesActivo = leerOverridesActivo();
+    const todos = PERFUMES.filter((p) => estaActivo(p, overridesActivo) && p.clima === "Templado");
+    const filtro = estadoSetOcasion.filtroTipoLibre;
+    const candidatos = filtro === "Todos" ? todos : todos.filter((p) => p.tipo === filtro);
+
+    contenidoSetOcasion.innerHTML = `
+      <button class="btn-volver-setocasion" id="btn-volver-casillas-libre">← Volver</button>
+      <h3 class="setocasion-pregunta-titulo" style="margin-bottom:6px;">Elige uno para probar</h3>
+      <p class="set-ocasion-sub" style="margin-bottom:16px;">Estos son versátiles: funcionan casi para cualquier ocasión o clima.</p>
+      <div class="setocasion-filtro-chips" id="filtro-chips-set"></div>
+      <div class="setocasion-opciones" id="lista-versatiles-set"></div>
+    `;
+    $("#btn-volver-casillas-libre").addEventListener("click", renderSetOcasion);
+
+    const chipsCont = $("#filtro-chips-set");
+    ["Todos", "Diseñador", "Árabe", "Lujo"].forEach((tipo) => {
+      const chip = document.createElement("button");
+      chip.className = "setocasion-filtro-chip" + (tipo === filtro ? " activo" : "");
+      chip.textContent = tipo;
+      chip.addEventListener("click", () => {
+        estadoSetOcasion.filtroTipoLibre = tipo;
+        renderListaVersatilesSet(cfg);
+      });
+      chipsCont.appendChild(chip);
+    });
+
+    const cont = $("#lista-versatiles-set");
+    candidatos.forEach((p) => {
+      const btn = document.createElement("button");
+      btn.className = "setocasion-opcion-btn";
+      btn.appendChild(imgConFallbackSet(p, "setocasion-opcion-imagen"));
+      const span = document.createElement("span");
+      span.innerHTML = `<span class="setocasion-opcion-titulo">${p.nombre}</span><div class="casilla-set-notas" style="margin-top:6px;">${p.notas}</div>`;
+      btn.appendChild(span);
+      btn.addEventListener("click", () => {
+        estadoSetOcasion.porCasilla[cfg.id] = p;
+        renderSetOcasion();
+      });
+      cont.appendChild(btn);
+    });
+  }
+
+  function renderOpcionesSet(titulo, pasoTexto, opciones, onSelect, onVolver, idBotonVolver) {
+    contenidoSetOcasion.innerHTML = `
+      <button class="btn-volver-setocasion" id="${idBotonVolver}">← Volver</button>
+      <div class="setocasion-paso-indicador">${pasoTexto}</div>
+      <h3 class="setocasion-pregunta-titulo">${titulo}</h3>
+      <div class="setocasion-opciones" id="setocasion-opciones-actual"></div>
+    `;
+    $(`#${idBotonVolver}`).addEventListener("click", onVolver);
+    const cont = $("#setocasion-opciones-actual");
+    opciones.forEach((op) => {
+      const btn = document.createElement("button");
+      btn.className = "setocasion-opcion-btn";
+      btn.innerHTML = `<span class="setocasion-opcion-emoji">${op.emoji}</span><span><span class="setocasion-opcion-titulo">${op.titulo}</span>${op.desc ? `<br><span class="setocasion-opcion-desc">${op.desc}</span>` : ""}</span>`;
+      btn.addEventListener("click", () => onSelect(op.valor));
+      cont.appendChild(btn);
+    });
+  }
+
+  function renderPreguntaMarcaSet(cfg) {
+    renderOpcionesSet(
+      PREGUNTA_1.titulo,
+      `${cfg.etiqueta} · Pregunta 1 de 5`,
+      PREGUNTA_1.opciones,
+      (valor) => {
+        respuestasCasillaTemp.tipo = valor;
+        renderPreguntaAromaSet(cfg);
+      },
+      renderSetOcasion,
+      "btn-volver-casillas-set"
+    );
+  }
+
+  function renderPreguntaAromaSet(cfg) {
+    const preguntaAroma = preguntaAromaFiltradaSet(cfg.climaValor);
+    renderOpcionesSet(
+      preguntaAroma.titulo,
+      `${cfg.etiqueta} · Pregunta 2 de 5`,
+      preguntaAroma.opciones,
+      (valor) => {
+        respuestasCasillaTemp.aromaPrincipal = valor;
+        renderSubpreguntaSet(cfg);
+      },
+      () => renderPreguntaMarcaSet(cfg),
+      "btn-volver-marca-set"
+    );
+  }
+
+  function renderSubpreguntaSet(cfg) {
+    const sub = SUBPREGUNTAS[respuestasCasillaTemp.aromaPrincipal];
+    renderOpcionesSet(
+      sub.titulo,
+      `${cfg.etiqueta} · Pregunta 3 de 5`,
+      sub.opciones,
+      (valor) => {
+        respuestasCasillaTemp.subAroma = valor;
+        delete respuestasCasillaTemp.notaEspecifica;
+        const subsub = SUBSUBPREGUNTAS[valor];
+        if (subsub) {
+          renderNotaEspecificaSet(cfg, subsub);
+        } else {
+          renderVibraSet(cfg);
+        }
+      },
+      () => renderPreguntaAromaSet(cfg),
+      "btn-volver-sub-set"
+    );
+  }
+
+  function renderNotaEspecificaSet(cfg, subsub) {
+    renderOpcionesSet(
+      subsub.titulo,
+      `${cfg.etiqueta} · Pregunta 4 de 6`,
+      subsub.opciones,
+      (valor) => {
+        respuestasCasillaTemp.notaEspecifica = valor;
+        renderVibraSet(cfg);
+      },
+      () => renderSubpreguntaSet(cfg),
+      "btn-volver-notaesp-set"
+    );
+  }
+
+  function renderVibraSet(cfg) {
+    const huboNotaEspecifica = respuestasCasillaTemp.notaEspecifica !== undefined;
+    renderOpcionesSet(
+      PREGUNTA_5.titulo,
+      `${cfg.etiqueta} · Pregunta ${huboNotaEspecifica ? "5 de 6" : "4 de 5"}`,
+      PREGUNTA_5.opciones,
+      (valor) => {
+        respuestasCasillaTemp.estilo = valor;
+        renderPotenciaSet(cfg);
+      },
+      () => {
+        if (huboNotaEspecifica) {
+          renderNotaEspecificaSet(cfg, SUBSUBPREGUNTAS[respuestasCasillaTemp.subAroma]);
+        } else {
+          renderSubpreguntaSet(cfg);
+        }
+      },
+      "btn-volver-vibra-set"
+    );
+  }
+
+  function renderPotenciaSet(cfg) {
+    const huboNotaEspecifica = respuestasCasillaTemp.notaEspecifica !== undefined;
+    renderOpcionesSet(
+      PREGUNTA_6.titulo,
+      `${cfg.etiqueta} · Pregunta ${huboNotaEspecifica ? "6 de 6" : "5 de 5"}`,
+      PREGUNTA_6.opciones,
+      (valor) => {
+        respuestasCasillaTemp.potencia = valor;
+        renderPresupuestoSet(cfg);
+      },
+      () => renderVibraSet(cfg),
+      "btn-volver-potencia-set"
+    );
+  }
+
+  function renderPresupuestoSet(cfg) {
+    renderOpcionesSet(
+      PREGUNTA_7.titulo,
+      `${cfg.etiqueta} · Última pregunta`,
+      PREGUNTA_7.opciones,
+      (valor) => {
+        respuestasCasillaTemp.presupuesto = valor;
+        const match = buscarMejorMatchSet(respuestasCasillaTemp);
+        estadoSetOcasion.porCasilla[cfg.id] = match;
+        renderSetOcasion();
+      },
+      () => renderPotenciaSet(cfg),
+      "btn-volver-presupuesto-set"
+    );
   }
 
   /* ============ EVENT LISTENERS GLOBALES ============ */
