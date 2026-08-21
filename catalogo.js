@@ -35,13 +35,84 @@
   function mensajeDeError(e) {
     const texto = String((e && e.message) || e || "");
     if (texto.indexOf("401") !== -1 || texto.indexOf("403") !== -1) {
-      return "Sin permiso para guardar. Recarga la página y vuelve a ingresar la contraseña.";
+      return "La base de datos rechazó el cambio por falta de permiso. Mira el recuadro rojo de arriba.";
     }
     if (texto.indexOf("timeout") !== -1) {
       return "La conexión tardó demasiado. Revisa tu internet e intenta de nuevo.";
     }
     return "No se pudo guardar el cambio. Intenta de nuevo.";
   }
+
+  /* ============ ESTADO PERMANENTE DE LA CONEXIÓN ============ */
+  // Este recuadro es distinto de la nota de abajo: la nota cuenta qué pasó
+  // con la última acción y se sobrescribe todo el rato; esto cuenta si el
+  // panel puede guardar o no, y se queda fijo. Antes ambas cosas competían
+  // por el mismo párrafo, así que el diagnóstico real desaparecía en cuanto
+  // tocabas un botón y solo quedaba un "no se pudo guardar" sin explicación.
+
+  let puedeEscribir = true;
+
+  function mostrarEstado(tipo, html) {
+    if (!panelEstado) return;
+    panelEstado.className = "panel-estado " + tipo;
+    panelEstado.innerHTML = html;
+    panelEstado.hidden = false;
+  }
+
+  // Cuando no se puede guardar, atenuamos y bloqueamos los controles que
+  // escriben. Es preferible a dejar hacer 143 cambios que se van a perder.
+  function fijarPermisoDeEscritura(puede) {
+    puedeEscribir = puede;
+    document.body.classList.toggle("sin-permiso-escritura", !puede);
+    if (btnAplicarGlobal) btnAplicarGlobal.disabled = !puede;
+    if (btnResetPrecios) btnResetPrecios.disabled = !puede;
+  }
+
+  const INSTRUCCIONES_USUARIO_ADMIN =
+    "<ol>" +
+    "<li>Entra a tu proyecto en <strong>supabase.com</strong></li>" +
+    "<li>Menú izquierdo → <strong>Authentication</strong> → <strong>Users</strong></li>" +
+    "<li>Botón <strong>Add user</strong> → <strong>Create new user</strong></li>" +
+    "<li>Email: <code>admin@buscadorperfumes.kaiketek.com</code> (exacto)</li>" +
+    "<li>Password: la misma contraseña con la que entraste aquí</li>" +
+    "<li>Marca la casilla <strong>Auto Confirm User</strong></li>" +
+    "<li>Vuelve aquí y recarga la página</li>" +
+    "</ol>";
+
+  // auth-catalogo.js llama a esto después de validar la contraseña.
+  window.PerfumesPanelEstado = function (resultado) {
+    const motivo = resultado && resultado.motivo;
+
+    if (resultado && resultado.ok) {
+      fijarPermisoDeEscritura(true);
+      mostrarEstado("ok", "<strong>✓ Conectado a la base de datos</strong>Tus cambios se guardan en la nube y los ven todos los visitantes del test.");
+      return;
+    }
+
+    fijarPermisoDeEscritura(false);
+
+    if (motivo === "sin-red") {
+      mostrarEstado("error",
+        "<strong>⚠ No hay conexión con la base de datos</strong>" +
+        "No se pudo contactar a Supabase. Revisa tu internet y recarga la página. " +
+        "Mientras tanto puedes ver el catálogo, pero no guardar cambios.");
+      return;
+    }
+
+    if (motivo === "sin-confirmar") {
+      mostrarEstado("error",
+        "<strong>⚠ El usuario administrador está sin confirmar</strong>" +
+        "Existe en Supabase, pero quedó pendiente de confirmación, así que no puede guardar. " +
+        "Entra a <strong>Authentication → Users</strong>, abre ese usuario y confírmalo (o bórralo y créalo de nuevo marcando <strong>Auto Confirm User</strong>).");
+      return;
+    }
+
+    // Caso más frecuente: el usuario administrador nunca se creó.
+    mostrarEstado("error",
+      "<strong>⚠ Falta crear el usuario administrador en Supabase</strong>" +
+      "Por eso no se guarda ningún cambio. Los controles de precio, fotos y activación están bloqueados hasta que lo arregles:" +
+      INSTRUCCIONES_USUARIO_ADMIN);
+  };
 
   function precioActual(perfume, overrides) {
     const guardado = overrides[perfume.id];
@@ -93,6 +164,7 @@
   const btnAplicarGlobal = $("#btn-aplicar-global");
   const btnResetPrecios = $("#btn-reset-precios");
   const panelNota = $("#panel-nota");
+  const panelEstado = $("#panel-estado");
   const inputBuscar = $("#input-buscar");
   const chipsFiltro = $$(".filtro-chip");
 
@@ -367,7 +439,7 @@
         panelNota.textContent = mensajeDeError(e);
       })
       .then(() => {
-        btnAplicarGlobal.disabled = false;
+        btnAplicarGlobal.disabled = !puedeEscribir;
       });
   }
 
@@ -378,10 +450,13 @@
     // Solo borra los precios: las fotos y los activados/desactivados
     // se quedan como están.
     PerfumesDB.restablecerPrecios()
-      .then(() => {
+      .then((r) => {
         sincronizarMapasLocales();
         renderizarCatalogo();
-        panelNota.textContent = "Precios restablecidos: todas las fragancias vuelven a su precio original.";
+        panelNota.textContent =
+          r && r.sinCambios
+            ? "No había precios ajustados: todas las fragancias ya estaban en su precio original."
+            : "Precios restablecidos: todas las fragancias vuelven a su precio original. Te sugerimos aplicar un aumento para tener margen de utilidad.";
       })
       .catch((e) => {
         console.warn("No se pudieron restablecer los precios:", e);
@@ -390,7 +465,7 @@
         panelNota.textContent = mensajeDeError(e);
       })
       .then(() => {
-        btnResetPrecios.disabled = false;
+        btnResetPrecios.disabled = !puedeEscribir;
       });
   }
 
@@ -458,17 +533,23 @@
 
   function avisarModoDeGuardado() {
     if (!PerfumesDB.estaConfigurada()) {
-      panelNota.textContent =
-        "⚠️ Sin conexión a la base de datos: los cambios se guardan solo en este navegador y no los verán los visitantes.";
+      fijarPermisoDeEscritura(false);
+      mostrarEstado("error",
+        "<strong>⚠ El panel no está conectado a ninguna base de datos</strong>" +
+        "Faltan las claves de Supabase en <code>db.js</code>. Los cambios no se guardarían en ningún lado.");
       return;
     }
-    panelNota.textContent =
-      "Los cambios se guardan en la base de datos y los ven todos los visitantes del test.";
+    // Si ya había sesión de escritura de antes (misma pestaña), lo reflejamos
+    // sin esperar a que se vuelva a teclear la contraseña.
+    if (PerfumesDB.sesionDeEscrituraActiva()) {
+      window.PerfumesPanelEstado({ ok: true });
+    }
   }
 
   // Si este navegador todavía tiene cambios viejos guardados localmente
   // que nunca llegaron a la nube, ofrecemos subirlos en vez de perderlos.
   function ofrecerMigracion() {
+    if (!puedeEscribir) return;
     const pendientes = PerfumesDB.pendientesDeMigrar();
     if (pendientes.total === 0) return;
 

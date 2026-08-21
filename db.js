@@ -210,8 +210,13 @@ window.PerfumesDB = (function () {
   // catalogo.html (la misma de siempre) y la canjea por un token de
   // escritura. La contraseña no se guarda en ningún lado.
 
+  // Devuelve { ok, motivo }. El motivo importa: sin él el panel solo puede
+  // decir "no se pudo", que no le sirve de nada a quien tiene que arreglarlo.
+  //   "sin-usuario"     -> el usuario administrador no existe en Supabase
+  //   "sin-confirmar"   -> existe pero quedó sin confirmar
+  //   "sin-red"         -> no hubo respuesta
   function iniciarSesion(password) {
-    if (!configurada) return Promise.resolve(false);
+    if (!configurada) return Promise.resolve({ ok: false, motivo: "sin-configurar" });
 
     return conTimeout(
       fetch(SUPABASE_URL + "/auth/v1/token?grant_type=password", {
@@ -226,13 +231,23 @@ window.PerfumesDB = (function () {
           try {
             sessionStorage.setItem(CLAVE_TOKEN, data.access_token);
           } catch (e) { /* sesión sin storage: seguimos sin persistir */ }
-          return true;
+          return { ok: true, motivo: null };
         }
-        return false;
+
+        const codigo = String((data && (data.error_code || data.error)) || "");
+        const texto = String((data && (data.msg || data.error_description || data.message)) || "");
+        const todo = (codigo + " " + texto).toLowerCase();
+
+        let motivo = "sin-usuario";
+        if (todo.indexOf("not confirmed") !== -1 || todo.indexOf("email_not_confirmed") !== -1) {
+          motivo = "sin-confirmar";
+        }
+        console.warn("Supabase rechazó el inicio de sesión:", codigo, texto);
+        return { ok: false, motivo: motivo, detalle: texto };
       })
       .catch((e) => {
         console.warn("No se pudo iniciar sesión de escritura:", e);
-        return false;
+        return { ok: false, motivo: "sin-red" };
       });
   }
 
@@ -312,13 +327,19 @@ window.PerfumesDB = (function () {
       cache[destino][idNum] = valor;
     }
 
-    guardarTodoLS(cache); // respaldo local, por si la red falla
-
-    return enviarFilas([filaCompleta(idNum)]).catch((e) => {
-      if (tenia) cache[destino][idNum] = previo;
-      else delete cache[destino][idNum];
-      throw e;
-    });
+    return enviarFilas([filaCompleta(idNum)])
+      .then((r) => {
+        // Solo espejamos en localStorage lo que la base de datos ya aceptó.
+        // Guardar tambien los intentos fallidos hacia que el panel ofreciera
+        // "subir" cambios que en realidad nunca existieron.
+        guardarTodoLS(cache);
+        return r;
+      })
+      .catch((e) => {
+        if (tenia) cache[destino][idNum] = previo;
+        else delete cache[destino][idNum];
+        throw e;
+      });
   }
 
   // Para el ajuste global por porcentaje: un solo viaje a la red con
@@ -328,25 +349,29 @@ window.PerfumesDB = (function () {
     Object.keys(mapaPrecios).forEach((id) => {
       cache.precios[Number(id)] = mapaPrecios[id];
     });
-    guardarTodoLS(cache);
     const filas = Object.keys(mapaPrecios).map((id) => filaCompleta(id));
-    return enviarFilas(filas).catch((e) => {
-      cache.precios = previos; // el ajuste global no se aplicó: lo deshacemos
-      throw e;
-    });
+    return enviarFilas(filas)
+      .then((r) => { guardarTodoLS(cache); return r; })
+      .catch((e) => {
+        cache.precios = previos; // el ajuste global no se aplicó: lo deshacemos
+        throw e;
+      });
   }
 
   // Restablecer precios: deja imagen y activo intactos, solo borra precio.
   function restablecerPrecios() {
     const previos = Object.assign({}, cache.precios);
     const ids = Object.keys(cache.precios).map(Number);
+    // Sin precios ajustados no hay nada que restablecer. Lo decimos en vez de
+    // reportar un exito que nunca llegó a tocar la base de datos.
+    if (ids.length === 0) return Promise.resolve({ sinCambios: true });
     cache.precios = {};
-    guardarTodoLS(cache);
-    if (ids.length === 0) return Promise.resolve(true);
-    return enviarFilas(ids.map((id) => filaCompleta(id))).catch((e) => {
-      cache.precios = previos;
-      throw e;
-    });
+    return enviarFilas(ids.map((id) => filaCompleta(id)))
+      .then((r) => { guardarTodoLS(cache); return r; })
+      .catch((e) => {
+        cache.precios = previos;
+        throw e;
+      });
   }
 
   /* ============ FOTOS ============ */
@@ -429,7 +454,11 @@ window.PerfumesDB = (function () {
   // todavía no existen en la nube, para poder ofrecer subirlos.
 
   function pendientesDeMigrar() {
-    if (!configurada) return { total: 0, precios: 0, activos: 0, imagenes: 0 };
+    // Sin permiso de escritura no tiene sentido ofrecer subir nada: el
+    // botón fallaría igual y solo añadiría ruido a la pantalla.
+    if (!configurada || !sesionDeEscrituraActiva()) {
+      return { total: 0, precios: 0, activos: 0, imagenes: 0 };
+    }
     const local = leerTodoLS();
     let precios = 0, activos = 0, imagenes = 0;
 

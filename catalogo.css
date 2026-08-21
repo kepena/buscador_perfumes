@@ -122,6 +122,56 @@
   margin: 16px 0 0;
 }
 
+/* Estado de la conexion con la base de datos. Se distingue a simple vista
+   del resto de textos del panel porque comunica si los cambios se estan
+   guardando de verdad o no. */
+.panel-estado {
+  margin: 16px 0 0;
+  padding: 12px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  line-height: 1.55;
+  border: 1px solid transparent;
+}
+
+.panel-estado strong { display: block; margin-bottom: 4px; font-size: 13.5px; }
+
+.panel-estado ol { margin: 8px 0 0; padding-left: 20px; }
+.panel-estado li { margin-bottom: 3px; }
+.panel-estado code {
+  background: rgba(0, 0, 0, 0.35);
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.panel-estado.error {
+  background: rgba(220, 68, 68, 0.12);
+  border-color: rgba(220, 68, 68, 0.45);
+  color: #ffb4b4;
+}
+
+.panel-estado.aviso {
+  background: rgba(255, 183, 3, 0.10);
+  border-color: rgba(255, 183, 3, 0.4);
+  color: #ffd98a;
+}
+
+.panel-estado.ok {
+  background: rgba(80, 200, 120, 0.10);
+  border-color: rgba(80, 200, 120, 0.35);
+  color: #9fe0b6;
+}
+
+/* Cuando no hay permiso de escritura atenuamos los controles que guardan,
+   para no dejar hacer 143 cambios que no se van a poder guardar. */
+.sin-permiso-escritura .fila-precio-input,
+.sin-permiso-escritura .fila-toggle-activo,
+.sin-permiso-escritura .fila-imagen-subir-grupo {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
 /* ============ FILTROS ============ */
 .filtros-barra {
   display: flex;

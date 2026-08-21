@@ -73,7 +73,11 @@
         </div>
         <button type="button" id="btn-reset-precios" class="boton boton-fantasma">↺ Restablecer precios originales</button>
       </div>
-      <p class="panel-nota" id="panel-nota">El porcentaje se aplica sobre el precio original de cada fragancia, nunca sobre uno ya ajustado.</p>
+      <!-- Estado de la conexion con la base de datos. Es permanente: nunca
+           lo pisa el resultado de una accion suelta, para que el diagnostico
+           no desaparezca en cuanto tocas un boton. -->
+      <div class="panel-estado" id="panel-estado" hidden></div>
+      <p class="panel-nota" id="panel-nota">El porcentaje se aplica sobre el precio de venta actual de cada fragancia.</p>
     </section>
 
     <!-- ============ FILTROS ============ -->
