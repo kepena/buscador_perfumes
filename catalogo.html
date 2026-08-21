@@ -127,18 +127,23 @@
         </div>
       </div>
       <div class="fila-precio-panel">
-        <!-- COSTO: lo que se paga por la fragancia. Es la base para calcular
-             el margen; el ajuste global nunca lo toca. -->
-        <span class="fila-precio-etiqueta">Costo</span>
-        <div class="fila-precio-input-grupo">
-          <span class="fila-precio-signo">$</span>
-          <input type="number" class="fila-precio-input fila-precio-costo" data-campo="costo-input" min="0" step="1" placeholder="—" />
+        <!-- Cada precio va envuelto con su etiqueta. Así en el celular
+             ambos caben lado a lado sin desbordarse de la tarjeta. -->
+        <!-- COSTO: lo que se paga. Base del margen; el ajuste global no lo toca. -->
+        <div class="fila-precio-campo">
+          <span class="fila-precio-etiqueta">Costo</span>
+          <div class="fila-precio-input-grupo">
+            <span class="fila-precio-signo">$</span>
+            <input type="number" class="fila-precio-input fila-precio-costo" data-campo="costo-input" min="0" step="1" placeholder="—" />
+          </div>
         </div>
         <!-- VENTA: lo que ve el cliente. Sobre este actúa el ajuste global. -->
-        <span class="fila-precio-etiqueta fila-precio-etiqueta-venta">Venta</span>
-        <div class="fila-precio-input-grupo">
-          <span class="fila-precio-signo">$</span>
-          <input type="number" class="fila-precio-input fila-precio-venta" data-campo="venta-input" min="0" step="1" placeholder="—" />
+        <div class="fila-precio-campo">
+          <span class="fila-precio-etiqueta">Venta</span>
+          <div class="fila-precio-input-grupo">
+            <span class="fila-precio-signo">$</span>
+            <input type="number" class="fila-precio-input fila-precio-venta" data-campo="venta-input" min="0" step="1" placeholder="—" />
+          </div>
         </div>
         <span class="fila-precio-original" data-campo="margen"></span>
         <span class="fila-precio-categoria" data-campo="presupuesto"></span>

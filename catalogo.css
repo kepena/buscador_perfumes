@@ -535,15 +535,25 @@
   }
   .fila-imagen-wrap { width: 64px; height: 64px; grid-area: img; }
   .fila-info { grid-area: info; }
+  /* En el celular el panel de precios pasa a una rejilla de dos columnas.
+     Antes era una fila horizontal pensada para menos elementos, y desde que
+     hay costo y venta se desbordaba fuera de la tarjeta. */
   .fila-precio-panel {
     grid-area: precio;
-    flex-direction: row;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     align-items: center;
-    justify-content: space-between;
+    gap: 10px 12px;
     margin-top: 12px;
     padding-top: 12px;
     border-top: 1px solid var(--borde-suave);
   }
+  .fila-precio-campo { align-items: stretch; }
+  .fila-precio-panel .fila-precio-original { grid-column: 1 / -1; text-align: left; }
+  .fila-precio-panel .fila-precio-categoria { justify-self: start; }
+  .fila-precio-panel .fila-toggle-activo { justify-self: end; margin-top: 0; }
+  .fila-precio-input-grupo { width: 100%; }
+  .fila-precio-input { width: 100%; min-width: 0; }
 }
 
 @media (max-width: 640px) {
@@ -582,7 +592,16 @@
    ve el cliente). Se distinguen por color para no confundirlos de un
    vistazo, porque editar el equivocado desajusta el margen. */
 
-.fila-precio-etiqueta-venta { margin-top: 8px; }
+/* Cada campo agrupa su etiqueta y su input, para poder colocarlos como
+   una unidad tanto en escritorio (uno debajo del otro) como en el celular
+   (los dos lado a lado). */
+.fila-precio-campo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  min-width: 0;
+}
 
 .fila-precio-costo { color: var(--texto-secundario); }
 

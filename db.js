@@ -282,6 +282,34 @@ window.PerfumesDB = (function () {
     return tokenGuardado() !== null;
   }
 
+  /* ============ COMPROBACIÓN DEL ESQUEMA ============ */
+  // Pregunta a la base de datos si ya existen las columnas del modelo de
+  // dos precios. Sin ellas TODA escritura se rechaza con un error 400, y
+  // desde el panel eso se vive como "el botón no hace nada": conviene
+  // detectarlo al entrar y decirlo, en vez de fallar en cada intento.
+
+  function verificarEsquema() {
+    if (!configurada) return Promise.resolve({ ok: false, motivo: "sin-configurar" });
+
+    const url =
+      SUPABASE_URL + "/rest/v1/" + TABLA + "?select=costo_usd,venta_usd&limit=1";
+
+    return conTimeout(
+      fetch(url, { headers: cabeceras() }).then((r) => {
+        if (r.ok) return { ok: true };
+        return r.text().then((t) => ({
+          ok: false,
+          motivo: "faltan-columnas",
+          detalle: t
+        }));
+      }),
+      TIMEOUT_MS
+    ).catch((e) => {
+      console.warn("No se pudo verificar el esquema:", e);
+      return { ok: false, motivo: "sin-red" };
+    });
+  }
+
   /* ============ ESCRITURA ============ */
 
   // Manda SIEMPRE la fila completa (precio + activo + imagen) para que
@@ -575,6 +603,7 @@ window.PerfumesDB = (function () {
     estaCargado: estaCargado,
     iniciarSesion: iniciarSesion,
     sesionDeEscrituraActiva: sesionDeEscrituraActiva,
+    verificarEsquema: verificarEsquema,
     guardarCampo: guardarCampo,
     guardarVentasEnLote: guardarVentasEnLote,
     ventaIgualACosto: ventaIgualACosto,

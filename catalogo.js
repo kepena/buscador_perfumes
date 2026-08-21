@@ -42,7 +42,16 @@
     if (texto.indexOf("timeout") !== -1) {
       return "La conexión tardó demasiado. Revisa tu internet e intenta de nuevo.";
     }
-    return "No se pudo guardar el cambio. Intenta de nuevo.";
+    // La base de datos todavía no tiene las columnas de costo y venta.
+    if (
+      texto.indexOf("PGRST204") !== -1 ||
+      texto.indexOf("costo_usd") !== -1 ||
+      texto.indexOf("venta_usd") !== -1 ||
+      texto.indexOf("schema cache") !== -1
+    ) {
+      return "Faltan las columnas de costo y venta en la base de datos. Mira el recuadro rojo de arriba.";
+    }
+    return "No se pudo guardar. Detalle: " + texto.slice(0, 160);
   }
 
   /* ============ ESTADO PERMANENTE DE LA CONEXIÓN ============ */
@@ -70,6 +79,15 @@
     if (btnResetPrecios) btnResetPrecios.disabled = !puede;
   }
 
+  const INSTRUCCIONES_SQL =
+    "<ol>" +
+    "<li>Entra a tu proyecto en <strong>supabase.com</strong></li>" +
+    "<li>Menú izquierdo → <strong>SQL Editor</strong> → <strong>New query</strong></li>" +
+    "<li>Pega y ejecuta el archivo <code>01-costo-y-venta.sql</code></li>" +
+    "<li>Debe terminar mostrando <code>filas 143 · con_costo 143 · con_venta 143</code></li>" +
+    "<li>Vuelve aquí y recarga la página</li>" +
+    "</ol>";
+
   const INSTRUCCIONES_USUARIO_ADMIN =
     "<ol>" +
     "<li>Entra a tu proyecto en <strong>supabase.com</strong></li>" +
@@ -88,6 +106,8 @@
     if (resultado && resultado.ok) {
       fijarPermisoDeEscritura(true);
       mostrarEstado("ok", "<strong>✓ Conectado a la base de datos</strong>Tus cambios se guardan en la nube y los ven todos los visitantes del test.");
+      // La contraseña puede ser correcta y aun así faltar las columnas.
+      comprobarEsquema();
       return;
     }
 
@@ -601,6 +621,7 @@
       sincronizarMapasLocales();
       renderizarCatalogo();
       avisarModoDeGuardado();
+      comprobarEsquema();
       ofrecerMigracion();
     });
   }
@@ -618,6 +639,26 @@
     if (PerfumesDB.sesionDeEscrituraActiva()) {
       window.PerfumesPanelEstado({ ok: true });
     }
+  }
+
+  // Tener permiso para escribir no basta: si la tabla no tiene las columnas
+  // costo_usd y venta_usd, cada guardado se rechaza igual. Lo comprobamos al
+  // entrar para poder decirlo una sola vez, con instrucciones, en vez de
+  // dejar que cada intento falle por separado.
+  function comprobarEsquema() {
+    if (!PerfumesDB.estaConfigurada()) return;
+
+    PerfumesDB.verificarEsquema().then((r) => {
+      if (r.ok || r.motivo === "sin-red") return;
+
+      console.warn("Esquema incompleto:", r.detalle);
+      fijarPermisoDeEscritura(false);
+      mostrarEstado("error",
+        "<strong>⚠ Falta preparar la base de datos</strong>" +
+        "La tabla todavía no tiene las columnas de <strong>costo</strong> y <strong>venta</strong>, " +
+        "así que ningún cambio se puede guardar. Por eso los botones no hacen nada." +
+        INSTRUCCIONES_SQL);
+    });
   }
 
   // Si este navegador todavía tiene cambios viejos guardados localmente
