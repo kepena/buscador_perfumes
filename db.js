@@ -2,14 +2,20 @@
    BUSCADOR DE PERFUMES PRO — db.js
    Capa de acceso a la base de datos externa (Supabase).
 
-   Guarda y lee los 3 overrides que antes vivían en localStorage:
-     · precio editado      -> columna precio_usd
-     · activo/desactivado  -> columna activo
-     · foto real subida    -> columna imagen_url (el archivo va a Storage)
+   Guarda y lee lo que el panel administra de cada fragancia:
+     · COSTO (lo que se paga)       -> columna costo_usd
+     · VENTA (lo que ve el cliente) -> columna venta_usd
+     · activo / desactivado         -> columna activo
+     · foto real subida             -> columna imagen_url (va a Storage)
 
-   Este archivo NO toca data.js: el array PERFUMES sigue siendo la
-   fuente de verdad del catálogo y se sigue actualizando por Git.
-   Aquí solo viven las diferencias respecto a esos valores originales.
+   COSTO y VENTA son independientes. El ajuste por porcentaje del panel
+   actúa siempre sobre la VENTA y es acumulativo; el COSTO solo cambia si
+   se edita a mano. "Restablecer precios" copia el COSTO sobre la VENTA,
+   dejando margen cero como punto de partida.
+
+   El catálogo en sí (nombres, notas, familias) sigue viniendo de data.js
+   y actualizándose por Git. Los precios, en cambio, son dato de negocio y
+   viven solo aquí.
 
    Si las claves de abajo están vacías, o si la red falla, todo sigue
    funcionando contra localStorage igual que antes. El sitio nunca se
@@ -45,9 +51,13 @@ window.PerfumesDB = (function () {
   // que el sitio funcione si la BD no está configurada todavía, y para
   // poder migrar a la nube lo que ya tengas guardado en este navegador.
   const LS = {
-    precios: "perfumesPro_preciosOverride",
+    costos: "perfumesPro_costos",
+    ventas: "perfumesPro_ventas",
     imagenes: "perfumesPro_imagenesOverride",
-    activos: "perfumesPro_activosOverride"
+    activos: "perfumesPro_activosOverride",
+    // Clave del modelo anterior, de un solo precio. Se sigue leyendo para
+    // poder recuperar lo que quedara guardado en el navegador de antes.
+    preciosViejos: "perfumesPro_preciosOverride"
   };
 
   const configurada = SUPABASE_URL !== "" && SUPABASE_KEY !== "";
@@ -57,12 +67,12 @@ window.PerfumesDB = (function () {
   // en cada casilla del Set Ocasión...). Consultar la red cada vez lo haría
   // lento, así que descargamos UNA sola vez y servimos desde memoria.
 
-  let cache = { precios: {}, imagenes: {}, activos: {} };
+  let cache = cacheVacia();
   let cargado = false;
   let promesaEnCurso = null;
 
   function cacheVacia() {
-    return { precios: {}, imagenes: {}, activos: {} };
+    return { costos: {}, ventas: {}, imagenes: {}, activos: {} };
   }
 
   /* ============ UTILIDADES DE RED ============ */
@@ -107,8 +117,15 @@ window.PerfumesDB = (function () {
   }
 
   function leerTodoLS() {
+    const ventas = leerLS(LS.ventas);
+    const viejos = leerLS(LS.preciosViejos);
+    // Si solo hay datos del modelo anterior, los tomamos como precio de venta.
+    Object.keys(viejos).forEach((id) => {
+      if (ventas[id] === undefined) ventas[id] = viejos[id];
+    });
     return {
-      precios: leerLS(LS.precios),
+      costos: leerLS(LS.costos),
+      ventas: ventas,
       imagenes: leerLS(LS.imagenes),
       activos: leerLS(LS.activos)
     };
@@ -124,7 +141,8 @@ window.PerfumesDB = (function () {
   }
 
   function guardarTodoLS(datos) {
-    escribirLS(LS.precios, datos.precios);
+    escribirLS(LS.costos, datos.costos);
+    escribirLS(LS.ventas, datos.ventas);
     escribirLS(LS.imagenes, datos.imagenes);
     escribirLS(LS.activos, datos.activos);
   }
@@ -139,8 +157,16 @@ window.PerfumesDB = (function () {
     filas.forEach((fila) => {
       const id = Number(fila.id);
       if (Number.isNaN(id)) return;
-      if (fila.precio_usd !== null && fila.precio_usd !== undefined) {
-        datos.precios[id] = Number(fila.precio_usd);
+      if (fila.costo_usd !== null && fila.costo_usd !== undefined) {
+        datos.costos[id] = Number(fila.costo_usd);
+      }
+      // venta_usd es la columna del modelo actual. Si la fila todavía viene
+      // del modelo anterior (una sola columna precio_usd), la usamos como
+      // precio de venta para no quedarnos sin precio mientras se migra.
+      if (fila.venta_usd !== null && fila.venta_usd !== undefined) {
+        datos.ventas[id] = Number(fila.venta_usd);
+      } else if (fila.precio_usd !== null && fila.precio_usd !== undefined) {
+        datos.ventas[id] = Number(fila.precio_usd);
       }
       if (typeof fila.activo === "boolean") {
         datos.activos[id] = fila.activo;
@@ -164,8 +190,9 @@ window.PerfumesDB = (function () {
       return Promise.resolve(cache);
     }
 
-    const url =
-      SUPABASE_URL + "/rest/v1/" + TABLA + "?select=id,precio_usd,activo,imagen_url";
+    // Pedimos todas las columnas en vez de enumerarlas: así el panel sigue
+    // funcionando tanto antes como después de añadir costo_usd y venta_usd.
+    const url = SUPABASE_URL + "/rest/v1/" + TABLA + "?select=*";
 
     promesaEnCurso = conTimeout(
       fetch(url, { headers: cabeceras() }).then((r) => {
@@ -262,12 +289,16 @@ window.PerfumesDB = (function () {
   // accidente la foto que ya estaba guardada.
   function filaCompleta(id) {
     const idNum = Number(id);
-    const precio = cache.precios[idNum];
+    const costo = cache.costos[idNum];
+    const venta = cache.ventas[idNum];
     const activo = cache.activos[idNum];
     const imagen = cache.imagenes[idNum];
+    // No incluimos precio_usd a propósito: es la columna del modelo anterior
+    // y al no mandarla, la base de datos la deja intacta.
     return {
       id: idNum,
-      precio_usd: typeof precio === "number" ? precio : null,
+      costo_usd: typeof costo === "number" ? costo : null,
+      venta_usd: typeof venta === "number" ? venta : null,
       activo: typeof activo === "boolean" ? activo : null,
       imagen_url: typeof imagen === "string" && imagen !== "" ? imagen : null
     };
@@ -314,7 +345,7 @@ window.PerfumesDB = (function () {
   // subirlo.
   function guardarCampo(id, campo, valor) {
     const idNum = Number(id);
-    const mapa = { precio: "precios", activo: "activos", imagen: "imagenes" };
+    const mapa = { costo: "costos", venta: "ventas", activo: "activos", imagen: "imagenes" };
     const destino = mapa[campo];
     if (!destino) return Promise.reject(new Error("Campo desconocido: " + campo));
 
@@ -344,32 +375,42 @@ window.PerfumesDB = (function () {
 
   // Para el ajuste global por porcentaje: un solo viaje a la red con
   // las 143 filas, en vez de 143 peticiones sueltas.
-  function guardarPreciosEnLote(mapaPrecios) {
-    const previos = Object.assign({}, cache.precios);
-    Object.keys(mapaPrecios).forEach((id) => {
-      cache.precios[Number(id)] = mapaPrecios[id];
+  // Ajuste global: recibe { id: nuevoPrecioDeVenta } y lo manda en un solo
+  // viaje a la red, en vez de una petición por fragancia.
+  function guardarVentasEnLote(mapaVentas) {
+    const previos = Object.assign({}, cache.ventas);
+    Object.keys(mapaVentas).forEach((id) => {
+      cache.ventas[Number(id)] = mapaVentas[id];
     });
-    const filas = Object.keys(mapaPrecios).map((id) => filaCompleta(id));
+    const filas = Object.keys(mapaVentas).map((id) => filaCompleta(id));
     return enviarFilas(filas)
       .then((r) => { guardarTodoLS(cache); return r; })
       .catch((e) => {
-        cache.precios = previos; // el ajuste global no se aplicó: lo deshacemos
+        cache.ventas = previos; // el ajuste global no se aplicó: lo deshacemos
         throw e;
       });
   }
 
   // Restablecer precios: deja imagen y activo intactos, solo borra precio.
-  function restablecerPrecios() {
-    const previos = Object.assign({}, cache.precios);
-    const ids = Object.keys(cache.precios).map(Number);
-    // Sin precios ajustados no hay nada que restablecer. Lo decimos en vez de
-    // reportar un exito que nunca llegó a tocar la base de datos.
-    if (ids.length === 0) return Promise.resolve({ sinCambios: true });
-    cache.precios = {};
+  // "Restablecer precios" copia el COSTO sobre la VENTA en todas las
+  // fragancias que tengan costo definido. El resultado es margen cero: es el
+  // punto de partida para volver a aplicar el porcentaje de utilidad.
+  function ventaIgualACosto() {
+    const previos = Object.assign({}, cache.ventas);
+    const ids = Object.keys(cache.costos).map(Number);
+    if (ids.length === 0) return Promise.resolve({ sinCambios: true, motivo: "sin-costos" });
+
+    let cambiadas = 0;
+    ids.forEach((id) => {
+      if (cache.ventas[id] !== cache.costos[id]) cambiadas++;
+      cache.ventas[id] = cache.costos[id];
+    });
+    if (cambiadas === 0) return Promise.resolve({ sinCambios: true, motivo: "ya-igual" });
+
     return enviarFilas(ids.map((id) => filaCompleta(id)))
-      .then((r) => { guardarTodoLS(cache); return r; })
+      .then(() => { guardarTodoLS(cache); return { sinCambios: false, cambiadas: cambiadas }; })
       .catch((e) => {
-        cache.precios = previos;
+        cache.ventas = previos;
         throw e;
       });
   }
@@ -462,8 +503,8 @@ window.PerfumesDB = (function () {
     const local = leerTodoLS();
     let precios = 0, activos = 0, imagenes = 0;
 
-    Object.keys(local.precios).forEach((id) => {
-      if (cache.precios[Number(id)] === undefined) precios++;
+    Object.keys(local.ventas).forEach((id) => {
+      if (cache.ventas[Number(id)] === undefined) precios++;
     });
     Object.keys(local.activos).forEach((id) => {
       if (cache.activos[Number(id)] === undefined) activos++;
@@ -483,9 +524,9 @@ window.PerfumesDB = (function () {
     const local = leerTodoLS();
     const idsTocados = new Set();
 
-    Object.keys(local.precios).forEach((id) => {
+    Object.keys(local.ventas).forEach((id) => {
       const n = Number(id);
-      if (cache.precios[n] === undefined) { cache.precios[n] = local.precios[id]; idsTocados.add(n); }
+      if (cache.ventas[n] === undefined) { cache.ventas[n] = local.ventas[id]; idsTocados.add(n); }
     });
     Object.keys(local.activos).forEach((id) => {
       const n = Number(id);
@@ -535,8 +576,8 @@ window.PerfumesDB = (function () {
     iniciarSesion: iniciarSesion,
     sesionDeEscrituraActiva: sesionDeEscrituraActiva,
     guardarCampo: guardarCampo,
-    guardarPreciosEnLote: guardarPreciosEnLote,
-    restablecerPrecios: restablecerPrecios,
+    guardarVentasEnLote: guardarVentasEnLote,
+    ventaIgualACosto: ventaIgualACosto,
     subirFoto: subirFoto,
     quitarFoto: quitarFoto,
     pendientesDeMigrar: pendientesDeMigrar,
