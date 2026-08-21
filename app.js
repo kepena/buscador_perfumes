@@ -273,19 +273,24 @@
     respuestas: {}          // { tipo, aromaPrincipal, subAroma, momento, clima, estilo, potencia, presupuesto }
   };
 
-  /* ============ PRECIOS AJUSTADOS DESDE EL CATÁLOGO ============ */
-  // El catálogo (catalogo.html) permite subir/bajar precios global o
-  // individualmente y los guarda en localStorage. Aquí los leemos para
-  // que el test use siempre el precio vigente, no el original de data.js.
-  const CLAVE_STORAGE_PRECIOS = "perfumesPro_preciosOverride";
+  /* ============ OVERRIDES DEL CATÁLOGO (BASE DE DATOS) ============ */
+  // El catálogo (catalogo.html) permite ajustar precios, subir fotos reales
+  // y desactivar fragancias. Antes esos cambios vivían en el localStorage
+  // del navegador del administrador, así que los visitantes nunca los veían.
+  // Ahora viven en la base de datos y db.js los descarga UNA sola vez al
+  // cargar la página, dejándolos en memoria.
+  //
+  // Por eso estas tres funciones siguen siendo síncronas y baratas: leen de
+  // esa copia en memoria, no de la red. Se llaman muchas veces (en el motor
+  // de Match y en cada casilla del Set Ocasión) y no cuestan nada.
+
+  function overridesEnMemoria() {
+    if (typeof PerfumesDB === "undefined") return { precios: {}, imagenes: {}, activos: {} };
+    return PerfumesDB.overrides();
+  }
 
   function leerOverridesPrecio() {
-    try {
-      const raw = localStorage.getItem(CLAVE_STORAGE_PRECIOS);
-      return raw ? JSON.parse(raw) : {};
-    } catch (e) {
-      return {};
-    }
+    return overridesEnMemoria().precios;
   }
 
   function precioVigente(perfume, overrides) {
@@ -301,19 +306,12 @@
     return "Sin límite";
   }
 
-  /* ============ FOTOS REALES PEGADAS DESDE EL CATÁLOGO ============ */
-  // Igual mecanismo que el precio: si en catalogo.html se pegó la URL de
-  // una foto real para un perfume, la usamos aquí en vez del ícono
-  // generado que trae data.js por defecto.
-  const CLAVE_STORAGE_IMAGENES = "perfumesPro_imagenesOverride";
-
+  // Si en catalogo.html se subió una foto real para un perfume, usamos su
+  // URL en vez de la imagen que trae data.js por defecto. La foto vive en
+  // Storage: aquí solo viaja el texto de la URL, así que esto no hace la
+  // descarga inicial más pesada.
   function leerOverridesImagen() {
-    try {
-      const raw = localStorage.getItem(CLAVE_STORAGE_IMAGENES);
-      return raw ? JSON.parse(raw) : {};
-    } catch (e) {
-      return {};
-    }
+    return overridesEnMemoria().imagenes;
   }
 
   function imagenVigente(perfume, overridesImg) {
@@ -323,20 +321,11 @@
       : perfume.imagen;
   }
 
-  /* ============ PERFUMES ACTIVADOS / DESACTIVADOS DESDE EL CATÁLOGO ============ */
   // En catalogo.html se puede desactivar un perfume para que nunca salga
-  // como resultado del test, sin borrarlo del catálogo. Guardamos solo los
-  // que fueron cambiados respecto a su valor por defecto (activo: true en
-  // data.js), como un mapa { id: false }.
-  const CLAVE_STORAGE_ACTIVOS = "perfumesPro_activosOverride";
-
+  // como resultado del test, sin borrarlo del catálogo. Solo se guardan los
+  // que difieren de su valor por defecto en data.js, como { id: false }.
   function leerOverridesActivo() {
-    try {
-      const raw = localStorage.getItem(CLAVE_STORAGE_ACTIVOS);
-      return raw ? JSON.parse(raw) : {};
-    } catch (e) {
-      return {};
-    }
+    return overridesEnMemoria().activos;
   }
 
   function estaActivo(perfume, overridesActivo) {
@@ -746,7 +735,23 @@
     });
   }
 
+  // Único punto del test que necesita esperar a la base de datos. La
+  // descarga arrancó al cargar la página, así que cuando el usuario termina
+  // las 7 preguntas los datos llevan rato en memoria y esto no espera nada.
+  // El caso lento solo ocurre si respondió todo en un par de segundos.
   function mostrarResultados() {
+    if (typeof PerfumesDB === "undefined" || PerfumesDB.estaCargado()) {
+      pintarResultados();
+      return;
+    }
+    tarjetasResultado.innerHTML =
+      '<p class="resultados-vacio">Calculando tus coincidencias…</p>';
+    zonaFormatos.innerHTML = "";
+    irAPantalla(pantallaResultados);
+    PerfumesDB.cargarOverrides().then(pintarResultados);
+  }
+
+  function pintarResultados() {
     const top4 = obtenerTop4();
 
     tarjetasResultado.innerHTML = "";
@@ -1234,6 +1239,14 @@
     linkContactoInicio.href = generarLinkWhatsApp(
       "Hola, tengo dudas sobre el Buscador de Perfumes Pro 🙂"
     );
+  }
+
+  // Arrancamos la descarga de los overrides de inmediato, sin bloquear
+  // nada: mientras el visitante lee la portada y responde las preguntas,
+  // los datos van llegando en segundo plano. Para cuando se calcula el
+  // Top 4 ya están en memoria, así que el test no se siente más lento.
+  if (typeof PerfumesDB !== "undefined") {
+    PerfumesDB.cargarOverrides();
   }
 
   // Al cargar, aseguramos que la pantalla de inicio esté activa
