@@ -194,6 +194,25 @@ body {
   flex-wrap: wrap;
 }
 
+.enlace-contacto-inicio {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 22px;
+  font-family: var(--fuente-ui);
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--dorado);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(255, 183, 3, 0.3);
+  padding-bottom: 2px;
+  transition: color var(--transicion), border-color var(--transicion);
+}
+.enlace-contacto-inicio:hover {
+  color: var(--dorado-suave);
+  border-color: var(--dorado-suave);
+}
+
 /* ============ BOTONES ============ */
 .boton {
   font-family: var(--fuente-ui);
@@ -910,4 +929,51 @@ body {
   .formatos-opciones { grid-template-columns: 1fr 1fr; }
   .formato-card.destacada { grid-column: 1 / -1; transform: none; }
   .formato-card.destacada:hover { transform: translateY(-3px); }
+}
+
+/* ============================================================
+   DETALLE DE COMPRA (Probar / Botella) — foto + etiqueta + contacto
+   ============================================================ */
+.detalle-compra-card {
+  max-width: 320px;
+  margin: 24px auto 0;
+  text-align: center;
+  background: var(--negro-panel);
+  border: 1.5px solid var(--borde);
+  border-radius: var(--radio-lg);
+  padding: 20px;
+}
+.detalle-compra-imagen-wrap {
+  position: relative;
+  aspect-ratio: 3 / 4;
+  background: linear-gradient(160deg, #1e1a13, #0d0b08);
+  border-radius: var(--radio-md);
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+.detalle-compra-imagen { width: 100%; height: 100%; object-fit: cover; display: block; }
+.detalle-compra-etiqueta {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  background: linear-gradient(100deg, var(--dorado), var(--dorado-suave));
+  color: var(--negro-fondo);
+  font-family: var(--fuente-ui);
+  font-weight: 800;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  padding: 5px 12px;
+  border-radius: 100px;
+  z-index: 2;
+}
+.detalle-compra-nombre {
+  font-family: var(--fuente-display);
+  font-size: 19px;
+  color: var(--crema);
+  margin: 0 0 16px;
+}
+.detalle-compra-contacto {
+  width: 100%;
+  justify-content: center;
+  text-decoration: none;
 }

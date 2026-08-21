@@ -6,6 +6,17 @@
 (function () {
   "use strict";
 
+  /* ============ CONTACTO POR WHATSAPP ============ */
+  // ⚠️ IMPORTANTE: reemplazar por el número real con código de país, sin
+  // espacios ni símbolos (ej: "573001234567" para Colombia). Mientras este
+  // placeholder siga aquí, los botones de contacto no funcionarán bien.
+  const WHATSAPP_NUMERO = "573150124948";
+
+  function generarLinkWhatsApp(mensaje) {
+    const texto = encodeURIComponent(mensaje);
+    return `https://wa.me/${WHATSAPP_NUMERO}?text=${texto}`;
+  }
+
   /* ============ DEFINICIÓN DEL FLUJO DE PREGUNTAS ============ */
   // Cada pregunta tiene una "clave" (campo de respuesta) y opciones.
   // La pregunta 2 tiene subpreguntas condicionadas por su respuesta.
@@ -795,6 +806,13 @@
     tarjetasResultado.querySelectorAll(".tarjeta-perfume").forEach((a) => a.classList.remove("seleccionada"));
     articuloEl.classList.add("seleccionada");
 
+    const linkProbar = generarLinkWhatsApp(
+      `Hola, quiero pedir el decant de 5ml de ${perfume.nombre} 🧪`
+    );
+    const linkBotella = generarLinkWhatsApp(
+      `Hola, quiero pedir la botella completa de ${perfume.nombre} 🍾`
+    );
+
     zonaFormatos.innerHTML = `
       <div class="formatos-desplegados">
         <div class="formatos-opciones">
@@ -814,18 +832,44 @@
             <div class="formato-desc">El frasco completo</div>
           </div>
         </div>
+        <div id="zona-detalle-formato"></div>
       </div>
     `;
+
+    function renderDetalleCompra(etiquetaFormato) {
+      const zonaDetalle = $("#zona-detalle-formato");
+      const link = etiquetaFormato === "5ML" ? linkProbar : linkBotella;
+      zonaDetalle.innerHTML = `
+        <div class="detalle-compra-card">
+          <div class="detalle-compra-imagen-wrap">
+            <span class="detalle-compra-etiqueta">${etiquetaFormato === "5ML" ? "5 ML" : "BOTELLA COMPLETA"}</span>
+            <img class="detalle-compra-imagen" id="detalle-compra-img" alt="Frasco de ${perfume.nombre}" />
+          </div>
+          <h3 class="detalle-compra-nombre">${perfume.nombre}</h3>
+          <a href="${link}" target="_blank" rel="noopener" class="boton boton-primario detalle-compra-contacto">
+            💬 Contáctanos
+          </a>
+        </div>
+      `;
+      const img = $("#detalle-compra-img");
+      img.src = perfume.imagen;
+      img.addEventListener("error", function manejarError() {
+        img.removeEventListener("error", manejarError);
+        img.src = FALLBACK_IMG;
+      });
+      setTimeout(() => {
+        if (zonaDetalle && typeof zonaDetalle.scrollIntoView === "function") {
+          zonaDetalle.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        }
+      }, 50);
+    }
+
     $("#btn-formato-set").addEventListener("click", () => {
       renderSetOcasion();
       irAPantalla(pantallaSetOcasion);
     });
-    $("#btn-formato-probar").addEventListener("click", () =>
-      alert(`(Próximamente) Comprar decant de 5ml de ${perfume.nombre}`)
-    );
-    $("#btn-formato-botella").addEventListener("click", () =>
-      alert(`(Próximamente) Comprar botella completa de ${perfume.nombre}`)
-    );
+    $("#btn-formato-probar").addEventListener("click", () => renderDetalleCompra("5ML"));
+    $("#btn-formato-botella").addEventListener("click", () => renderDetalleCompra("BOTELLA"));
 
     setTimeout(() => {
       if (zonaFormatos && typeof zonaFormatos.scrollIntoView === "function") {
@@ -915,9 +959,24 @@
       <h2 class="set-ocasion-titulo">Arma tu Set Ocasión</h2>
       <p class="set-ocasion-sub">Un decant de 5ml para cada momento. Completa las que faltan.</p>
       <div class="casillas-set-ocasion" id="lista-casillas-set"></div>
+      <div id="zona-contacto-set"></div>
     `;
     $("#btn-volver-a-resultados").addEventListener("click", () => irAPantalla(pantallaResultados));
     renderCasillasSet();
+
+    // El botón de contacto para pedir el set completo solo aparece cuando
+    // las 3 casillas ya tienen un perfume asignado.
+    const completas = CASILLAS_SET_OCASION.every((cfg) => estadoSetOcasion.porCasilla[cfg.id]);
+    if (completas) {
+      const nombres = CASILLAS_SET_OCASION.map((cfg) => estadoSetOcasion.porCasilla[cfg.id].nombre);
+      const mensaje = `Hola, quiero pedir mi Set Ocasión con estos 3 decants de 5ml: ${nombres.join(", ")} 🎁`;
+      const zonaContacto = $("#zona-contacto-set");
+      zonaContacto.innerHTML = `
+        <a href="${generarLinkWhatsApp(mensaje)}" target="_blank" rel="noopener" class="boton boton-primario detalle-compra-contacto" style="margin-top:22px;">
+          💬 Contáctanos para pedir tu Set Ocasión
+        </a>
+      `;
+    }
   }
 
   function imgConFallbackSet(perfume, clase) {
@@ -1168,6 +1227,13 @@
   btnSiguiente.addEventListener("click", irSiguiente);
   btnAtras.addEventListener("click", irAtras);
   btnReiniciar.addEventListener("click", iniciarTest);
+
+  const linkContactoInicio = $("#link-contacto-inicio");
+  if (linkContactoInicio) {
+    linkContactoInicio.href = generarLinkWhatsApp(
+      "Hola, tengo dudas sobre el Buscador de Perfumes Pro 🙂"
+    );
+  }
 
   // Al cargar, aseguramos que la pantalla de inicio esté activa
   irAPantalla(pantallaInicio);
