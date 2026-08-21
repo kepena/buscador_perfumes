@@ -125,22 +125,18 @@
         // Canjeamos la contraseña recién tecleada por un token de
         // escritura de la base de datos. Solo con ese token se pueden
         // guardar cambios; sin él el panel queda en modo lectura.
-        let permisoDeEscritura = true;
+        let resultado = { ok: true, motivo: null };
         if (typeof PerfumesDB !== "undefined" && PerfumesDB.estaConfigurada()) {
-          permisoDeEscritura = await PerfumesDB.iniciarSesion(intento);
+          resultado = await PerfumesDB.iniciarSesion(intento);
         }
 
         mostrarContenido();
 
-        if (!permisoDeEscritura) {
-          // La contraseña es correcta, pero la base de datos no la aceptó.
-          // Casi siempre significa que falta crear el usuario administrador
-          // en Supabase, o que quedó sin confirmar.
-          const nota = document.getElementById("panel-nota");
-          if (nota) {
-            nota.textContent =
-              "⚠️ Contraseña correcta, pero la base de datos no habilitó el guardado. Puedes ver el catálogo, pero los cambios no se guardarán. Revisa que exista el usuario administrador en Supabase y que esté confirmado.";
-          }
+        // El panel decide qué mostrar según el motivo exacto del rechazo:
+        // no es lo mismo que falte crear el usuario administrador, que exista
+        // sin confirmar, o que simplemente no haya red.
+        if (typeof window.PerfumesPanelEstado === "function") {
+          window.PerfumesPanelEstado(resultado);
         }
       } else {
         registrarIntentoFallido();
