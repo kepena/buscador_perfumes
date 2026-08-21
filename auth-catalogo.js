@@ -10,6 +10,13 @@
 //
 // La contraseña se guarda como hash SHA-256, no en texto plano,
 // para que al menos no sea visible a simple vista en el código.
+//
+// Desde la migración a base de datos, esta misma contraseña cumple
+// además una función REAL de seguridad: se canjea contra Supabase por
+// un permiso temporal de escritura. Sin ese permiso, la base de datos
+// rechaza cualquier intento de modificar precios, fotos o activaciones,
+// aunque alguien lea el código fuente del sitio. La contraseña en sí
+// nunca queda escrita en el código: la tecleas tú y se usa al vuelo.
 // ============================================================
 
 (function () {
@@ -60,11 +67,11 @@
     const elEyebrow = document.getElementById("txt-eyebrow");
     const elTitulo = document.getElementById("txt-titulo");
     const elSub = document.getElementById("txt-sub");
-    if (elEyebrow) elEyebrow.textContent = "Catálogo completo · 113 fragancias";
+    if (elEyebrow) elEyebrow.textContent = `Catálogo completo · ${typeof PERFUMES !== "undefined" ? PERFUMES.length : ""} fragancias`;
     if (elTitulo) elTitulo.textContent = "Todos los perfumes y sus precios";
     if (elSub) {
       elSub.textContent =
-        "Ajusta el precio de todo el catálogo con un porcentaje, edita cada fragancia individualmente, o desactiva las que no quieres que salgan en los resultados del test. Los cambios se guardan en este navegador.";
+        "Ajusta el precio de todo el catálogo con un porcentaje, edita cada fragancia individualmente, o desactiva las que no quieres que salgan en los resultados del test. Los cambios se guardan en la base de datos y los ven todos los visitantes.";
     }
     document.title = "Catálogo completo — Buscador de Perfumes Pro";
   }
@@ -114,7 +121,27 @@
         sessionStorage.setItem(CLAVE_SESION, "1");
         sessionStorage.removeItem(CLAVE_INTENTOS);
         sessionStorage.removeItem(CLAVE_BLOQUEO_HASTA);
+
+        // Canjeamos la contraseña recién tecleada por un token de
+        // escritura de la base de datos. Solo con ese token se pueden
+        // guardar cambios; sin él el panel queda en modo lectura.
+        let permisoDeEscritura = true;
+        if (typeof PerfumesDB !== "undefined" && PerfumesDB.estaConfigurada()) {
+          permisoDeEscritura = await PerfumesDB.iniciarSesion(intento);
+        }
+
         mostrarContenido();
+
+        if (!permisoDeEscritura) {
+          // La contraseña es correcta, pero la base de datos no la aceptó.
+          // Casi siempre significa que falta crear el usuario administrador
+          // en Supabase, o que quedó sin confirmar.
+          const nota = document.getElementById("panel-nota");
+          if (nota) {
+            nota.textContent =
+              "⚠️ Contraseña correcta, pero la base de datos no habilitó el guardado. Puedes ver el catálogo, pero los cambios no se guardarán. Revisa que exista el usuario administrador en Supabase y que esté confirmado.";
+          }
+        }
       } else {
         registrarIntentoFallido();
         if (mensajeError) {

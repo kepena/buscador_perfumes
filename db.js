@@ -28,8 +28,8 @@ window.PerfumesDB = (function () {
      ⚠️ NUNCA pegues aquí la clave "service_role" / "Secret key".
         Esa se salta todas las reglas de seguridad y este repo es público.
      ============================================================ */
-  const SUPABASE_URL = "";
-  const SUPABASE_KEY = "";
+  const SUPABASE_URL = "https://evqifaeeamvrttuildkz.supabase.co";
+  const SUPABASE_KEY = "sb_publishable_5J5kSaPEfLh29jaEe7QBuQ_hRRPbiFD";
 
   // Correo fijo del único usuario administrador. No es un buzón real:
   // Supabase solo lo usa como identificador. La contraseña es la misma
@@ -89,13 +89,9 @@ window.PerfumesDB = (function () {
   // contraseña del panel, mandamos el token: eso es lo que habilita
   // la escritura. Sin token solo se puede leer.
   function cabeceras(extra) {
-    const h = Object.assign(
-      {
-        apikey: SUPABASE_KEY,
-        Authorization: "Bearer " + (tokenGuardado() || SUPABASE_KEY)
-      },
-      extra || {}
-    );
+    const h = Object.assign({ apikey: SUPABASE_KEY }, extra || {});
+    const token = tokenGuardado();
+    if (token) h.Authorization = "Bearer " + token;
     return h;
   }
 
@@ -291,13 +287,24 @@ window.PerfumesDB = (function () {
   }
 
   // Actualiza la caché en memoria primero (para que la pantalla responda
-  // al instante) y después manda el cambio a la nube. Si el envío falla,
-  // quien llama recibe el error y puede avisar en pantalla.
+  // al instante) y después manda el cambio a la nube.
+  //
+  // Si el envío falla DESHACEMOS el cambio en memoria antes de propagar el
+  // error. Esto es importante: sin ese paso, el panel seguiría mostrando
+  // como guardado algo que la base de datos rechazó, que es justo el
+  // problema que esta migración vino a resolver.
+  //
+  // El valor intentado sí queda en el respaldo de localStorage: así no se
+  // pierde el trabajo, y la próxima vez que abras el panel te ofrecerá
+  // subirlo.
   function guardarCampo(id, campo, valor) {
     const idNum = Number(id);
     const mapa = { precio: "precios", activo: "activos", imagen: "imagenes" };
     const destino = mapa[campo];
     if (!destino) return Promise.reject(new Error("Campo desconocido: " + campo));
+
+    const tenia = Object.prototype.hasOwnProperty.call(cache[destino], idNum);
+    const previo = cache[destino][idNum];
 
     if (valor === null || valor === undefined || valor === "") {
       delete cache[destino][idNum];
@@ -306,27 +313,40 @@ window.PerfumesDB = (function () {
     }
 
     guardarTodoLS(cache); // respaldo local, por si la red falla
-    return enviarFilas([filaCompleta(idNum)]);
+
+    return enviarFilas([filaCompleta(idNum)]).catch((e) => {
+      if (tenia) cache[destino][idNum] = previo;
+      else delete cache[destino][idNum];
+      throw e;
+    });
   }
 
   // Para el ajuste global por porcentaje: un solo viaje a la red con
   // las 143 filas, en vez de 143 peticiones sueltas.
   function guardarPreciosEnLote(mapaPrecios) {
+    const previos = Object.assign({}, cache.precios);
     Object.keys(mapaPrecios).forEach((id) => {
       cache.precios[Number(id)] = mapaPrecios[id];
     });
     guardarTodoLS(cache);
     const filas = Object.keys(mapaPrecios).map((id) => filaCompleta(id));
-    return enviarFilas(filas);
+    return enviarFilas(filas).catch((e) => {
+      cache.precios = previos; // el ajuste global no se aplicó: lo deshacemos
+      throw e;
+    });
   }
 
   // Restablecer precios: deja imagen y activo intactos, solo borra precio.
   function restablecerPrecios() {
+    const previos = Object.assign({}, cache.precios);
     const ids = Object.keys(cache.precios).map(Number);
     cache.precios = {};
     guardarTodoLS(cache);
     if (ids.length === 0) return Promise.resolve(true);
-    return enviarFilas(ids.map((id) => filaCompleta(id)));
+    return enviarFilas(ids.map((id) => filaCompleta(id))).catch((e) => {
+      cache.precios = previos;
+      throw e;
+    });
   }
 
   /* ============ FOTOS ============ */

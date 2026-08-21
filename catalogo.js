@@ -1,37 +1,46 @@
 /* ============================================================
    CATÁLOGO ADMINISTRABLE — catalogo.js
    Render del catálogo, ajuste de precios global/individual,
-   persistencia en localStorage compartida con el test principal.
+   persistencia en la base de datos (Supabase) vía db.js, compartida
+   con el test principal y visible para todos los visitantes.
    ============================================================ */
 
 (function () {
   "use strict";
 
-  const CLAVE_STORAGE = "perfumesPro_preciosOverride";
-  const CLAVE_STORAGE_IMAGENES = "perfumesPro_imagenesOverride";
-  const CLAVE_STORAGE_ACTIVOS = "perfumesPro_activosOverride";
+  /* ============ PERSISTENCIA EN LA BASE DE DATOS ============ */
+  // Antes estos 3 overrides (precio, foto, activo) vivían en localStorage,
+  // así que solo existían en el navegador donde se hicieron los cambios:
+  // ni los visitantes ni el propio administrador desde otro dispositivo
+  // los veían. Ahora los administra db.js contra Supabase.
+  //
+  // Los mapas siguen teniendo exactamente la misma forma { id: valor } que
+  // antes, así que todo el render de más abajo funciona sin modificarse.
 
-  /* ============ PERSISTENCIA DE PRECIOS ============ */
-  // Guardamos solo las diferencias respecto al precioUSD original de data.js,
-  // como un mapa { id: nuevoPrecio }. index.html también lee esta misma
-  // clave antes de calcular el Match, así los ajustes se reflejan en el test.
+  let overrides = {};          // { id: precioEditado }
+  let overridesImagenes = {};  // { id: urlDeLaFotoReal }
+  let overridesActivos = {};   // { id: true | false }
 
-  function leerOverrides() {
-    try {
-      const raw = localStorage.getItem(CLAVE_STORAGE);
-      return raw ? JSON.parse(raw) : {};
-    } catch (e) {
-      console.warn("No se pudo leer el almacenamiento local de precios:", e);
-      return {};
-    }
+  // db.js mantiene una única copia en memoria de los overrides. Aquí
+  // refrescamos nuestras referencias a esa copia después de cada cambio.
+  function sincronizarMapasLocales() {
+    const datos = PerfumesDB.overrides();
+    overrides = datos.precios;
+    overridesImagenes = datos.imagenes;
+    overridesActivos = datos.activos;
   }
 
-  function guardarOverrides(overrides) {
-    try {
-      localStorage.setItem(CLAVE_STORAGE, JSON.stringify(overrides));
-    } catch (e) {
-      console.warn("No se pudo guardar el almacenamiento local de precios:", e);
+  // Traduce un fallo de red o de permisos a algo que se entienda sin
+  // tener que abrir la consola del navegador.
+  function mensajeDeError(e) {
+    const texto = String((e && e.message) || e || "");
+    if (texto.indexOf("401") !== -1 || texto.indexOf("403") !== -1) {
+      return "Sin permiso para guardar. Recarga la página y vuelve a ingresar la contraseña.";
     }
+    if (texto.indexOf("timeout") !== -1) {
+      return "La conexión tardó demasiado. Revisa tu internet e intenta de nuevo.";
+    }
+    return "No se pudo guardar el cambio. Intenta de nuevo.";
   }
 
   function precioActual(perfume, overrides) {
@@ -50,31 +59,6 @@
     return "Sin límite";
   }
 
-  let overrides = leerOverrides();
-
-  /* ============ PERSISTENCIA DE FOTOS REALES ============ */
-  // Igual mecanismo que los precios: un mapa { id: urlDeLaFoto } guardado
-  // en localStorage. index.html también lo lee, así que si pegas la foto
-  // real aquí, aparece también en los resultados del test.
-
-  function leerOverridesImagenes() {
-    try {
-      const raw = localStorage.getItem(CLAVE_STORAGE_IMAGENES);
-      return raw ? JSON.parse(raw) : {};
-    } catch (e) {
-      console.warn("No se pudo leer el almacenamiento local de imágenes:", e);
-      return {};
-    }
-  }
-
-  function guardarOverridesImagenes(overridesImg) {
-    try {
-      localStorage.setItem(CLAVE_STORAGE_IMAGENES, JSON.stringify(overridesImg));
-    } catch (e) {
-      console.warn("No se pudo guardar el almacenamiento local de imágenes:", e);
-    }
-  }
-
   function imagenActual(perfume, overridesImg) {
     const guardada = overridesImg[perfume.id];
     return typeof guardada === "string" && guardada.trim() !== ""
@@ -82,38 +66,10 @@
       : perfume.imagen;
   }
 
-  let overridesImagenes = leerOverridesImagenes();
-
-  /* ============ PERSISTENCIA DE ACTIVAR / DESACTIVAR ============ */
-  // Igual mecanismo: solo guardamos los perfumes cuyo estado difiere del
-  // valor por defecto en data.js (activo: true), como { id: false }.
-  // El test (index.html) lee esta misma clave y nunca muestra un perfume
-  // desactivado como resultado, sin necesidad de borrarlo del catálogo.
-
-  function leerOverridesActivos() {
-    try {
-      const raw = localStorage.getItem(CLAVE_STORAGE_ACTIVOS);
-      return raw ? JSON.parse(raw) : {};
-    } catch (e) {
-      console.warn("No se pudo leer el almacenamiento local de activos:", e);
-      return {};
-    }
-  }
-
-  function guardarOverridesActivos(overridesAct) {
-    try {
-      localStorage.setItem(CLAVE_STORAGE_ACTIVOS, JSON.stringify(overridesAct));
-    } catch (e) {
-      console.warn("No se pudo guardar el almacenamiento local de activos:", e);
-    }
-  }
-
   function estaActivo(perfume, overridesAct) {
     const guardado = overridesAct[perfume.id];
     return typeof guardado === "boolean" ? guardado : perfume.activo !== false;
   }
-
-  let overridesActivos = leerOverridesActivos();
 
   function contarActivos() {
     return PERFUMES.filter((p) => estaActivo(p, overridesActivos)).length;
@@ -194,9 +150,10 @@
       nodo.querySelector('[data-campo="potencia"]').textContent = perfume.potencia;
 
       // Subida de foto real desde el computador (ver botón "📷 Subir foto").
-      // Leemos el archivo con FileReader y lo convertimos en un data URL
-      // (base64), que se guarda directamente en localStorage. Así no
-      // dependemos de ninguna URL externa que pueda fallar.
+      // El archivo se sube a Supabase Storage y en la base de datos solo
+      // queda su URL. Antes se guardaba el archivo entero en base64 dentro
+      // de localStorage, que se llenaba con 3 o 4 fotos y hacía fallar el
+      // guardado en silencio.
       const inputSubirImagen = nodo.querySelector('[data-campo="imagen-subir-input"]');
       const btnQuitarImagen = nodo.querySelector('[data-campo="imagen-quitar"]');
       const spanEstadoImagen = nodo.querySelector('[data-campo="imagen-estado"]');
@@ -232,39 +189,43 @@
           return;
         }
 
-        spanEstadoImagen.textContent = "Cargando…";
+        spanEstadoImagen.textContent = "Subiendo…";
         spanEstadoImagen.classList.remove("guardada");
+        inputSubirImagen.disabled = true;
 
-        const lector = new FileReader();
-        lector.onload = () => {
-          const dataUrl = lector.result;
-          overridesImagenes[perfume.id] = dataUrl;
-          try {
-            guardarOverridesImagenes(overridesImagenes);
-            imgEl.src = dataUrl;
+        PerfumesDB.subirFoto(perfume.id, archivo)
+          .then((url) => {
+            sincronizarMapasLocales();
+            imgEl.src = url;
             actualizarEstadoImagen(true);
-          } catch (e) {
-            // Si el navegador se queda sin espacio de almacenamiento local
-            // (localStorage tiene límite, normalmente 5-10MB en total),
-            // avisamos en vez de fallar en silencio.
-            delete overridesImagenes[perfume.id];
-            spanEstadoImagen.textContent = "No hay espacio suficiente guardado en el navegador.";
+          })
+          .catch((e) => {
+            console.warn("No se pudo subir la foto:", e);
+            sincronizarMapasLocales();
+            spanEstadoImagen.textContent = mensajeDeError(e);
             spanEstadoImagen.classList.remove("guardada");
-          }
-        };
-        lector.onerror = () => {
-          spanEstadoImagen.textContent = "No se pudo leer el archivo, intenta de nuevo.";
-          spanEstadoImagen.classList.remove("guardada");
-        };
-        lector.readAsDataURL(archivo);
+          })
+          .then(() => {
+            inputSubirImagen.disabled = false;
+          });
       });
 
       btnQuitarImagen.addEventListener("click", () => {
-        delete overridesImagenes[perfume.id];
-        guardarOverridesImagenes(overridesImagenes);
-        imgEl.src = perfume.imagen;
-        inputSubirImagen.value = "";
-        actualizarEstadoImagen(false);
+        btnQuitarImagen.disabled = true;
+        PerfumesDB.quitarFoto(perfume.id)
+          .then(() => {
+            sincronizarMapasLocales();
+            imgEl.src = perfume.imagen;
+            inputSubirImagen.value = "";
+            actualizarEstadoImagen(false);
+          })
+          .catch((e) => {
+            console.warn("No se pudo quitar la foto:", e);
+            spanEstadoImagen.textContent = mensajeDeError(e);
+          })
+          .then(() => {
+            btnQuitarImagen.disabled = false;
+          });
       });
 
       const precio = precioActual(perfume, overrides);
@@ -282,9 +243,11 @@
           inputPrecio.value = formatearPrecio(precioActual(perfume, overrides));
           return;
         }
-        guardarPrecioIndividual(perfume.id, nuevoValor);
-        const precioNuevo = precioActual(perfume, overrides);
-        actualizarEtiquetasPrecio(spanOriginal, spanCategoria, perfume, precioNuevo);
+        guardarPrecioIndividual(perfume.id, nuevoValor).then(() => {
+          const precioNuevo = precioActual(perfume, overrides);
+          inputPrecio.value = formatearPrecio(precioNuevo);
+          actualizarEtiquetasPrecio(spanOriginal, spanCategoria, perfume, precioNuevo);
+        });
       });
 
       // Toggle activar / desactivar: un perfume desactivado nunca aparece
@@ -297,16 +260,31 @@
 
       toggleInput.addEventListener("change", () => {
         const nuevoEstado = toggleInput.checked;
-        if (nuevoEstado === (perfume.activo !== false)) {
-          // Coincide con el valor por defecto: no hace falta guardar override
-          delete overridesActivos[perfume.id];
-        } else {
-          overridesActivos[perfume.id] = nuevoEstado;
-        }
-        guardarOverridesActivos(overridesActivos);
+        // Si coincide con el valor por defecto de data.js no guardamos
+        // override: mandamos null y db.js limpia esa columna.
+        const valorAGuardar =
+          nuevoEstado === (perfume.activo !== false) ? null : nuevoEstado;
+
+        // Pintamos el cambio de inmediato para que el panel se sienta ágil,
+        // y si el guardado falla lo revertimos.
         fila.classList.toggle("desactivada", !nuevoEstado);
         toggleTexto.textContent = nuevoEstado ? "Activo" : "Desactivado";
-        actualizarContadorActivos();
+
+        PerfumesDB.guardarCampo(perfume.id, "activo", valorAGuardar)
+          .then(() => {
+            sincronizarMapasLocales();
+            actualizarContadorActivos();
+          })
+          .catch((e) => {
+            console.warn("No se pudo guardar el estado:", e);
+            sincronizarMapasLocales();
+            const revertido = estaActivo(perfume, overridesActivos);
+            toggleInput.checked = revertido;
+            fila.classList.toggle("desactivada", !revertido);
+            toggleTexto.textContent = revertido ? "Activo" : "Desactivado";
+            actualizarContadorActivos();
+            panelNota.textContent = mensajeDeError(e);
+          });
       });
 
       gridCatalogo.appendChild(nodo);
@@ -330,8 +308,13 @@
   /* ============ AJUSTE GLOBAL POR PORCENTAJE ============ */
 
   function guardarPrecioIndividual(id, nuevoPrecio) {
-    overrides[id] = formatearPrecio(nuevoPrecio);
-    guardarOverrides(overrides);
+    return PerfumesDB.guardarCampo(id, "precio", formatearPrecio(nuevoPrecio))
+      .then(sincronizarMapasLocales)
+      .catch((e) => {
+        console.warn("No se pudo guardar el precio:", e);
+        sincronizarMapasLocales();
+        panelNota.textContent = mensajeDeError(e);
+      });
   }
 
   function aplicarAjusteGlobal() {
@@ -343,24 +326,55 @@
     const direccion = selectDireccion.value; // "subir" | "bajar"
     const factor = direccion === "subir" ? 1 + porcentaje / 100 : 1 - porcentaje / 100;
 
+    const nuevosPrecios = {};
     PERFUMES.forEach((perfume) => {
       const base = precioActual(perfume, overrides);
-      const nuevo = Math.max(1, formatearPrecio(base * factor));
-      overrides[perfume.id] = nuevo;
+      nuevosPrecios[perfume.id] = Math.max(1, formatearPrecio(base * factor));
     });
 
-    guardarOverrides(overrides);
-    renderizarCatalogo();
+    // Las 143 filas viajan en una sola petición, no una por perfume.
+    btnAplicarGlobal.disabled = true;
+    panelNota.textContent = "Guardando…";
 
-    const verbo = direccion === "subir" ? "subido" : "bajado";
-    panelNota.textContent = `Precios de las ${PERFUMES.length} fragancias ${verbo} un ${porcentaje}%. Los cambios ya se aplican también en los resultados del test.`;
+    PerfumesDB.guardarPreciosEnLote(nuevosPrecios)
+      .then(() => {
+        sincronizarMapasLocales();
+        renderizarCatalogo();
+        const verbo = direccion === "subir" ? "subido" : "bajado";
+        panelNota.textContent = `Precios de las ${PERFUMES.length} fragancias ${verbo} un ${porcentaje}%. Los cambios ya se aplican también en los resultados del test, para todos los visitantes.`;
+      })
+      .catch((e) => {
+        console.warn("No se pudo aplicar el ajuste global:", e);
+        sincronizarMapasLocales();
+        renderizarCatalogo();
+        panelNota.textContent = mensajeDeError(e);
+      })
+      .then(() => {
+        btnAplicarGlobal.disabled = false;
+      });
   }
 
   function restablecerPrecios() {
-    overrides = {};
-    guardarOverrides(overrides);
-    renderizarCatalogo();
-    panelNota.textContent = "Precios restablecidos a los valores originales del catálogo.";
+    btnResetPrecios.disabled = true;
+    panelNota.textContent = "Restableciendo…";
+
+    // Solo borra los precios: las fotos y los activados/desactivados
+    // se quedan como están.
+    PerfumesDB.restablecerPrecios()
+      .then(() => {
+        sincronizarMapasLocales();
+        renderizarCatalogo();
+        panelNota.textContent = "Precios restablecidos a los valores originales del catálogo.";
+      })
+      .catch((e) => {
+        console.warn("No se pudieron restablecer los precios:", e);
+        sincronizarMapasLocales();
+        renderizarCatalogo();
+        panelNota.textContent = mensajeDeError(e);
+      })
+      .then(() => {
+        btnResetPrecios.disabled = false;
+      });
   }
 
   /* ============ FILTROS Y BÚSQUEDA ============ */
@@ -404,5 +418,73 @@
   });
 
   /* ============ INICIO ============ */
-  renderizarCatalogo();
+  // Esperamos a que lleguen los overrides de la base de datos ANTES de
+  // pintar, para no mostrar un precio viejo que cambie medio segundo
+  // después. Si la base de datos falla, db.js devuelve lo que haya de
+  // respaldo y el panel se abre igual, avisando en la nota.
+  function iniciar() {
+    if (typeof PerfumesDB === "undefined") {
+      panelNota.textContent =
+        "Falta cargar db.js. Revisa que catalogo.html lo incluya antes de catalogo.js.";
+      return;
+    }
+
+    gridCatalogo.innerHTML = '<p class="catalogo-vacio">Cargando catálogo…</p>';
+
+    PerfumesDB.cargarOverrides().then(() => {
+      sincronizarMapasLocales();
+      renderizarCatalogo();
+      avisarModoDeGuardado();
+      ofrecerMigracion();
+    });
+  }
+
+  function avisarModoDeGuardado() {
+    if (!PerfumesDB.estaConfigurada()) {
+      panelNota.textContent =
+        "⚠️ Sin conexión a la base de datos: los cambios se guardan solo en este navegador y no los verán los visitantes.";
+      return;
+    }
+    panelNota.textContent =
+      "Los cambios se guardan en la base de datos y los ven todos los visitantes del test.";
+  }
+
+  // Si este navegador todavía tiene cambios viejos guardados localmente
+  // que nunca llegaron a la nube, ofrecemos subirlos en vez de perderlos.
+  function ofrecerMigracion() {
+    const pendientes = PerfumesDB.pendientesDeMigrar();
+    if (pendientes.total === 0) return;
+
+    const aviso = document.createElement("div");
+    aviso.className = "panel-nota";
+    aviso.style.marginTop = "10px";
+
+    const texto = document.createElement("span");
+    texto.textContent = `Este navegador tiene ${pendientes.total} cambio(s) guardado(s) solo aquí (${pendientes.precios} precio(s), ${pendientes.imagenes} foto(s), ${pendientes.activos} activado(s)/desactivado(s)) que aún no están en la base de datos. `;
+
+    const boton = document.createElement("button");
+    boton.type = "button";
+    boton.className = "boton boton-primario";
+    boton.textContent = "Subirlos ahora";
+    boton.addEventListener("click", () => {
+      boton.disabled = true;
+      boton.textContent = "Subiendo…";
+      PerfumesDB.migrarDesdeLocalStorage()
+        .then((resultado) => {
+          sincronizarMapasLocales();
+          renderizarCatalogo();
+          aviso.textContent = `✓ ${resultado.total} cambio(s) subido(s) a la base de datos.`;
+        })
+        .catch((e) => {
+          console.warn("Falló la migración:", e);
+          aviso.textContent = mensajeDeError(e);
+        });
+    });
+
+    aviso.appendChild(texto);
+    aviso.appendChild(boton);
+    panelNota.parentNode.appendChild(aviso);
+  }
+
+  iniciar();
 })();

@@ -138,8 +138,11 @@
     </article>
   </template>
 
-  <script src="auth-catalogo.js"></script>
+  <!-- data.js primero: db.js y auth-catalogo.js leen PERFUMES.
+       db.js antes que los demás: define PerfumesDB, que ambos usan. -->
   <script src="data.js"></script>
+  <script src="db.js"></script>
+  <script src="auth-catalogo.js"></script>
   <script src="catalogo.js"></script>
 </body>
 </html>
