@@ -592,7 +592,7 @@ const PERFUMES = [
     presupuesto: "Económico",
     precioUSD: 30,
     notas: "Canela, cardamomo, bergamota / Azafrán, sándalo, cedro, clavel / Agarwood (oud), cuero, vainilla, ámbar",
-    imagen: "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20width%3D%27375%27%20height%3D%27500%27%20viewBox%3D%270%200%20375%20500%27%3E%0A%20%20%20%20%3Cdefs%3E%0A%20%20%20%20%20%20%3ClinearGradient%20id%3D%27g34%27%20x1%3D%270%27%20y1%3D%270%27%20x2%3D%270%27%20y2%3D%271%27%3E%0A%20%20%20%20%20%20%20%20%3Cstop%20offset%3D%270%25%27%20stop-color%3D%27%231a1206%27/%3E%0A%20%20%20%20%20%20%20%20%3Cstop%20offset%3D%27100%25%27%20stop-color%3D%27%232b1d08%27/%3E%0A%20%20%20%20%20%20%3C/linearGradient%3E%0A%20%20%20%20%3C/defs%3E%0A%20%20%20%20%3Crect%20width%3D%27375%27%20height%3D%27500%27%20fill%3D%27url%28%23g34%29%27/%3E%0A%20%20%20%20%3Cg%20fill%3D%27none%27%20stroke%3D%27%23efdc85%27%20stroke-width%3D%272%27%20opacity%3D%270.9%27%3E%0A%20%20%20%20%20%20%3Ccircle%20cx%3D%22187%22%20cy%3D%22245%22%20r%3D%2275%22/%3E%0A%20%20%20%20%20%20%3Crect%20x%3D%22167%22%20y%3D%22140%22%20width%3D%2240%22%20height%3D%2235%22%20rx%3D%225%22/%3E%0A%20%20%20%20%20%20%3Crect%20x%3D%22175%22%20y%3D%22118%22%20width%3D%2224%22%20height%3D%2224%22%20rx%3D%223%22/%3E%0A%20%20%20%20%3C/g%3E%0A%20%20%20%20%3Ctext%20x%3D%27187%27%20y%3D%27395%27%20font-family%3D%27Georgia%2C%20serif%27%20font-size%3D%2734%27%20font-weight%3D%27600%27%20fill%3D%27%23efdc85%27%20text-anchor%3D%27middle%27%20opacity%3D%270.9%27%3ELQ%3C/text%3E%0A%20%20%20%20%3Ctext%20x%3D%27187%27%20y%3D%27445%27%20font-family%3D%27Georgia%2C%20serif%27%20font-size%3D%2711%27%20letter-spacing%3D%272%27%20fill%3D%27%238a7d5f%27%20text-anchor%3D%27middle%27%3E%C3%81RABE%3C/text%3E%0A%20%20%3C/svg%3E"
+    imagen: "Lattafa%20Qaaed.avif"
   },
   {
     id: 35,
@@ -815,7 +815,7 @@ const PERFUMES = [
     presupuesto: "Sin límite",
     precioUSD: 132,
     notas: "Cítricos, naranja amarga, romero, azahar / Almendra, haba tonka / Cuero, cedro, vetiver",
-    imagen: "L%27Homme%20Id%C3%A9al%20Guerlain%20for%20men.avif"
+    imagen: "Guerlain%20LHomme%20Ideal.avif"
   },
   {
     id: 48,
