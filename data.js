@@ -114,7 +114,7 @@ const PERFUMES = [
     presupuesto: "Medio",
     precioUSD: 82,
     notas: "Notas marinas, bergamota, neroli / Jazmín, romero / Almizcle blanco, cedro, oakmoss",
-    imagen: "Giorgio%20Acqua%20di%20Gio.avif"
+    imagen: "Giorgio%20Armani%20Acqua%20di%20Gio.avif"
   },
   {
     id: 7,
@@ -2087,7 +2087,7 @@ const PERFUMES = [
     presupuesto: "Económico",
     precioUSD: 33,
     notas: "Pimienta rosa, bergamota / Rosa turca, rosa búlgara, jazmín / Agarwood (oud), ámbar, vainilla",
-    imagen: "Lattafa%20Bade%27e%20Al%20Oud%20Amethyst.avif"
+    imagen: "Lattafa%20Badee%20Al%20Oud%20Amethyst.avif"
   }
 ,
   {
@@ -2283,7 +2283,7 @@ const PERFUMES = [
     presupuesto: "Medio",
     precioUSD: 145,
     notas: "Palo de rosa, cilantro, mandarina siciliana / Canela, rosa de Damasco, clavel / Sándalo, tabaco, vainilla, cuero, ámbar",
-    imagen: "Chanel%20%C3%89go%C3%AFste.avif"
+    imagen: "Egoiste%20Chanel.avif"
   }
 ,
   {
@@ -2443,7 +2443,7 @@ const PERFUMES = [
     presupuesto: "Sin límite",
     precioUSD: 340,
     notas: "Canela, azahar, cardamomo, bergamota / Vainilla bourbon, elemi / Praliné, almizcle, ambroxan, haba tonka, guaiac wood",
-    imagen: "Parfums%20de%20Marly%20Alth%C3%A0%C3%AFr.avif"
+    imagen: "Parfums%20de%20Marly%20Althair.avif"
   }
 ,
   {
