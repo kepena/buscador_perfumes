@@ -815,6 +815,7 @@
 
     zonaFormatos.innerHTML = `
       <div class="formatos-desplegados">
+        <p class="formatos-titulo-llamativo">✨ Tu fragancia ideal te espera — elige cómo la quieres</p>
         <div class="formatos-opciones">
           <div class="formato-card" id="btn-formato-probar">
             <div class="formato-emoji">🧪</div>
