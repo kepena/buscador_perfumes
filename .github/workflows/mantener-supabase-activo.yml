@@ -7,7 +7,7 @@
 # nunca llegue a ese limite. Es gratis: consume unos segundos de GitHub
 # Actions al mes.
 #
-# Requiere un secreto del repositorio llamado SUPABASE_KEY con la clave
+# Requiere un secreto del repositorio llamado JERO_SUPABASE_KEY con la clave
 # publica. Se configura en:
 #   Settings -> Secrets and variables -> Actions -> New repository secret
 
@@ -25,7 +25,7 @@ jobs:
       - name: Consultar la tabla de overrides
         run: |
           codigo=$(curl -s -o /dev/null -w "%{http_code}" \
-            -H "apikey: ${{ secrets.SUPABASE_KEY }}" \
+            -H "apikey: ${{ secrets.JERO_SUPABASE_KEY }}" \
             "https://evqifaeeamvrttuildkz.supabase.co/rest/v1/perfume_overrides?select=id&limit=1")
           echo "Supabase respondio HTTP $codigo"
           if [ "$codigo" != "200" ]; then
