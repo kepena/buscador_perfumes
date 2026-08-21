@@ -31,6 +31,9 @@
         <button type="submit" class="acceso-boton">Entrar</button>
       </form>
       <p id="acceso-error" class="acceso-error" hidden>Contraseña incorrecta. Intenta de nuevo.</p>
+      <!-- Salida para quien llegó aquí sin querer: sin esto la única opción
+           es adivinar la contraseña o cerrar la pestaña. -->
+      <a href="index.html" class="acceso-volver">← Volver al test</a>
     </div>
   </div>
 
@@ -76,8 +79,35 @@
       <!-- Estado de la conexion con la base de datos. Es permanente: nunca
            lo pisa el resultado de una accion suelta, para que el diagnostico
            no desaparezca en cuanto tocas un boton. -->
+      <!-- Cortes de presupuesto. Definen en qué categoría cae cada
+           fragancia según su precio de VENTA, y por tanto qué se le ofrece
+           a quien elige un presupuesto en el test. -->
+      <div class="panel-rangos">
+        <span class="panel-rangos-titulo">Rangos de presupuesto del test</span>
+        <div class="panel-rangos-fila">
+          <label class="panel-rango">
+            <span>Económico hasta</span>
+            <span class="panel-rango-input-grupo">
+              <span class="panel-rango-signo">$</span>
+              <input type="number" id="input-max-economico" min="1" step="1" />
+            </span>
+          </label>
+          <label class="panel-rango">
+            <span>Medio hasta</span>
+            <span class="panel-rango-input-grupo">
+              <span class="panel-rango-signo">$</span>
+              <input type="number" id="input-max-medio" min="2" step="1" />
+            </span>
+          </label>
+          <span class="panel-rango-resto" id="txt-rango-resto"></span>
+          <button type="button" id="btn-guardar-rangos" class="boton boton-fantasma">Guardar rangos</button>
+        </div>
+        <p class="panel-rangos-conteo" id="conteo-rangos"></p>
+      </div>
+
       <div class="panel-estado" id="panel-estado" hidden></div>
       <div class="panel-estado aviso" id="aviso-sin-precio" hidden></div>
+      <div class="panel-estado" id="aviso-bucket" hidden></div>
       <p class="panel-nota" id="panel-nota">El porcentaje se aplica sobre el precio de venta actual de cada fragancia.</p>
     </section>
 

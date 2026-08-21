@@ -43,6 +43,12 @@ window.PerfumesDB = (function () {
   const EMAIL_ADMIN = "admin@buscadorperfumes.kaiketek.com";
 
   const TABLA = "perfume_overrides";
+
+  // Los cortes de presupuesto (hasta cuánto es "Económico", hasta cuánto
+  // "Medio") se guardan en una fila reservada de la misma tabla, con id 0.
+  // No existe ninguna fragancia con id 0, así que no choca con nada, y
+  // evita tener que crear una tabla aparte solo para dos números.
+  const ID_CONFIGURACION = 0;
   const BUCKET = "fotos-perfumes";
   const TIMEOUT_MS = 6000; // si la BD no responde, seguimos sin ella
   const CLAVE_TOKEN = "perfumesPro_tokenEscritura";
@@ -72,7 +78,7 @@ window.PerfumesDB = (function () {
   let promesaEnCurso = null;
 
   function cacheVacia() {
-    return { costos: {}, ventas: {}, imagenes: {}, activos: {} };
+    return { costos: {}, ventas: {}, imagenes: {}, activos: {}, rangos: null };
   }
 
   /* ============ UTILIDADES DE RED ============ */
@@ -157,6 +163,17 @@ window.PerfumesDB = (function () {
     filas.forEach((fila) => {
       const id = Number(fila.id);
       if (Number.isNaN(id)) return;
+
+      // La fila reservada no es una fragancia: lleva los cortes de
+      // presupuesto en las mismas dos columnas de precio.
+      if (id === ID_CONFIGURACION) {
+        const maxEco = Number(fila.costo_usd);
+        const maxMedio = Number(fila.venta_usd);
+        if (maxEco > 0 && maxMedio > maxEco) {
+          datos.rangos = { maxEconomico: maxEco, maxMedio: maxMedio };
+        }
+        return;
+      }
       if (fila.costo_usd !== null && fila.costo_usd !== undefined) {
         datos.costos[id] = Number(fila.costo_usd);
       }
@@ -219,6 +236,36 @@ window.PerfumesDB = (function () {
       });
 
     return promesaEnCurso;
+  }
+
+  // Cortes de presupuesto vigentes. Si nunca se han configurado desde el
+  // panel, se usan los que trae RANGOS_PRECIO en data.js.
+  function rangos() {
+    if (cache.rangos) return cache.rangos;
+    if (typeof RANGOS_PRECIO !== "undefined") {
+      return {
+        maxEconomico: RANGOS_PRECIO["Económico"].max,
+        maxMedio: RANGOS_PRECIO.Medio.max
+      };
+    }
+    return { maxEconomico: 45, maxMedio: 110 };
+  }
+
+  function guardarRangos(maxEconomico, maxMedio) {
+    const previos = cache.rangos;
+    cache.rangos = { maxEconomico: maxEconomico, maxMedio: maxMedio };
+    return enviarFilas([
+      {
+        id: ID_CONFIGURACION,
+        costo_usd: maxEconomico,
+        venta_usd: maxMedio,
+        activo: null,
+        imagen_url: null
+      }
+    ]).catch((e) => {
+      cache.rangos = previos;
+      throw e;
+    });
   }
 
   // Acceso SÍNCRONO a lo ya descargado. app.js lo usa dentro del motor de
@@ -306,6 +353,39 @@ window.PerfumesDB = (function () {
       TIMEOUT_MS
     ).catch((e) => {
       console.warn("No se pudo verificar el esquema:", e);
+      return { ok: false, motivo: "sin-red" };
+    });
+  }
+
+  // Igual que con las columnas: si el bucket de fotos no existe, cada
+  // subida falla con "Bucket not found" y desde el panel se vive como que
+  // el botón de foto está roto. Lo comprobamos al entrar.
+  //
+  // Consultamos un archivo que no existe: si el bucket falta, Supabase
+  // responde "Bucket not found"; si el bucket está, responde que el objeto
+  // no existe, que es justo lo que queremos comprobar.
+  function verificarBucket() {
+    if (!configurada) return Promise.resolve({ ok: false, motivo: "sin-configurar" });
+
+    const url =
+      SUPABASE_URL + "/storage/v1/object/public/" + BUCKET + "/__comprobacion__";
+
+    return conTimeout(
+      fetch(url, { headers: { apikey: SUPABASE_KEY } }).then((r) => {
+        if (r.ok) return { ok: true };
+        return r.text().then((t) => {
+          const texto = String(t || "").toLowerCase();
+          if (texto.indexOf("bucket not found") !== -1 || texto.indexOf("nosuchbucket") !== -1) {
+            return { ok: false, motivo: "sin-bucket", detalle: t };
+          }
+          // Cualquier otra respuesta (típicamente "Object not found") significa
+          // que el bucket sí existe.
+          return { ok: true };
+        });
+      }),
+      TIMEOUT_MS
+    ).catch((e) => {
+      console.warn("No se pudo verificar el bucket:", e);
       return { ok: false, motivo: "sin-red" };
     });
   }
@@ -604,6 +684,9 @@ window.PerfumesDB = (function () {
     iniciarSesion: iniciarSesion,
     sesionDeEscrituraActiva: sesionDeEscrituraActiva,
     verificarEsquema: verificarEsquema,
+    verificarBucket: verificarBucket,
+    rangos: rangos,
+    guardarRangos: guardarRangos,
     guardarCampo: guardarCampo,
     guardarVentasEnLote: guardarVentasEnLote,
     ventaIgualACosto: ventaIgualACosto,

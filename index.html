@@ -26,7 +26,7 @@
         <span class="marca-icono">✦</span>
         <span class="marca-texto">Buscador de Perfumes <em>Pro</em></span>
       </div>
-      <a href="catalogo.html" class="enlace-catalogo">Ver catálogo completo →</a>
+      <a href="catalogo.html" class="enlace-catalogo" id="enlace-catalogo">Ver catálogo completo →</a>
     </header>
 
     <!-- ============ PANTALLA DE INICIO ============ -->
@@ -166,6 +166,28 @@
 
   <!-- db.js descarga los ajustes hechos en el panel (precios, fotos y
        fragancias desactivadas) y los deja en memoria para el test. -->
+  <!-- Aviso al entrar al catálogo: es una zona de administración, no algo
+       que le sirva a un visitante. Se pregunta antes de sacarlo del test. -->
+  <div class="modal-fondo" id="modal-admin" hidden>
+    <div class="modal-caja" role="dialog" aria-modal="true" aria-labelledby="modal-admin-titulo">
+      <span class="modal-icono">🔒</span>
+      <h2 class="modal-titulo" id="modal-admin-titulo">Zona de administración</h2>
+      <p class="modal-texto">
+        El catálogo completo es una herramienta interna para administrar precios y
+        fotos, y pide contraseña. Si solo buscas tu fragancia ideal, el test es
+        el camino.
+      </p>
+      <div class="modal-acciones">
+        <button type="button" class="boton boton-primario" id="modal-admin-quedarse">
+          Seguir en el test
+        </button>
+        <button type="button" class="boton boton-fantasma" id="modal-admin-ir">
+          Ir al catálogo
+        </button>
+      </div>
+    </div>
+  </div>
+
   <script src="data.js"></script>
   <script src="db.js"></script>
   <script src="app.js"></script>

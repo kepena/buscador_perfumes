@@ -296,19 +296,22 @@
   }
 
   // Devuelve el precio de venta, o null si esa fragancia todavía no tiene
-  // uno configurado. Sin precio no se puede vender, así que no se ofrece.
-  //
-  // TRANSITORIO: mientras la carga inicial de precios no se haya ejecutado
-  // caemos al precioUSD de data.js, para no dejar el test sin catálogo.
+  // uno configurado en el panel. Sin precio no se puede vender, así que esa
+  // fragancia no se ofrece como resultado.
   function precioVigente(perfume, overrides) {
     const guardado = overrides[perfume.id];
-    if (typeof guardado === "number" && !Number.isNaN(guardado)) return guardado;
-    return typeof perfume.precioUSD === "number" ? perfume.precioUSD : null;
+    return typeof guardado === "number" && !Number.isNaN(guardado) ? guardado : null;
   }
 
+  // Los cortes de presupuesto se configuran desde el panel y viven en la
+  // base de datos. Si nunca se tocaron, se usan los de data.js.
   function categoriaParaPrecio(precio) {
-    if (precio <= RANGOS_PRECIO.Económico.max) return "Económico";
-    if (precio <= RANGOS_PRECIO.Medio.max) return "Medio";
+    const r =
+      typeof PerfumesDB !== "undefined"
+        ? PerfumesDB.rangos()
+        : { maxEconomico: RANGOS_PRECIO["Económico"].max, maxMedio: RANGOS_PRECIO.Medio.max };
+    if (precio <= r.maxEconomico) return "Económico";
+    if (precio <= r.maxMedio) return "Medio";
     return "Sin límite";
   }
 
@@ -611,9 +614,8 @@
   // actúa como FILTRO real, no solo como un bonus de puntos que un perfume
   // caro podía compensar con otras coincidencias.
   //
-  // La categoría de precio se recalcula a partir del precio VIGENTE (con
-  // los ajustes hechos en el catálogo), no del precioUSD original de
-  // data.js, para que subir o bajar precios en el catálogo cambie de
+  // La categoría de precio se calcula a partir del precio de VENTA que hay
+  // en la base de datos, para que ajustar precios en el catálogo cambie de
   // verdad qué perfumes caben en cada presupuesto.
   const ORDEN_PRESUPUESTO = ["Económico", "Medio", "Sin límite"];
 
@@ -691,11 +693,15 @@
     const top4 = puntuados.slice(0, 4);
 
     // El % de Match mostrado es el score REAL calculado arriba, sin piso
-    // artificial. El precio e imagen mostrados son los vigentes (con
-    // ajustes del catálogo aplicados), no los originales de data.js.
+    // artificial. El precio y la imagen vienen de la base de datos, no de
+    // data.js.
     return top4.map((item) => ({
       ...item.perfume,
-      precioUSD: item.precio,
+      precioVenta: item.precio,
+      // Categoría recalculada sobre el precio de venta actual. El campo
+      // `presupuesto` de data.js es fijo y quedaría desactualizado en
+      // cuanto el precio cambie desde el panel.
+      categoriaVigente: item.categoria,
       imagen: imagenVigente(item.perfume, overridesImg),
       matchPct: Math.min(100, item.score)
     }));
@@ -800,7 +806,8 @@
       nodo.querySelector('[data-campo="clima"]').textContent = perfume.clima;
       nodo.querySelector('[data-campo="estilo"]').textContent = perfume.estilo;
       nodo.querySelector('[data-campo="potencia"]').textContent = perfume.potencia;
-      nodo.querySelector('[data-campo="precio"]').textContent = perfume.presupuesto;
+      nodo.querySelector('[data-campo="precio"]').textContent =
+        perfume.categoriaVigente || perfume.presupuesto;
 
       renderizarNotas(nodo, perfume.notas);
 
@@ -1250,6 +1257,41 @@
   btnSiguiente.addEventListener("click", irSiguiente);
   btnAtras.addEventListener("click", irAtras);
   btnReiniciar.addEventListener("click", iniciarTest);
+
+  // El enlace al catálogo lleva a una zona de administración protegida por
+  // contraseña, que no le sirve de nada a un visitante. En vez de dejar que
+  // se estrelle contra el login, se le avisa y se le deja volver.
+  const enlaceCatalogo = $("#enlace-catalogo");
+  const modalAdmin = $("#modal-admin");
+
+  if (enlaceCatalogo && modalAdmin) {
+    const cerrarModal = () => {
+      modalAdmin.hidden = true;
+      document.body.classList.remove("modal-abierto");
+    };
+
+    enlaceCatalogo.addEventListener("click", (evento) => {
+      evento.preventDefault();
+      modalAdmin.hidden = false;
+      document.body.classList.add("modal-abierto");
+      const botonQuedarse = $("#modal-admin-quedarse");
+      if (botonQuedarse) botonQuedarse.focus();
+    });
+
+    $("#modal-admin-quedarse").addEventListener("click", cerrarModal);
+    $("#modal-admin-ir").addEventListener("click", () => {
+      window.location.href = enlaceCatalogo.getAttribute("href");
+    });
+
+    // Cerrar tocando fuera de la caja o con Escape, como se espera de
+    // cualquier diálogo.
+    modalAdmin.addEventListener("click", (evento) => {
+      if (evento.target === modalAdmin) cerrarModal();
+    });
+    document.addEventListener("keydown", (evento) => {
+      if (evento.key === "Escape" && !modalAdmin.hidden) cerrarModal();
+    });
+  }
 
   const linkContactoInicio = $("#link-contacto-inicio");
   if (linkContactoInicio) {

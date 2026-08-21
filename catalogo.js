@@ -34,6 +34,19 @@
 
   // Traduce un fallo de red o de permisos a algo que se entienda sin
   // tener que abrir la consola del navegador.
+  // Un mensaje de error tiene que verse. Estos dos helpers se encargan de
+  // aplicar y quitar la clase que lo hace legible, para no depender de
+  // recordarlo en cada uno de los sitios donde se muestra un error.
+  function errorEn(elemento, texto) {
+    elemento.textContent = texto;
+    elemento.classList.add("error");
+    elemento.classList.remove("guardada");
+  }
+
+  function limpiarError(elemento) {
+    elemento.classList.remove("error");
+  }
+
   function mensajeDeError(e) {
     const texto = String((e && e.message) || e || "");
     if (texto.indexOf("401") !== -1 || texto.indexOf("403") !== -1) {
@@ -43,6 +56,9 @@
       return "La conexión tardó demasiado. Revisa tu internet e intenta de nuevo.";
     }
     // La base de datos todavía no tiene las columnas de costo y venta.
+    if (texto.toLowerCase().indexOf("bucket not found") !== -1 || texto.indexOf("NoSuchBucket") !== -1) {
+      return "Falta crear el bucket de fotos en Supabase. Mira el recuadro rojo de arriba.";
+    }
     if (
       texto.indexOf("PGRST204") !== -1 ||
       texto.indexOf("costo_usd") !== -1 ||
@@ -77,7 +93,21 @@
     document.body.classList.toggle("sin-permiso-escritura", !puede);
     if (btnAplicarGlobal) btnAplicarGlobal.disabled = !puede;
     if (btnResetPrecios) btnResetPrecios.disabled = !puede;
+    if (btnGuardarRangos) btnGuardarRangos.disabled = !puede;
   }
+
+  const INSTRUCCIONES_BUCKET =
+    "<ol>" +
+    "<li>Entra a tu proyecto en <strong>supabase.com</strong></li>" +
+    "<li>Menú izquierdo → <strong>Storage</strong> → <strong>New bucket</strong></li>" +
+    "<li>Nombre: <code>fotos-perfumes</code> (exacto)</li>" +
+    "<li>Marca <strong>Public bucket</strong> — si no, los visitantes no verán las fotos</li>" +
+    "<li><strong>Create bucket</strong></li>" +
+    "<li>Ábrelo → pestaña <strong>Policies</strong> → <strong>New policy</strong> → " +
+    "plantilla <em>“Allow access to authenticated users only”</em>, marcando " +
+    "<code>INSERT</code>, <code>UPDATE</code> y <code>DELETE</code></li>" +
+    "<li>Vuelve aquí y recarga la página</li>" +
+    "</ol>";
 
   const INSTRUCCIONES_SQL =
     "<ol>" +
@@ -136,22 +166,17 @@
       INSTRUCCIONES_USUARIO_ADMIN);
   };
 
-  // El COSTO y la VENTA viven en la base de datos, no en data.js.
-  //
-  // TRANSITORIO: mientras la carga inicial de precios no se haya ejecutado,
-  // caemos al precioUSD de data.js para no dejar el catálogo sin precios.
-  // Ese campo desaparece de data.js en cuanto la base de datos esté
-  // poblada, y entonces una fragancia sin precio queda marcada como tal.
+  // El COSTO y la VENTA viven solo en la base de datos. data.js ya no
+  // contiene precios: son dato de negocio, cambian seguido y tienen que ser
+  // visibles para todos sin pasar por Git.
   function costoActual(perfume) {
     const guardado = costos[perfume.id];
-    if (typeof guardado === "number" && !Number.isNaN(guardado)) return guardado;
-    return typeof perfume.precioUSD === "number" ? perfume.precioUSD : null;
+    return typeof guardado === "number" && !Number.isNaN(guardado) ? guardado : null;
   }
 
   function ventaActual(perfume) {
     const guardado = ventas[perfume.id];
-    if (typeof guardado === "number" && !Number.isNaN(guardado)) return guardado;
-    return typeof perfume.precioUSD === "number" ? perfume.precioUSD : null;
+    return typeof guardado === "number" && !Number.isNaN(guardado) ? guardado : null;
   }
 
   // Una fragancia sin precio de venta no se puede vender, así que el test
@@ -164,12 +189,13 @@
     return PERFUMES.filter(sinPrecio).length;
   }
 
-  // Determina la categoría de presupuesto (Económico/Medio/Sin límite) a partir
-  // del precio actual, para que el filtro del test siga siendo coherente incluso
-  // después de un ajuste global grande.
+  // Determina la categoría de presupuesto a partir del precio de venta,
+  // usando los cortes configurados aquí mismo, para que el filtro del test
+  // siga siendo coherente después de cualquier ajuste.
   function categoriaParaPrecio(precio) {
-    if (precio <= RANGOS_PRECIO.Económico.max) return "Económico";
-    if (precio <= RANGOS_PRECIO.Medio.max) return "Medio";
+    const r = PerfumesDB.rangos();
+    if (precio <= r.maxEconomico) return "Económico";
+    if (precio <= r.maxMedio) return "Medio";
     return "Sin límite";
   }
 
@@ -224,6 +250,11 @@
   const panelNota = $("#panel-nota");
   const panelEstado = $("#panel-estado");
   const inputBuscar = $("#input-buscar");
+  const inputMaxEconomico = $("#input-max-economico");
+  const inputMaxMedio = $("#input-max-medio");
+  const btnGuardarRangos = $("#btn-guardar-rangos");
+  const txtRangoResto = $("#txt-rango-resto");
+  const conteoRangos = $("#conteo-rangos");
   const chipsFiltro = $$(".filtro-chip");
 
   let filtroTipoActual = "Todos";
@@ -293,10 +324,12 @@
         if (guardada) {
           spanEstadoImagen.textContent = "✓ Foto real guardada";
           spanEstadoImagen.classList.add("guardada");
+          limpiarError(spanEstadoImagen);
           btnQuitarImagen.hidden = false;
         } else {
           spanEstadoImagen.textContent = "";
           spanEstadoImagen.classList.remove("guardada");
+          limpiarError(spanEstadoImagen);
           btnQuitarImagen.hidden = true;
         }
       }
@@ -309,18 +342,17 @@
         if (!archivo) return;
 
         if (!archivo.type.startsWith("image/")) {
-          spanEstadoImagen.textContent = "Ese archivo no es una imagen.";
-          spanEstadoImagen.classList.remove("guardada");
+          errorEn(spanEstadoImagen, "Ese archivo no es una imagen.");
           return;
         }
         if (archivo.size > LIMITE_TAMANO_MB * 1024 * 1024) {
-          spanEstadoImagen.textContent = `La foto pesa demasiado (máx. ${LIMITE_TAMANO_MB}MB).`;
-          spanEstadoImagen.classList.remove("guardada");
+          errorEn(spanEstadoImagen, `La foto pesa demasiado (máx. ${LIMITE_TAMANO_MB}MB).`);
           return;
         }
 
         spanEstadoImagen.textContent = "Subiendo…";
         spanEstadoImagen.classList.remove("guardada");
+        limpiarError(spanEstadoImagen);
         inputSubirImagen.disabled = true;
 
         PerfumesDB.subirFoto(perfume.id, archivo)
@@ -332,8 +364,7 @@
           .catch((e) => {
             console.warn("No se pudo subir la foto:", e);
             sincronizarMapasLocales();
-            spanEstadoImagen.textContent = mensajeDeError(e);
-            spanEstadoImagen.classList.remove("guardada");
+            errorEn(spanEstadoImagen, mensajeDeError(e));
           })
           .then(() => {
             inputSubirImagen.disabled = false;
@@ -351,7 +382,7 @@
           })
           .catch((e) => {
             console.warn("No se pudo quitar la foto:", e);
-            spanEstadoImagen.textContent = mensajeDeError(e);
+            errorEn(spanEstadoImagen, mensajeDeError(e));
           })
           .then(() => {
             btnQuitarImagen.disabled = false;
@@ -388,7 +419,7 @@
           PerfumesDB.guardarCampo(perfume.id, campo, formatearPrecio(valor))
             .catch((e) => {
               console.warn("No se pudo guardar el " + campo + ":", e);
-              panelNota.textContent = mensajeDeError(e);
+              errorEn(panelNota, mensajeDeError(e));
             })
             .then(() => {
               sincronizarMapasLocales();
@@ -434,7 +465,7 @@
             fila.classList.toggle("desactivada", !revertido);
             toggleTexto.textContent = revertido ? "Activo" : "Desactivado";
             actualizarContadorActivos();
-            panelNota.textContent = mensajeDeError(e);
+            errorEn(panelNota, mensajeDeError(e));
           });
       });
 
@@ -484,6 +515,7 @@
     const porcentaje = parseFloat(inputPorcentaje.value);
     if (Number.isNaN(porcentaje) || porcentaje < 0) {
       panelNota.textContent = "Ingresa un porcentaje válido (0 o mayor).";
+      limpiarError(panelNota);
       return;
     }
     const direccion = selectDireccion.value; // "subir" | "bajar"
@@ -504,12 +536,14 @@
 
     if (Object.keys(nuevasVentas).length === 0) {
       panelNota.textContent = "No hay fragancias con precio de venta para ajustar.";
+      limpiarError(panelNota);
       return;
     }
 
     // Las 143 filas viajan en una sola petición, no una por perfume.
     btnAplicarGlobal.disabled = true;
     panelNota.textContent = "Guardando…";
+    limpiarError(panelNota);
 
     PerfumesDB.guardarVentasEnLote(nuevasVentas)
       .then(() => {
@@ -518,12 +552,13 @@
         const verbo = direccion === "subir" ? "subido" : "bajado";
         const cuantas = Object.keys(nuevasVentas).length;
         panelNota.textContent = `Precio de venta de ${cuantas} fragancia(s) ${verbo} un ${porcentaje}%. El costo no cambió. Los visitantes del test ya ven los precios nuevos.`;
+        limpiarError(panelNota);
       })
       .catch((e) => {
         console.warn("No se pudo aplicar el ajuste global:", e);
         sincronizarMapasLocales();
         renderizarCatalogo();
-        panelNota.textContent = mensajeDeError(e);
+        errorEn(panelNota, mensajeDeError(e));
       })
       .then(() => {
         btnAplicarGlobal.disabled = !puedeEscribir;
@@ -533,6 +568,7 @@
   function restablecerPrecios() {
     btnResetPrecios.disabled = true;
     panelNota.textContent = "Igualando el precio de venta al costo…";
+    limpiarError(panelNota);
 
     // Copia el COSTO sobre la VENTA. Las fotos y los activados/desactivados
     // no se tocan.
@@ -542,8 +578,10 @@
         renderizarCatalogo();
         if (r && r.sinCambios && r.motivo === "sin-costos") {
           panelNota.textContent = "No hay costos configurados, así que no hay nada que copiar al precio de venta.";
+          limpiarError(panelNota);
         } else if (r && r.sinCambios) {
           panelNota.textContent = "El precio de venta ya era igual al costo en todas las fragancias. Margen actual: 0%.";
+          limpiarError(panelNota);
         } else {
           panelNota.textContent =
             `Listo: el precio de venta de ${r.cambiadas} fragancia(s) quedó igual al costo, con margen 0%. ` +
@@ -556,12 +594,87 @@
         console.warn("No se pudieron restablecer los precios:", e);
         sincronizarMapasLocales();
         renderizarCatalogo();
-        panelNota.textContent = mensajeDeError(e);
+        errorEn(panelNota, mensajeDeError(e));
       })
       .then(() => {
         btnResetPrecios.disabled = !puedeEscribir;
       });
   }
+
+  /* ============ RANGOS DE PRESUPUESTO ============ */
+  // Definen en qué categoría cae cada fragancia según su precio de VENTA.
+  // Cambiarlos redefine qué se le ofrece a quien elige un presupuesto en el
+  // test, así que se muestra cuántas fragancias quedan en cada uno antes de
+  // guardar.
+
+  function pintarRangos() {
+    const r = PerfumesDB.rangos();
+    inputMaxEconomico.value = r.maxEconomico;
+    inputMaxMedio.value = r.maxMedio;
+    txtRangoResto.textContent = `Sin límite: más de $${r.maxMedio}`;
+    actualizarConteoRangos();
+  }
+
+  // Cuenta con los valores que hay escritos en las casillas, no con los
+  // guardados: así se ve el efecto del cambio antes de confirmarlo.
+  function actualizarConteoRangos() {
+    const maxEco = parseFloat(inputMaxEconomico.value);
+    const maxMedio = parseFloat(inputMaxMedio.value);
+
+    if (Number.isNaN(maxEco) || Number.isNaN(maxMedio) || maxEco <= 0 || maxMedio <= maxEco) {
+      conteoRangos.textContent =
+        "El corte de “Medio” tiene que ser mayor que el de “Económico”, y ambos mayores que cero.";
+      conteoRangos.classList.add("error");
+      return false;
+    }
+
+    conteoRangos.classList.remove("error");
+    let eco = 0, medio = 0, sinLimite = 0, sinPrecioAun = 0;
+    PERFUMES.forEach((perfume) => {
+      const venta = ventaActual(perfume);
+      if (venta === null) { sinPrecioAun++; return; }
+      if (venta <= maxEco) eco++;
+      else if (venta <= maxMedio) medio++;
+      else sinLimite++;
+    });
+
+    conteoRangos.textContent =
+      `Con estos cortes: ${eco} económicas · ${medio} medias · ${sinLimite} sin límite` +
+      (sinPrecioAun ? ` · ${sinPrecioAun} sin precio` : "");
+    return true;
+  }
+
+  function guardarRangos() {
+    if (!actualizarConteoRangos()) return;
+
+    const maxEco = parseFloat(inputMaxEconomico.value);
+    const maxMedio = parseFloat(inputMaxMedio.value);
+
+    btnGuardarRangos.disabled = true;
+    limpiarError(panelNota);
+    panelNota.textContent = "Guardando los rangos…";
+
+    PerfumesDB.guardarRangos(maxEco, maxMedio)
+      .then(() => {
+        renderizarCatalogo(); // las categorías por fila cambian con los cortes
+        pintarRangos();
+        limpiarError(panelNota);
+        panelNota.textContent =
+          `Rangos guardados: Económico hasta $${maxEco}, Medio hasta $${maxMedio}. El test ya filtra con estos valores.`;
+      })
+      .catch((e) => {
+        console.warn("No se pudieron guardar los rangos:", e);
+        pintarRangos();
+        errorEn(panelNota, mensajeDeError(e));
+      })
+      .then(() => {
+        btnGuardarRangos.disabled = !puedeEscribir;
+      });
+  }
+
+  btnGuardarRangos.addEventListener("click", guardarRangos);
+  inputMaxEconomico.addEventListener("input", actualizarConteoRangos);
+  inputMaxMedio.addEventListener("input", actualizarConteoRangos);
 
   /* ============ FILTROS Y BÚSQUEDA ============ */
 
@@ -619,9 +732,11 @@
 
     PerfumesDB.cargarOverrides().then(() => {
       sincronizarMapasLocales();
+      pintarRangos();
       renderizarCatalogo();
       avisarModoDeGuardado();
       comprobarEsquema();
+      comprobarBucket();
       ofrecerMigracion();
     });
   }
@@ -658,6 +773,28 @@
         "La tabla todavía no tiene las columnas de <strong>costo</strong> y <strong>venta</strong>, " +
         "así que ningún cambio se puede guardar. Por eso los botones no hacen nada." +
         INSTRUCCIONES_SQL);
+    });
+  }
+
+  // El bucket de fotos es independiente de la tabla: puede faltar aunque
+  // todo lo demás funcione. Se avisa aparte, sin bloquear precios ni
+  // activaciones, porque eso sí sigue funcionando sin él.
+  function comprobarBucket() {
+    if (!PerfumesDB.estaConfigurada()) return;
+
+    PerfumesDB.verificarBucket().then((r) => {
+      if (r.ok || r.motivo === "sin-red") return;
+
+      console.warn("Bucket de fotos ausente:", r.detalle);
+      const aviso = $("#aviso-bucket");
+      if (!aviso) return;
+      aviso.className = "panel-estado error";
+      aviso.innerHTML =
+        "<strong>⚠ Falta crear el bucket de fotos</strong>" +
+        "Los precios y las activaciones sí se guardan, pero <strong>no se puede subir ninguna foto</strong> " +
+        "hasta que exista el almacenamiento." +
+        INSTRUCCIONES_BUCKET;
+      aviso.hidden = false;
     });
   }
 
