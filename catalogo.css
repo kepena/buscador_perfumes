@@ -228,6 +228,7 @@
 }
 
 .fila-catalogo {
+  position: relative;
   display: grid;
   grid-template-columns: 88px 1fr 200px;
   gap: 20px;
@@ -373,6 +374,19 @@
   font-weight: 600;
 }
 
+/* Los mensajes de error heredaban el gris tenue del texto terciario y
+   quedaban ilegibles sobre el fondo oscuro. Un error que no se lee es lo
+   mismo que no mostrarlo. */
+.fila-imagen-estado.error {
+  color: #ff9b9b;
+  font-weight: 600;
+}
+
+.panel-nota.error {
+  color: #ff9b9b;
+  font-weight: 600;
+}
+
 .fila-precio-panel {
   display: flex;
   flex-direction: column;
@@ -500,14 +514,41 @@
 }
 
 /* Fila completa atenuada cuando el perfume está desactivado */
+/* Fragancia desactivada. Antes se bajaba la opacidad de toda la tarjeta,
+   que la volvia casi ilegible sobre el fondo oscuro. Ahora se marca con el
+   borde y una etiqueta, y el contenido se mantiene perfectamente legible:
+   desactivada no significa que no la vayas a leer. */
 .fila-catalogo.desactivada {
-  opacity: 0.45;
+  border-color: #8a5a2b;
+  background: linear-gradient(
+    to right,
+    rgba(138, 90, 43, 0.14),
+    rgba(138, 90, 43, 0.04) 220px,
+    transparent 420px
+  );
 }
+
+.fila-catalogo.desactivada::before {
+  content: "DESACTIVADA";
+  position: absolute;
+  top: 0;
+  left: 0;
+  background: #8a5a2b;
+  color: #fff3e2;
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  padding: 3px 9px;
+  border-radius: var(--radio-md) 0 8px 0;
+}
+
 .fila-catalogo.desactivada .fila-imagen-wrap {
-  filter: grayscale(1);
+  filter: grayscale(0.85);
+  opacity: 0.75;
 }
-.fila-catalogo.desactivada:hover {
-  opacity: 0.65;
+
+.fila-catalogo.desactivada .fila-nombre {
+  color: var(--texto-secundario);
 }
 
 .filtro-contador-activos {
@@ -614,3 +655,213 @@
 .fila-catalogo.sin-precio .fila-precio-input { border-color: rgba(220, 68, 68, 0.6); }
 
 .fila-margen-negativo { color: #ff9b9b !important; }
+
+
+/* ============ PANTALLA DE ACCESO ============ */
+/* Esta pantalla no tenia ninguna regla propia: el HTML traia las clases
+   pero nada las estilizaba, asi que caia en los estilos por defecto del
+   navegador y quedaba pegada arriba a la izquierda. */
+
+.pantalla-acceso {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: var(--negro-fondo);
+}
+
+.acceso-card {
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 40px 34px 34px;
+  background: var(--negro-panel);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-lg);
+  box-shadow: var(--sombra-elevada);
+}
+
+.acceso-icono {
+  font-size: 30px;
+  line-height: 1;
+  margin-bottom: 18px;
+  filter: saturate(0.7);
+}
+
+.acceso-titulo {
+  margin: 0 0 8px;
+  font-family: var(--fuente-display);
+  font-size: 25px;
+  font-weight: 600;
+  color: var(--crema);
+}
+
+.acceso-sub {
+  margin: 0 0 26px;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--texto-secundario);
+  max-width: 30ch;
+}
+
+.acceso-form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.acceso-input {
+  width: 100%;
+  padding: 13px 16px;
+  font-family: var(--fuente-ui);
+  font-size: 15px;
+  text-align: center;
+  letter-spacing: 0.12em;
+  color: var(--texto-principal);
+  background: var(--negro-panel-2);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-sm);
+  transition: border-color var(--transicion), box-shadow var(--transicion);
+}
+
+.acceso-input::placeholder {
+  color: var(--texto-terciario);
+  letter-spacing: normal;
+}
+
+.acceso-input:focus {
+  outline: none;
+  border-color: var(--dorado);
+  box-shadow: 0 0 0 3px rgba(255, 183, 3, 0.14);
+}
+
+.acceso-boton {
+  width: 100%;
+  padding: 13px 16px;
+  font-family: var(--fuente-ui);
+  font-size: 14.5px;
+  font-weight: 700;
+  color: #241c05;
+  background: var(--dorado);
+  border: none;
+  border-radius: var(--radio-sm);
+  cursor: pointer;
+  transition: background var(--transicion), transform var(--transicion);
+}
+
+.acceso-boton:hover { background: var(--dorado-suave); }
+.acceso-boton:active { transform: translateY(1px); }
+
+.acceso-volver {
+  margin-top: 22px;
+  padding-top: 18px;
+  width: 100%;
+  border-top: 1px solid var(--borde-suave);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--texto-secundario);
+  text-decoration: none;
+  transition: color var(--transicion);
+}
+
+.acceso-volver:hover { color: var(--dorado); }
+
+.acceso-error {
+  margin: 16px 0 0;
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1.5;
+  color: #ff9b9b;
+}
+
+@media (max-width: 420px) {
+  .acceso-card { padding: 32px 22px 26px; }
+  .acceso-titulo { font-size: 22px; }
+}
+
+
+/* ============ RANGOS DE PRESUPUESTO ============ */
+
+.panel-rangos {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--borde-suave);
+}
+
+.panel-rangos-titulo {
+  display: block;
+  margin-bottom: 12px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--texto-terciario);
+}
+
+.panel-rangos-fila {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 14px;
+}
+
+.panel-rango {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 12.5px;
+  color: var(--texto-secundario);
+}
+
+.panel-rango-input-grupo {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 7px 10px;
+  background: var(--negro-panel-2);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-sm);
+}
+
+.panel-rango-signo { color: var(--dorado); font-weight: 700; font-size: 13px; }
+
+.panel-rango-input-grupo input {
+  width: 74px;
+  background: none;
+  border: none;
+  outline: none;
+  color: var(--texto-principal);
+  font-family: var(--fuente-ui);
+  font-size: 14px;
+  font-weight: 700;
+  text-align: right;
+}
+
+.panel-rango-resto {
+  font-size: 12.5px;
+  color: var(--texto-terciario);
+  padding-bottom: 9px;
+}
+
+.panel-rangos-conteo {
+  margin: 12px 0 0;
+  font-size: 12.5px;
+  color: var(--texto-secundario);
+}
+
+.panel-rangos-conteo.error { color: #ff9b9b; font-weight: 600; }
+
+@media (max-width: 640px) {
+  .panel-rangos-fila { flex-direction: column; align-items: stretch; }
+  .panel-rango-input-grupo { justify-content: space-between; }
+  .panel-rango-input-grupo input { width: auto; flex: 1; }
+  .panel-rango-resto { padding-bottom: 0; }
+  #btn-guardar-rangos { width: 100%; justify-content: center; }
+}

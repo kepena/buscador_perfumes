@@ -4,9 +4,12 @@
    Fuente: top50-perfumes-referencia.md (notas y familias verificadas)
    ============================================================ */
 
-// Rangos de precio real aproximados en USD (precio de venta habitual,
-// botella estándar 90-100ml). Se usan para filtrar por presupuesto
-// Y para mostrar el precio en la tarjeta de resultado.
+// Rangos de presupuesto en USD. Se usan para clasificar cada fragancia
+// según su PRECIO DE VENTA y poder filtrar por presupuesto en el test.
+//
+// Los precios en sí NO viven en este archivo: son dato de negocio, se
+// administran desde catalogo.html y se guardan en la base de datos. Aquí
+// solo quedan los cortes de cada rango.
 const RANGOS_PRECIO = {
   Económico: { min: 20, max: 45, etiqueta: "$20 – $45" },
   Medio: { min: 55, max: 110, etiqueta: "$55 – $110" },
@@ -28,7 +31,6 @@ const PERFUMES = [
     estilo: "Versátil",
     potencia: "Normal",
     presupuesto: "Medio",
-    precioUSD: 78,
     notas: "Bergamota de Calabria, pimienta / Lavanda, pachulí, vetiver / Ambroxan, cedro",
     imagen: "Dior%20Sauvage%20EDT.avif"
   },
@@ -45,7 +47,6 @@ const PERFUMES = [
     estilo: "Versátil",
     potencia: "Normal",
     presupuesto: "Medio",
-    precioUSD: 92,
     notas: "Bergamota, pimienta rosa / Pimienta de Sichuan, lavanda, anís estrellado / Ambroxan, vainilla",
     imagen: "Dior%20Sauvage%20EDP.avif"
   },
@@ -62,7 +63,6 @@ const PERFUMES = [
     estilo: "Formal",
     potencia: "Modo Bestia",
     presupuesto: "Sin límite",
-    precioUSD: 145,
     notas: "Nuez moscada, canela, cardamomo / Lavanda, coumarina / Regaliz, sándalo, ámbar, pachulí",
     imagen: "Dior%20Sauvage%20Elixir.avif"
   },
@@ -78,7 +78,6 @@ const PERFUMES = [
     estilo: "Formal",
     potencia: "Normal",
     presupuesto: "Medio",
-    precioUSD: 105,
     notas: "Cítricos, menta / Jengibre, nuez moscada / Sándalo, incienso, cedro, labdanum",
     imagen: "Chanel%20Bleu%20de%20Chanel%20EDP.avif"
   },
@@ -95,7 +94,6 @@ const PERFUMES = [
     estilo: "Joven",
     potencia: "Modo Bestia",
     presupuesto: "Medio",
-    precioUSD: 68,
     notas: "Menta, manzana verde, limón / Tonka, geranio, ambroxan / Vainilla, cedro, vetiver",
     imagen: "Versace%20Eros.avif"
   },
@@ -112,7 +110,6 @@ const PERFUMES = [
     estilo: "Versátil",
     potencia: "Normal",
     presupuesto: "Medio",
-    precioUSD: 82,
     notas: "Notas marinas, bergamota, neroli / Jazmín, romero / Almizcle blanco, cedro, oakmoss",
     imagen: "Giorgio%20Armani%20Acqua%20di%20Gio.avif"
   },
@@ -129,7 +126,6 @@ const PERFUMES = [
     estilo: "Formal",
     potencia: "Normal",
     presupuesto: "Medio",
-    precioUSD: 96,
     notas: "Manzana, bergamota, jengibre / Salvia, geranio, cedro / Ámbar madera, haba tonka",
     imagen: "Yves%20Saint%20Laurent%20Y%20EDP.avif"
   },
@@ -146,7 +142,6 @@ const PERFUMES = [
     estilo: "Versátil",
     potencia: "Modo Bestia",
     presupuesto: "Medio",
-    precioUSD: 89,
     notas: "Lavanda, menta / Vainilla, benzoína / Miel, tabaco, haba tonka",
     imagen: "Le%20Male%20Elixir%20Jean%20Paul%20Gaultier%20for%20men.avif"
   },
@@ -163,7 +158,6 @@ const PERFUMES = [
     estilo: "Joven",
     potencia: "Normal",
     presupuesto: "Medio",
-    precioUSD: 72,
     notas: "Toronja, mandarina marina / Laurel, jazmín / Ámbar, guaiac wood, pachulí",
     imagen: "Paco%20Rabanne%20Invictus.avif"
   },
@@ -180,7 +174,6 @@ const PERFUMES = [
     estilo: "Formal",
     potencia: "Normal",
     presupuesto: "Medio",
-    precioUSD: 65,
     notas: "Whiskey, toronja, pomelo / Cardamomo, lavanda, salvia, tomillo rojo / Cuero, haba tonka, benzoína, madera",
     imagen: "Carolina%20Herrera%20CH%20Men%20Prive.avif"
   },
@@ -197,7 +190,6 @@ const PERFUMES = [
     estilo: "Joven",
     potencia: "Normal",
     presupuesto: "Medio",
-    precioUSD: 88,
     notas: "Caramelo / Almizcle blanco, benzoína / Haba tonka, vainilla",
     imagen: "Prada-Candy.avif"
   },
@@ -214,7 +206,6 @@ const PERFUMES = [
     estilo: "Joven",
     potencia: "Suave",
     presupuesto: "Medio",
-    precioUSD: 75,
     notas: "Pomelo sangre, hoja de violeta, fresa / Violeta, jazmín, gardenia / Almizcle blanco, vainilla dulce",
     imagen: "Marc%20Jacobs%20Daisy.avif"
   },
@@ -231,7 +222,6 @@ const PERFUMES = [
     estilo: "Formal",
     potencia: "Normal",
     presupuesto: "Medio",
-    precioUSD: 98,
     notas: "Grosella negra, pera / Iris, jazmín, azahar / Praliné, vainilla, pachulí",
     imagen: "Lanc%C3%B4me%20La%20Vie%20Est%20Belle.avif"
   },
@@ -248,7 +238,6 @@ const PERFUMES = [
     estilo: "Formal",
     potencia: "Modo Bestia",
     presupuesto: "Medio",
-    precioUSD: 85,
     notas: "Mandarina, ciruela, pimienta / Clavo, canela, jazmín / Pachulí, ámbar, vainilla, incienso",
     imagen: "Opium%20Eau%20de%20Parfum%202009%20Yves%20Saint%20Laurent%20for%20women.avif"
   },
@@ -265,7 +254,6 @@ const PERFUMES = [
     estilo: "Joven",
     potencia: "Suave",
     presupuesto: "Económico",
-    precioUSD: 38,
     notas: "Lavanda, menta, romero / Jazmín, geranio, sándalo / Almizcle, tabaco, ámbar",
     imagen: "Davidoff%20Cool%20Water.avif"
   },
@@ -282,7 +270,6 @@ const PERFUMES = [
     estilo: "Formal",
     potencia: "Normal",
     presupuesto: "Económico",
-    precioUSD: 42,
     notas: "Manzana, ciruela, bergamota / Canela, geranio, clavo / Sándalo, cedro, vainilla",
     imagen: "Boss%20Bottled%20Hugo%20Boss%20for%20men.avif"
   },
@@ -299,7 +286,6 @@ const PERFUMES = [
     estilo: "Versátil",
     potencia: "Suave",
     presupuesto: "Medio",
-    precioUSD: 62,
     notas: "Melón, cítricos / Geranio, notas acuáticas / Almizcle, cedro",
     imagen: "Ralph%20Lauren%20Polo%20Blue.avif"
   },
@@ -316,7 +302,6 @@ const PERFUMES = [
     estilo: "Joven",
     potencia: "Suave",
     presupuesto: "Económico",
-    precioUSD: 32,
     notas: "Bergamota, cardamomo, piña / Notas florales, nuez moscada / Almizcle, ámbar",
     imagen: "Calvin%20klein%20One%20Essence.avif"
   },
@@ -335,7 +320,6 @@ const PERFUMES = [
     estilo: "Versátil",
     potencia: "Modo Bestia",
     presupuesto: "Económico",
-    precioUSD: 32,
     notas: "Canela, dátiles / Vainilla, praliné / Ámbar, especias, oud",
     imagen: "Khamrah%20Lattafa%20Perfumes%20for%20women%20and%20men.avif"
   },
@@ -352,7 +336,6 @@ const PERFUMES = [
     estilo: "Versátil",
     potencia: "Normal",
     presupuesto: "Económico",
-    precioUSD: 26,
     notas: "Fruta de la pasión, pera, mandarina / Orquídea, jazmín, gardenia / Almizcle, vainilla, sándalo",
     imagen: "Lattafa%20Yara.avif"
   },
@@ -369,7 +352,6 @@ const PERFUMES = [
     estilo: "Versátil",
     potencia: "Modo Bestia",
     presupuesto: "Económico",
-    precioUSD: 29,
     notas: "Pimienta negra, tabaco, piña / Patchouli, café, iris / Vainilla, ámbar, madera seca, benzoína, labdanum",
     imagen: "Lattafa%20Asad.avif"
   },
@@ -386,7 +368,6 @@ const PERFUMES = [
     estilo: "Versátil",
     potencia: "Modo Bestia",
     presupuesto: "Económico",
-    precioUSD: 34,
     notas: "Azafrán, nuez moscada, lavanda / Agarwood (oud), patchouli / Agarwood (oud), patchouli, almizcle",
     imagen: "Bade%27e%20Al%20Oud%20Oud%20for%20Glory%20Lattafa%20Perfumes%20for%20women%20and%20men.avif"
   },
@@ -403,7 +384,6 @@ const PERFUMES = [
     estilo: "Versátil",
     potencia: "Modo Bestia",
     presupuesto: "Económico",
-    precioUSD: 30,
     notas: "Especias dulces, azúcar quemada / Oud, incienso / Vainilla, ámbar",
     imagen: "Lattafa%20Raghba.avif"
   },
@@ -420,7 +400,6 @@ const PERFUMES = [
     estilo: "Versátil",
     potencia: "Normal",
     presupuesto: "Económico",
-    precioUSD: 27,
     notas: "Manzana, jengibre, bergamota / Salvia, lavanda, enebro, geranio / Madera ambarada, haba tonka, cedro, vetiver",
     imagen: "Lattafa%20Fakhar.avif"
   },
@@ -437,7 +416,6 @@ const PERFUMES = [
     estilo: "Versátil",
     potencia: "Modo Bestia",
     presupuesto: "Económico",
-    precioUSD: 40,
     notas: "Piña, manzana, limón, bergamota / Abedul, jazmín, especias / Almizcle, ámbar, pachulí",
     imagen: "Armaf%20Club%20de%20Nuit%20Intense%20Man.avif"
   },
@@ -454,7 +432,6 @@ const PERFUMES = [
     estilo: "Versátil",
     potencia: "Modo Bestia",
     presupuesto: "Económico",
-    precioUSD: 43,
     notas: "Azafrán, jazmín / Madera ambarada, ámbar gris / Resina de abeto, cedro",
     imagen: "Armaf%20Club%20de%20Nuit%20Untold.avif"
   },
@@ -471,7 +448,6 @@ const PERFUMES = [
     estilo: "Joven",
     potencia: "Normal",
     presupuesto: "Económico",
-    precioUSD: 36,
     notas: "Bergamota, manzana, canela, limón / Notas acuáticas, ciruela, azahar, cardamomo / Ámbar gris, almizcle, driftwood, patchouli",
     imagen: "Rasasi%20Hawas%20for%20Him.avif"
   },
@@ -488,7 +464,6 @@ const PERFUMES = [
     estilo: "Joven",
     potencia: "Normal",
     presupuesto: "Económico",
-    precioUSD: 34,
     notas: "Manzana escarchada, bergamota italiana, limón italiano, anís estrellado / Ciruela, azahar, cardamomo, notas marinas / Almizcle, ámbar, driftwood, musgo",
     imagen: "Rasasi%20Hawas%20Ice.avif"
   },
@@ -505,7 +480,6 @@ const PERFUMES = [
     estilo: "Joven",
     potencia: "Modo Bestia",
     presupuesto: "Económico",
-    precioUSD: 31,
     notas: "Manzana, canela / Vainilla, haba tonka / Ámbar, almizcle, madera",
     imagen: "Afnan%209PM.avif"
   },
@@ -522,7 +496,6 @@ const PERFUMES = [
     estilo: "Versátil",
     potencia: "Modo Bestia",
     presupuesto: "Económico",
-    precioUSD: 33,
     notas: "Grosella negra, bergamota, manzana / Musgo de encina, patchouli, lavanda / Ámbar gris, almizcle, azafrán",
     imagen: "Afnan%20Supremacy%20Not%20Only%20Intense.avif"
   },
@@ -539,7 +512,6 @@ const PERFUMES = [
     estilo: "Versátil",
     potencia: "Modo Bestia",
     presupuesto: "Económico",
-    precioUSD: 39,
     notas: "Bergamota, notas verdes / Melón, piña, notas dulces, ámbar / Madera, vainilla, almizcle",
     imagen: "Al%20Haramain%20Amber%20Oud%20Gold.avif"
   },
@@ -556,7 +528,6 @@ const PERFUMES = [
     estilo: "Versátil",
     potencia: "Modo Bestia",
     presupuesto: "Económico",
-    precioUSD: 44,
     notas: "Azafrán / Agarwood (oud), rosa / Agarwood (oud), praliné, vainilla",
     imagen: "Swiss%20Arabian%20Shaghaf%20Oud.avif"
   },
@@ -573,7 +544,6 @@ const PERFUMES = [
     estilo: "Versátil",
     potencia: "Normal",
     presupuesto: "Económico",
-    precioUSD: 25,
     notas: "Bergamota, naranja / Vainilla, pera / Almizcle, ámbar",
     imagen: "Lattafa%20Ana%20Abiyedh.avif"
   },
@@ -590,7 +560,6 @@ const PERFUMES = [
     estilo: "Versátil",
     potencia: "Normal",
     presupuesto: "Económico",
-    precioUSD: 30,
     notas: "Canela, cardamomo, bergamota / Azafrán, sándalo, cedro, clavel / Agarwood (oud), cuero, vainilla, ámbar",
     imagen: "Lattafa%20Qaaed.avif"
   },
@@ -607,7 +576,6 @@ const PERFUMES = [
     estilo: "Versátil",
     potencia: "Modo Bestia",
     presupuesto: "Económico",
-    precioUSD: 28,
     notas: "Limón, bergamota, elemi / Notas amaderadas, jazmín, muguet / Almizcle, patchouli, ámbar",
     imagen: "Al%20Haramain%20L%27Aventure.avif"
   },
@@ -624,7 +592,6 @@ const PERFUMES = [
     estilo: "Joven",
     potencia: "Modo Bestia",
     presupuesto: "Económico",
-    precioUSD: 27,
     notas: "Frutas, lirio, granada, aldehídos / Tuberosa, jazmín, gardenia, ylang-ylang, rosa, madreselva, peonía / Vainilla, almizcle blanco, sándalo, ambroxan",
     imagen: "Lattafa%20Fakhar%20Rose.avif"
   },
@@ -643,7 +610,6 @@ const PERFUMES = [
     estilo: "Versátil",
     potencia: "Normal",
     presupuesto: "Sin límite",
-    precioUSD: 325,
     notas: "Azafrán, jazmín / Madera ambarada, ámbar gris, hedione / Resina de abeto, cedro, azúcar, ambroxan, musgo de encina",
     imagen: "Maison%20Francis%20Kurkdjian%20Baccarat%20Rouge%20540.avif"
   },
@@ -660,7 +626,6 @@ const PERFUMES = [
     estilo: "Formal",
     potencia: "Modo Bestia",
     presupuesto: "Sin límite",
-    precioUSD: 218,
     notas: "Flor de tabaco, especias, jengibre / Haba tonka, especias, hoja de tabaco / Cacao, ámbar, vainilla, benjuí",
     imagen: "Tom%20Ford%20Tobacco%20Vanille.avif"
   },
@@ -677,7 +642,6 @@ const PERFUMES = [
     estilo: "Formal",
     potencia: "Normal",
     presupuesto: "Sin límite",
-    precioUSD: 240,
     notas: "Cardamomo, especias chinas / Oud, sándalo, palo de rosa / Vetiver, ámbar",
     imagen: "Tom%20Ford%20Oud%20Wood.avif"
   },
@@ -694,7 +658,6 @@ const PERFUMES = [
     estilo: "Versátil",
     potencia: "Normal",
     presupuesto: "Sin límite",
-    precioUSD: 210,
     notas: "Cardamomo, iris, violeta / Cedro, sándalo / Almizcle, cuero, ámbar",
     imagen: "Le%20Labo%20Santal%2033.avif"
   },
@@ -711,7 +674,6 @@ const PERFUMES = [
     estilo: "Formal",
     potencia: "Normal",
     presupuesto: "Sin límite",
-    precioUSD: 335,
     notas: "Piña, bergamota, manzana negra / Abedul, pachulí, rosa / Almizcle, roble, ámbar, vainilla",
     imagen: "Creed%20Aventus.avif"
   },
@@ -728,7 +690,6 @@ const PERFUMES = [
     estilo: "Versátil",
     potencia: "Modo Bestia",
     presupuesto: "Sin límite",
-    precioUSD: 195,
     notas: "Manzana, bergamota, lavanda / Especias, geranio / Vainilla, ámbar, almizcle",
     imagen: "Parfums%20de%20Marly%20Layton.avif"
   },
@@ -745,7 +706,6 @@ const PERFUMES = [
     estilo: "Formal",
     potencia: "Modo Bestia",
     presupuesto: "Sin límite",
-    precioUSD: 310,
     notas: "Palisandro, lavanda, manzana, canela / Rosa, cedro, muguet / Agarwood (oud), sándalo, ámbar, vainilla, almizcle",
     imagen: "Xerjoff%20Alexandria%20II.avif"
   },
@@ -762,7 +722,6 @@ const PERFUMES = [
     estilo: "Formal",
     potencia: "Modo Bestia",
     presupuesto: "Sin límite",
-    precioUSD: 285,
     notas: "Bergamota, orégano, pimienta de Jamaica / Ámbar, incienso, cistus, opoponax / Cuero, agarwood ahumado, patchouli, sándalo",
     imagen: "Amouage%20Interlude%20Man.avif"
   },
@@ -779,7 +738,6 @@ const PERFUMES = [
     estilo: "Formal",
     potencia: "Suave",
     presupuesto: "Sin límite",
-    precioUSD: 165,
     notas: "Cítricos, bergamota / Lavanda, romero, verbena / Almizcle, madera, vetiver",
     imagen: "Acqua%20di%20Parma%20Colonia.avif"
   },
@@ -796,7 +754,6 @@ const PERFUMES = [
     estilo: "Versátil",
     potencia: "Suave",
     presupuesto: "Sin límite",
-    precioUSD: 138,
     notas: "Iso E Super — nota única sintética, aroma amaderado-ambarado muy cercano a la piel",
     imagen: "Escentric%20Molecules%20Molecule%2001.avif"
   },
@@ -813,7 +770,6 @@ const PERFUMES = [
     estilo: "Formal",
     potencia: "Normal",
     presupuesto: "Sin límite",
-    precioUSD: 132,
     notas: "Cítricos, naranja amarga, romero, azahar / Almendra, haba tonka / Cuero, cedro, vetiver",
     imagen: "Guerlain%20LHomme%20Ideal.avif"
   },
@@ -830,7 +786,6 @@ const PERFUMES = [
     estilo: "Formal",
     potencia: "Normal",
     presupuesto: "Medio",
-    precioUSD: 95,
     notas: "Bergamota, pomarosa, salvia / Vetiver, cuero, sándalo / Patchouli, ámbar, madera",
     imagen: "Montblanc%20Explorer.avif"
   },
@@ -847,7 +802,6 @@ const PERFUMES = [
     estilo: "Formal",
     potencia: "Normal",
     presupuesto: "Sin límite",
-    precioUSD: 155,
     notas: "Sándalo, licor, bálsamo de abeto / Benzoína, haba tonka, ambrocenide / Hoja de patchouli indonesio, labdanum",
     imagen: "Cartier%20Pasha%20de%20Cartier%20Parfum.avif"
   },
@@ -864,7 +818,6 @@ const PERFUMES = [
     estilo: "Formal",
     potencia: "Suave",
     presupuesto: "Sin límite",
-    precioUSD: 175,
     notas: "Pimienta rosa, bergamota / Rosa, ylang-ylang, canela / Patchouli, musgo, madera",
     imagen: "Diptyque%20Eau%20Capitale.avif"
   }
@@ -882,7 +835,6 @@ const PERFUMES = [
     estilo: "Formal",
     potencia: "Normal",
     presupuesto: "Medio",
-    precioUSD: 74,
     notas: "Limón, bergamota / Anís estrellado, flor de olivo / Cuero, haba tonka",
     imagen: "Giorgio%20Armani%20Code.avif"
   },
@@ -898,7 +850,6 @@ const PERFUMES = [
     estilo: "Formal",
     potencia: "Normal",
     presupuesto: "Medio",
-    precioUSD: 98,
     notas: "Limón, menta, pomelo / Jengibre, nuez moscada / Incienso, cedro, sándalo",
     imagen: "Chanel%20Bleu%20de%20Chanel%20EDT.avif"
   },
@@ -915,7 +866,6 @@ const PERFUMES = [
     estilo: "Formal",
     potencia: "Normal",
     presupuesto: "Medio",
-    precioUSD: 95,
     notas: "Bergamota, pimienta, notas cítricas / Lavanda, geranio / Ambroxan, patchouli",
     imagen: "Prada%20Luna%20Rossa%20Carbon.avif"
   },
@@ -932,7 +882,6 @@ const PERFUMES = [
     estilo: "Joven",
     potencia: "Normal",
     presupuesto: "Medio",
-    precioUSD: 54,
     notas: "Toronja, higo de mar / Ambroxan, pimienta / Musgo de encina, pachulí",
     imagen: "Versace%20Dylan%20Blue.avif"
   },
@@ -949,7 +898,6 @@ const PERFUMES = [
     estilo: "Formal",
     potencia: "Normal",
     presupuesto: "Medio",
-    precioUSD: 48,
     notas: "Bergamota, piña / Lavanda, geranio / Haba tonka, sándalo",
     imagen: "Montblanc%20Legend.avif"
   },
@@ -966,7 +914,6 @@ const PERFUMES = [
     estilo: "Joven",
     potencia: "Modo Bestia",
     presupuesto: "Medio",
-    precioUSD: 68,
     notas: "Cardamomo / Toffee / Madera ambarada",
     imagen: "Azzaro%20The%20Most%20Wanted.avif"
   },
@@ -983,7 +930,6 @@ const PERFUMES = [
     estilo: "Formal",
     potencia: "Normal",
     presupuesto: "Medio",
-    precioUSD: 88,
     notas: "Cardamomo, bergamota / Lavanda, cedro / Haba tonka, vetiver",
     imagen: "Yves%20Saint%20Laurent%20La%20Nuit%20de%20l%27Homme.avif"
   },
@@ -1000,7 +946,6 @@ const PERFUMES = [
     estilo: "Versátil",
     potencia: "Suave",
     presupuesto: "Medio",
-    precioUSD: 72,
     notas: "Manzana, limón siciliano / Jazmín, junco / Cedro, almizcle",
     imagen: "Dolce%20%26%20Gabbana%20Light%20Blue.avif"
   },
@@ -1017,7 +962,6 @@ const PERFUMES = [
     estilo: "Versátil",
     potencia: "Normal",
     presupuesto: "Medio",
-    precioUSD: 79,
     notas: "Bergamota / Enebro, pimienta negra / Cedro Atlas, cedro Virginia, cedro Himalaya",
     imagen: "Burberry%20Hero.avif"
   },
@@ -1034,7 +978,6 @@ const PERFUMES = [
     estilo: "Formal",
     potencia: "Normal",
     presupuesto: "Medio",
-    precioUSD: 92,
     notas: "Limón, palo de rosa brasileño, naranja, bergamota / Rosa, clavel, sándalo, canela, pachulí, jazmín, cedro / Vainilla, cuero, benjuí, ámbar, musgo de encina",
     imagen: "Guerlain%20Habit%20Rouge.avif"
   },
@@ -1051,7 +994,6 @@ const PERFUMES = [
     estilo: "Formal",
     potencia: "Modo Bestia",
     presupuesto: "Sin límite",
-    precioUSD: 155,
     notas: "Cardamomo, nuez moscada / Rosa, jengibre / Ámbar, vainilla, cacao",
     imagen: "Tom%20Ford%20Noir%20Extreme.avif"
   },
@@ -1068,7 +1010,6 @@ const PERFUMES = [
     estilo: "Joven",
     potencia: "Modo Bestia",
     presupuesto: "Medio",
-    precioUSD: 76,
     notas: "Toronja, menta / Canela, especias / Cuero, ámbar, madera blanca",
     imagen: "Paco%20Rabanne%201%20Million.avif"
   },
@@ -1085,7 +1026,6 @@ const PERFUMES = [
     estilo: "Versátil",
     potencia: "Normal",
     presupuesto: "Medio",
-    precioUSD: 82,
     notas: "Menta, lavanda / Canela, comino / Vainilla, sándalo, ámbar",
     imagen: "Le%20Male%20Jean%20Paul%20Gaultier%20for%20men.avif"
   },
@@ -1102,7 +1042,6 @@ const PERFUMES = [
     estilo: "Formal",
     potencia: "Normal",
     presupuesto: "Medio",
-    precioUSD: 105,
     notas: "Lavanda, iris / Cacao, ámbar / Cedro, vetiver",
     imagen: "Dior%20Homme%20Intense.avif"
   },
@@ -1119,7 +1058,6 @@ const PERFUMES = [
     estilo: "Joven",
     potencia: "Modo Bestia",
     presupuesto: "Medio",
-    precioUSD: 71,
     notas: "Pimienta negra, mandarina / Especias, canela / Haba tonka, madera de Bengala",
     imagen: "Versace%20Eros%20Flame.avif"
   },
@@ -1136,7 +1074,6 @@ const PERFUMES = [
     estilo: "Versátil",
     potencia: "Modo Bestia",
     presupuesto: "Económico",
-    precioUSD: 34,
     notas: "Café, canela / Dátiles, especias / Ámbar, vainilla, oud",
     imagen: "Lattafa%20Khamrah%20Qahwa.avif"
   },
@@ -1153,7 +1090,6 @@ const PERFUMES = [
     estilo: "Versátil",
     potencia: "Modo Bestia",
     presupuesto: "Económico",
-    precioUSD: 36,
     notas: "Especias, pimento, mandarina / Incienso, labdanum, azahar, patchouli / Praliné, tabaco, ámbar, haba tonka, benzoína",
     imagen: "Lattafa%20Khamrah%20Dukhan.avif"
   },
@@ -1170,7 +1106,6 @@ const PERFUMES = [
     estilo: "Versátil",
     potencia: "Modo Bestia",
     presupuesto: "Económico",
-    precioUSD: 31,
     notas: "Ron bourbon, piña / Canela, especias / Ámbar, madera, vainilla",
     imagen: "Lattafa%20Asad%20Bourbon.avif"
   },
@@ -1187,7 +1122,6 @@ const PERFUMES = [
     estilo: "Versátil",
     potencia: "Modo Bestia",
     presupuesto: "Económico",
-    precioUSD: 42,
     notas: "Piña, bergamota / Abedul, especias / Ámbar, almizcle, oud",
     imagen: "Afnan%20Supremacy%20Collector%27s%20Edition.avif"
   },
@@ -1204,7 +1138,6 @@ const PERFUMES = [
     estilo: "Versátil",
     potencia: "Normal",
     presupuesto: "Económico",
-    precioUSD: 38,
     notas: "Mandarina, bergamota / Jazmín, especias / Almizcle, madera clara",
     imagen: "Armaf%20Odyssey%20Mandarin%20Sky.avif"
   },
@@ -1221,7 +1154,6 @@ const PERFUMES = [
     estilo: "Versátil",
     potencia: "Modo Bestia",
     presupuesto: "Económico",
-    precioUSD: 37,
     notas: "Mango, toronja, limón, jengibre / Jazmín, cedro, violeta / Ámbar gris, madera, musgo, benzoína",
     imagen: "Lattafa%20Opulent%20Dubai.avif"
   },
@@ -1238,7 +1170,6 @@ const PERFUMES = [
     estilo: "Formal",
     potencia: "Modo Bestia",
     presupuesto: "Sin límite",
-    precioUSD: 165,
     notas: "Nuez moscada, cardamomo, canela, toronja / Lavanda, coumarina / Regaliz, sándalo, ámbar, vetiver, patchouli",
     imagen: "Dior%20Sauvage%20Elixir%20Intense.avif"
   },
@@ -1255,7 +1186,6 @@ const PERFUMES = [
     estilo: "Formal",
     potencia: "Modo Bestia",
     presupuesto: "Sin límite",
-    precioUSD: 245,
     notas: "Cardamomo, azafrán / Cuero, jazmín / Ámbar, cuero, almizcle",
     imagen: "Tom%20Ford%20Ombr%C3%A9%20Leather%20Parfum.avif"
   },
@@ -1272,7 +1202,6 @@ const PERFUMES = [
     estilo: "Versátil",
     potencia: "Normal",
     presupuesto: "Sin límite",
-    precioUSD: 290,
     notas: "Mandarina, jengibre, pimienta rosa, bergamota / Vetiver, patchouli, sándalo, piña / Almizcle, haba tonka, styrax, abedul",
     imagen: "Creed%20Aventus%20Cologne.avif"
   },
@@ -1289,7 +1218,6 @@ const PERFUMES = [
     estilo: "Formal",
     potencia: "Modo Bestia",
     presupuesto: "Sin límite",
-    precioUSD: 310,
     notas: "Canela, pimienta / Osmanthus, hoja de tabaco, labdanum, incienso / Vainilla, cedro, vetiver, patchouli, almizcle",
     imagen: "Parfums%20de%20Marly%20Herod.avif"
   },
@@ -1306,7 +1234,6 @@ const PERFUMES = [
     estilo: "Versátil",
     potencia: "Normal",
     presupuesto: "Sin límite",
-    precioUSD: 225,
     notas: "Naranja siciliana, bergamota de Calabria, limón siciliano / Frutas mediterráneas / Almizcle blanco, vainilla de Madagascar, ámbar",
     imagen: "Erba%20Pura%20Xerjoff.avif"
   },
@@ -1323,7 +1250,6 @@ const PERFUMES = [
     estilo: "Formal",
     potencia: "Normal",
     presupuesto: "Sin límite",
-    precioUSD: 245,
     notas: "Romero, pimienta rosa, petitgrain / Jazmín, neroli, iris, ylang-ylang / Sándalo, cedro, vetiver, patchouli",
     imagen: "Amouage%20Reflection%20Man.avif"
   },
@@ -1340,7 +1266,6 @@ const PERFUMES = [
     estilo: "Versátil",
     potencia: "Modo Bestia",
     presupuesto: "Sin límite",
-    precioUSD: 295,
     notas: "Azafrán, nuez moscada, lavanda / Agarwood (oud) / Patchouli, almizcle",
     imagen: "Oud%20for%20Greatness%20Initio%20Parfums%20Prives%20for%20women%20and%20men.avif"
   },
@@ -1357,7 +1282,6 @@ const PERFUMES = [
     estilo: "Formal",
     potencia: "Normal",
     presupuesto: "Sin límite",
-    precioUSD: 270,
     notas: "Piña, bergamota, toronja / Jazmín, oakmoss / Patchouli",
     imagen: "Nishane%20Hacivat.avif"
   },
@@ -1374,7 +1298,6 @@ const PERFUMES = [
     estilo: "Versátil",
     potencia: "Suave",
     presupuesto: "Sin límite",
-    precioUSD: 210,
     notas: "Bergamota, limón, neroli, caléndula africana, bucchu / Violeta, jazmín, ciclamen / Ámbar negro, almizcle, vetiver, cedro marroquí",
     imagen: "Byredo%20Bal%20d%27Afrique.avif"
   },
@@ -1391,7 +1314,6 @@ const PERFUMES = [
     estilo: "Versátil",
     potencia: "Modo Bestia",
     presupuesto: "Económico",
-    precioUSD: 38,
     notas: "Menta, bergamota, artemisa / Chocolate oscuro, lavanda, benzoína / Vainilla, haba tonka, almizcle blanco",
     imagen: "Rasasi%20Hawas%20Elixir.avif"
   },
@@ -1408,7 +1330,6 @@ const PERFUMES = [
     estilo: "Versátil",
     potencia: "Normal",
     presupuesto: "Económico",
-    precioUSD: 33,
     notas: "Limón, jengibre / Té, cardamomo / Almizcle, sándalo, madera",
     imagen: "Al%20Haramain%20L%27Aventure%20Fraiche.avif"
   },
@@ -1425,7 +1346,6 @@ const PERFUMES = [
     estilo: "Versátil",
     potencia: "Modo Bestia",
     presupuesto: "Económico",
-    precioUSD: 29,
     notas: "Fruta de la pasión, pera / Orquídea, flores blancas / Almizcle, vainilla, praliné",
     imagen: "Yara%20Tous%20Lattafa%20Perfumes%20for%20women.avif"
   },
@@ -1442,7 +1362,6 @@ const PERFUMES = [
     estilo: "Versátil",
     potencia: "Modo Bestia",
     presupuesto: "Económico",
-    precioUSD: 45,
     notas: "Bergamota, limón, lima, grosella negra, hoja de violeta, jengibre / Rosa, iris, jazmín / Ambroxan, almizcle, sándalo, cedro",
     imagen: "Armaf%20Club%20de%20Nuit%20Sillage.avif"
   },
@@ -1459,7 +1378,6 @@ const PERFUMES = [
     estilo: "Versátil",
     potencia: "Modo Bestia",
     presupuesto: "Económico",
-    precioUSD: 41,
     notas: "Oud, azafrán, pimienta rosa / Praliné, rosa, salvia / Vainilla, ámbar, almizcle",
     imagen: "Shaghaf%20Oud%20Elixir%20Swiss%20Arabian%20for%20women%20and%20men.avif"
   },
@@ -1476,7 +1394,6 @@ const PERFUMES = [
     estilo: "Versátil",
     potencia: "Normal",
     presupuesto: "Económico",
-    precioUSD: 28,
     notas: "Manzana, bergamota, jengibre / Lavanda, salvia / Haba tonka, cedro, vetiver",
     imagen: "Lattafa%20Fakhar%20Black.avif"
   },
@@ -1493,7 +1410,6 @@ const PERFUMES = [
     estilo: "Formal",
     potencia: "Modo Bestia",
     presupuesto: "Económico",
-    precioUSD: 43,
     notas: "Tabaco, especias dulces / Oud, cacao / Vainilla, ámbar, madera",
     imagen: "Al%20Haramain%20Amber%20Oud%20Tobacco%20Edition.avif"
   },
@@ -1510,7 +1426,6 @@ const PERFUMES = [
     estilo: "Versátil",
     potencia: "Modo Bestia",
     presupuesto: "Económico",
-    precioUSD: 32,
     notas: "Tabaco, canela, miel blanca / Vainilla, cacao, mirra / Ámbar, labdanum, styrax",
     imagen: "Qaa%27ed%20Intense%20Lattafa%20Perfumes%20for%20men.avif"
   },
@@ -1527,7 +1442,6 @@ const PERFUMES = [
     estilo: "Joven",
     potencia: "Modo Bestia",
     presupuesto: "Económico",
-    precioUSD: 30,
     notas: "Frambuesa, violeta, manzana, naranja / Rosa, peonía, iris, jazmín / Ciprés, pino, ámbar, cedro",
     imagen: "Afnan%209PM%20Femme.avif"
   },
@@ -1543,7 +1457,6 @@ const PERFUMES = [
     estilo: "Joven",
     potencia: "Normal",
     presupuesto: "Económico",
-    precioUSD: 30,
     notas: "Hojas verdes, manzana / Loto, mimosa / Almizcle, cedro, musgo de encina, ámbar",
     imagen: "Nautica%20Voyage.avif"
   },
@@ -1560,7 +1473,6 @@ const PERFUMES = [
     estilo: "Formal",
     potencia: "Normal",
     presupuesto: "Sin límite",
-    precioUSD: 250,
     notas: "Coñac, canela / Roble, nuez moscada / Haba tonka, sándalo",
     imagen: "Kilian%20Angel%27s%20Share.avif"
   },
@@ -1577,7 +1489,6 @@ const PERFUMES = [
     estilo: "Formal",
     potencia: "Normal",
     presupuesto: "Sin límite",
-    precioUSD: 340,
     notas: "Bergamota, limón / Salvia, geranio / Almizcle, vetiver, ámbar",
     imagen: "Roja%20Parfums%20Elysium.avif"
   },
@@ -1594,7 +1505,6 @@ const PERFUMES = [
     estilo: "Versátil",
     potencia: "Normal",
     presupuesto: "Sin límite",
-    precioUSD: 180,
     notas: "Cedrat, bergamota / Cedro, jazmín / Almizcle, ámbar",
     imagen: "Mancera%20Cedrat%20Boise.avif"
   },
@@ -1611,7 +1521,6 @@ const PERFUMES = [
     estilo: "Versátil",
     potencia: "Modo Bestia",
     presupuesto: "Sin límite",
-    precioUSD: 195,
     notas: "Café, canela / Chocolate, cacao / Vainilla, ámbar, madera",
     imagen: "Montale%20Intense%20Caf%C3%A9.avif"
   },
@@ -1628,7 +1537,6 @@ const PERFUMES = [
     estilo: "Formal",
     potencia: "Normal",
     presupuesto: "Sin límite",
-    precioUSD: 260,
     notas: "Bergamota, lavanda / Miel, tabaco / Haba tonka, vainilla, sándalo",
     imagen: "Xerjoff%20Naxos.avif"
   },
@@ -1645,7 +1553,6 @@ const PERFUMES = [
     estilo: "Formal",
     potencia: "Modo Bestia",
     presupuesto: "Sin límite",
-    precioUSD: 280,
     notas: "Incienso, bergamota / Jazmín, clavo / Pachulí, oud, ámbar",
     imagen: "Amouage%20Interlude%20Woman.avif"
   },
@@ -1662,7 +1569,6 @@ const PERFUMES = [
     estilo: "Formal",
     potencia: "Normal",
     presupuesto: "Sin límite",
-    precioUSD: 225,
     notas: "Manzana, bergamota / Lavanda, geranio / Almizcle, sándalo, vainilla",
     imagen: "Parfums%20de%20Marly%20Percival.avif"
   },
@@ -1679,7 +1585,6 @@ const PERFUMES = [
     estilo: "Formal",
     potencia: "Modo Bestia",
     presupuesto: "Sin límite",
-    precioUSD: 350,
     notas: "Oud, incienso / Cera de abejas, jazmín / Ámbar, resinas, madera",
     imagen: "Louis%20Vuitton%20Ombre%20Nomade.avif"
   },
@@ -1696,7 +1601,6 @@ const PERFUMES = [
     estilo: "Formal",
     potencia: "Modo Bestia",
     presupuesto: "Sin límite",
-    precioUSD: 135,
     notas: "Especias, ron / Cuero, tabaco / Haba tonka, ámbar, cuero",
     imagen: "Bvlgari%20Man%20in%20Black.avif"
   },
@@ -1713,7 +1617,6 @@ const PERFUMES = [
     estilo: "Formal",
     potencia: "Modo Bestia",
     presupuesto: "Sin límite",
-    precioUSD: 300,
     notas: "Ámbar, vainilla / Haba tonka, benzoína / Ládano, almizcle, madera",
     imagen: "Maison%20Francis%20Kurkdjian%20Grand%20Soir.avif"
   }
@@ -1731,7 +1634,6 @@ const PERFUMES = [
     estilo: "Joven",
     potencia: "Modo Bestia",
     presupuesto: "Económico",
-    precioUSD: 31,
     notas: "Fruta de dragón, bergamota, coñac, lavanda, manzana / Cardamomo, ante, toffee, cedro / Haba tonka, akigalawood, patchouli",
     imagen: "Afnan%209PM%20Night%20Out.avif"
   }
@@ -1749,7 +1651,6 @@ const PERFUMES = [
     estilo: "Joven",
     potencia: "Normal",
     presupuesto: "Medio",
-    precioUSD: 73,
     notas: "Toronja, mandarina / Avellana, almendra / Haba tonka, madera blanca",
     imagen: "Paco%20Rabanne%201%20Million%20Lucky.avif"
   }
@@ -1767,7 +1668,6 @@ const PERFUMES = [
     estilo: "Versátil",
     potencia: "Modo Bestia",
     presupuesto: "Medio",
-    precioUSD: 98,
     notas: "Lavanda, vainilla / Especias, cacao / Haba tonka, ámbar, madera",
     imagen: "Le%20Male%20Le%20Parfum%20Jean%20Paul%20Gaultier%20for%20men.avif"
   },
@@ -1784,7 +1684,6 @@ const PERFUMES = [
     estilo: "Versátil",
     potencia: "Modo Bestia",
     presupuesto: "Medio",
-    precioUSD: 105,
     notas: "Lavanda, menta / Vainilla intensa, benzoína / Miel, tabaco, haba tonka concentrada",
     imagen: "Jean%20Paul%20Gaultier%20Le%20Male%20Elixir%20Absolu.avif"
   },
@@ -1801,7 +1700,6 @@ const PERFUMES = [
     estilo: "Joven",
     potencia: "Normal",
     presupuesto: "Medio",
-    precioUSD: 89,
     notas: "Notas verdes, notas acuáticas, menta, jengibre / Coco, higo, sal / Haba tonka, sándalo",
     imagen: "Jean%20Paul%20Gaultier%20Le%20Male%20Paradise%20Garden.avif"
   },
@@ -1818,7 +1716,6 @@ const PERFUMES = [
     estilo: "Formal",
     potencia: "Normal",
     presupuesto: "Medio",
-    precioUSD: 82,
     notas: "Bergamota, coco / Sándalo, haba tonka / Almizcle, madera de cachemira",
     imagen: "Jean%20Paul%20Gaultier%20Le%20Beau.avif"
   }
@@ -1836,7 +1733,6 @@ const PERFUMES = [
     estilo: "Versátil",
     potencia: "Normal",
     presupuesto: "Sin límite",
-    precioUSD: 255,
     notas: "Menta, limón, albahaca, tomillo / Grosella negra, lavanda, romero, jazmín / Almizcle, verbena",
     imagen: "Torino%2021.avif"
   },
@@ -1853,7 +1749,6 @@ const PERFUMES = [
     estilo: "Versátil",
     potencia: "Modo Bestia",
     presupuesto: "Económico",
-    precioUSD: 39,
     notas: "Bergamota, pimienta rosa / Lavanda, azafrán / Ambroxan, ámbar, cedro",
     imagen: "Armaf%20Club%20de%20Nuit%20Urban%20Man%20Elixir.avif"
   }
@@ -1870,7 +1765,6 @@ const PERFUMES = [
     estilo: "Versátil",
     potencia: "Normal",
     presupuesto: "Sin límite",
-    precioUSD: 345,
     notas: "Toronja, jengibre, bergamota / Notas acuáticas, salvia, romero, geranio / Ambroxan, ámbar, labdanum",
     imagen: "L%27Immensit%C3%A9.avif"
   },
@@ -1887,7 +1781,6 @@ const PERFUMES = [
     estilo: "Versátil",
     potencia: "Normal",
     presupuesto: "Sin límite",
-    precioUSD: 345,
     notas: "Citrón, bergamota calabresa, naranja siciliana / Neroli, jengibre, canela / Té negro chino, ambroxan, guaiac wood, olíbano",
     imagen: "Imagination%20Louis%20Vuitton%20for%20men.avif"
   }
@@ -1905,7 +1798,6 @@ const PERFUMES = [
     estilo: "Versátil",
     potencia: "Modo Bestia",
     presupuesto: "Económico",
-    precioUSD: 40,
     notas: "Mango, jengibre, limón, frutos rojos / Cumarina, jazmín, cedro, pimienta rosa, violeta, praliné / Almizcle, ámbar, oud, cypriol, haba tonka",
     imagen: "French%20Avenue%20Vulcan%20Feu.avif"
   },
@@ -1922,7 +1814,6 @@ const PERFUMES = [
     estilo: "Versátil",
     potencia: "Modo Bestia",
     presupuesto: "Medio",
-    precioUSD: 92,
     notas: "Pimienta rosa, enebro, violeta / Lavanda, salvia, toffee, canela / Cuero, ámbar, vainilla, haba tonka",
     imagen: "Emporio%20Armani%20Stronger%20With%20You%20Intensely.avif"
   }
@@ -1940,7 +1831,6 @@ const PERFUMES = [
     estilo: "Versátil",
     potencia: "Modo Bestia",
     presupuesto: "Económico",
-    precioUSD: 38,
     notas: "Canela, flor de naranjo, cardamomo, bergamota / Vainilla bourbon, elemi / Almizcle, praliné, ambroxan, guaiac wood",
     imagen: "French%20Avenue%20Liquid%20Brun.avif"
   }
@@ -1958,7 +1848,6 @@ const PERFUMES = [
     estilo: "Formal",
     potencia: "Normal",
     presupuesto: "Sin límite",
-    precioUSD: 190,
     notas: "Salvia esclarea, lavanda, almendra amarga / Cuero, iris, vainilla / Haba tonka, cashmeran, ámbar",
     imagen: "Tom%20Ford%20Fucking%20Fabulous.avif"
   }
@@ -1976,7 +1865,6 @@ const PERFUMES = [
     estilo: "Versátil",
     potencia: "Normal",
     presupuesto: "Sin límite",
-    precioUSD: 265,
     notas: "Toronja, limón, ron / Rosa, sándalo, guaiac wood / Vainilla, café, almizcle, ámbar gris",
     imagen: "Xerjoff%20Uden.avif"
   }
@@ -1994,7 +1882,6 @@ const PERFUMES = [
     estilo: "Versátil",
     potencia: "Normal",
     presupuesto: "Sin límite",
-    precioUSD: 260,
     notas: "Piña, jacinto / Iris, pimienta rosa, jazmín / Almizcle, ámbar, vetiver, vainilla, patchouli",
     imagen: "Xerjoff%20Accento.avif"
   }
@@ -2012,7 +1899,6 @@ const PERFUMES = [
     estilo: "Formal",
     potencia: "Normal",
     presupuesto: "Sin límite",
-    precioUSD: 480,
     notas: "Bergamota de Calabria, jengibre, toronja, piña / Cardamomo, canela / Patchouli, vetiver haitiano, labdanum",
     imagen: "Creed%20Aventus%20Absolu.avif"
   }
@@ -2030,7 +1916,6 @@ const PERFUMES = [
     estilo: "Versátil",
     potencia: "Normal",
     presupuesto: "Medio",
-    precioUSD: 130,
     notas: "Cereza, mandarina / Especias, lavanda / Castaña, vainilla, madera ambarada",
     imagen: "Giorgio%20Armani%20Stronger%20With%20You%20Powerfully.avif"
   }
@@ -2048,7 +1933,6 @@ const PERFUMES = [
     estilo: "Versátil",
     potencia: "Normal",
     presupuesto: "Medio",
-    precioUSD: 130,
     notas: "Notas marinas, mandarina verde / Mimosa, lavanda, ciprés / Patchouli, labdanum, notas minerales",
     imagen: "Giorgio%20Armani%20Acqua%20di%20Gi%C3%B2%20Profondo%20Parfum.avif"
   }
@@ -2066,7 +1950,6 @@ const PERFUMES = [
     estilo: "Versátil",
     potencia: "Suave",
     presupuesto: "Sin límite",
-    precioUSD: 340,
     notas: "Citrón, naranja, limón, menta, grosella negra / Albaricoque, albahaca, rosa de mayo / Higo, dátiles, ambrette",
     imagen: "Louis%20Vuitton%20Pacific%20Chill.avif"
   }
@@ -2084,7 +1967,6 @@ const PERFUMES = [
     estilo: "Versátil",
     potencia: "Modo Bestia",
     presupuesto: "Económico",
-    precioUSD: 33,
     notas: "Pimienta rosa, bergamota / Rosa turca, rosa búlgara, jazmín / Agarwood (oud), ámbar, vainilla",
     imagen: "Lattafa%20Badee%20Al%20Oud%20Amethyst.avif"
   }
@@ -2102,7 +1984,6 @@ const PERFUMES = [
     estilo: "Versátil",
     potencia: "Modo Bestia",
     presupuesto: "Económico",
-    precioUSD: 26,
     notas: "Piña, crème brûlée / Canela, cúrcuma, pimienta negra, benzoína / Vainilla, sándalo, cashmeran, musgo",
     imagen: "Lattafa%20Bade%27e%20Al%20Oud%20Honor%20%26%20Glory.avif"
   }
@@ -2120,7 +2001,6 @@ const PERFUMES = [
     estilo: "Versátil",
     potencia: "Modo Bestia",
     presupuesto: "Económico",
-    precioUSD: 36,
     notas: "Lavanda, menta / Benzoína, vainilla / Miel, haba tonka, tabaco",
     imagen: "Armaf%20Club%20De%20Nuit%20Lionheart%20Man.avif"
   }
@@ -2137,7 +2017,6 @@ const PERFUMES = [
     estilo: "Versátil",
     potencia: "Modo Bestia",
     presupuesto: "Económico",
-    precioUSD: 65,
     notas: "Toronja, menta, limón, pimienta rosa / Jengibre, melón, jazmín, nuez moscada / Incienso, ámbar, cedro, sándalo, patchouli",
     imagen: "Armaf%20Club%20de%20Nuit%20Blue%20Iconic.avif"
   }
@@ -2155,7 +2034,6 @@ const PERFUMES = [
     estilo: "Versátil",
     potencia: "Modo Bestia",
     presupuesto: "Económico",
-    precioUSD: 44,
     notas: "Azafrán, jazmín / Ámbar gris, madera ambarada / Resina de abeto, cedro",
     imagen: "Armaf%20Club%20de%20Nuit%20Untold.avif"
   }
@@ -2173,7 +2051,6 @@ const PERFUMES = [
     estilo: "Versátil",
     potencia: "Modo Bestia",
     presupuesto: "Económico",
-    precioUSD: 47,
     notas: "Piña, limón, bergamota, caramelo, pimienta rosa / Musgo de encina, madera blanca, jazmín, anís / Ambroxan, almizcle blanco, cedro, patchouli, ámbar, cuero, vainilla",
     imagen: "Armaf%20Club%20de%20Nuit%20Precieux%20I.avif"
   }
@@ -2191,7 +2068,6 @@ const PERFUMES = [
     estilo: "Versátil",
     potencia: "Normal",
     presupuesto: "Económico",
-    precioUSD: 40,
     notas: "Salvia esclarea / Jazmín egipcio, notas marinas / Ámbar, ámbar gris, notas minerales",
     imagen: "Rasasi%20Hawas%20Fire.avif"
   }
@@ -2209,7 +2085,6 @@ const PERFUMES = [
     estilo: "Formal",
     potencia: "Normal",
     presupuesto: "Sin límite",
-    precioUSD: 250,
     notas: "Frambuesa, azafrán, tomillo / Olíbano, jazmín / Cuero, gamuza, madera, ámbar",
     imagen: "Tom%20Ford%20Tuscan%20Leather.avif"
   }
@@ -2227,7 +2102,6 @@ const PERFUMES = [
     estilo: "Formal",
     potencia: "Normal",
     presupuesto: "Sin límite",
-    precioUSD: 220,
     notas: "Azahar de naranjo / Azafrán / Vetiver haitiano",
     imagen: "Tom%20Ford%20Grey%20Vetiver%20Parfum.avif"
   }
@@ -2244,7 +2118,6 @@ const PERFUMES = [
     estilo: "Versátil",
     potencia: "Normal",
     presupuesto: "Sin límite",
-    precioUSD: 260,
     notas: "Neroli, azahar, bergamota, naranja sanguina / Musgo, madera, almizcle, lavanda, albahaca / Cuero, galbanum",
     imagen: "Tom%20Ford%20Neroli%20Portofino%20Forte.avif"
   }
@@ -2262,7 +2135,6 @@ const PERFUMES = [
     estilo: "Formal",
     potencia: "Modo Bestia",
     presupuesto: "Sin límite",
-    precioUSD: 205,
     notas: "Trufa, ciruela / Ron, ylang-ylang, orquídea negra / Patchouli",
     imagen: "Tom%20Ford%20Black%20Orchid%20Parfum.avif"
   }
@@ -2280,7 +2152,6 @@ const PERFUMES = [
     estilo: "Formal",
     potencia: "Normal",
     presupuesto: "Medio",
-    precioUSD: 145,
     notas: "Palo de rosa, cilantro, mandarina siciliana / Canela, rosa de Damasco, clavel / Sándalo, tabaco, vainilla, cuero, ámbar",
     imagen: "Egoiste%20Chanel.avif"
   }
@@ -2298,7 +2169,6 @@ const PERFUMES = [
     estilo: "Versátil",
     potencia: "Normal",
     presupuesto: "Medio",
-    precioUSD: 130,
     notas: "Mandarina siciliana, menta, ciprés, salvia esclarea / Pimienta / Haba tonka, almizcle, aldehídos",
     imagen: "Chanel%20Allure%20Homme%20Sport%20Eau%20Extr%C3%AAme.avif"
   }
@@ -2316,7 +2186,6 @@ const PERFUMES = [
     estilo: "Formal",
     potencia: "Normal",
     presupuesto: "Sin límite",
-    precioUSD: 440,
     notas: "Bergamota, limón, menta, verbena / Geranio, lavanda, violeta / Sándalo, cedro, musgo de encina, ambroxan",
     imagen: "Creed%20Green%20Irish%20Tweed.avif"
   }
@@ -2333,7 +2202,6 @@ const PERFUMES = [
     estilo: "Versátil",
     potencia: "Normal",
     presupuesto: "Sin límite",
-    precioUSD: 450,
     notas: "Bergamota, grosella negra, galbanum, naranja / Té verde, acorde ozónico / Sándalo, almizcle",
     imagen: "Creed%20Silver%20Mountain%20Water.avif"
   }
@@ -2350,7 +2218,6 @@ const PERFUMES = [
     estilo: "Versátil",
     potencia: "Modo Bestia",
     presupuesto: "Medio",
-    precioUSD: 110,
     notas: "Toronja, manzana, jengibre, aldehídos / Salvia, lavanda, geranio / Haba tonka, cedro, olíbano, patchouli",
     imagen: "Yves%20Saint%20Laurent%20Y%20Le%20Parfum.avif"
   }
@@ -2368,7 +2235,6 @@ const PERFUMES = [
     estilo: "Versátil",
     potencia: "Modo Bestia",
     presupuesto: "Medio",
-    precioUSD: 115,
     notas: "Jengibre, bergamota, cardamomo / Azahar de naranjo / Patchouli",
     imagen: "Yves%20Saint%20Laurent%20MYSLF%20L%27Absolu.avif"
   }
@@ -2386,7 +2252,6 @@ const PERFUMES = [
     estilo: "Formal",
     potencia: "Modo Bestia",
     presupuesto: "Sin límite",
-    precioUSD: 345,
     notas: "Agarwood (oud), azafrán, grosella negra / Cuero, cacao, rosa, incienso / Patchouli, vainilla, caramelo, madera ambarada, haba tonka",
     imagen: "Louis%20Vuitton%20Nouveau%20Monde.avif"
   }
@@ -2404,7 +2269,6 @@ const PERFUMES = [
     estilo: "Formal",
     potencia: "Modo Bestia",
     presupuesto: "Sin límite",
-    precioUSD: 250,
     notas: "Rosa búlgara, violeta, fresa / Rosa turca / Agarwood (oud), vainilla, ámbar, benzoína, caramelo, cedro",
     imagen: "Maison%20Francis%20Kurkdjian%20Oud%20Satin%20Mood.avif"
   }
@@ -2422,7 +2286,6 @@ const PERFUMES = [
     estilo: "Versátil",
     potencia: "Normal",
     presupuesto: "Sin límite",
-    precioUSD: 320,
     notas: "Bergamota, heliotropo, comino / Jazmín, almendra amarga, lavanda / Ámbar, vainilla, sándalo",
     imagen: "Parfums%20de%20Marly%20Pegasus.avif"
   }
@@ -2440,7 +2303,6 @@ const PERFUMES = [
     estilo: "Versátil",
     potencia: "Normal",
     presupuesto: "Sin límite",
-    precioUSD: 340,
     notas: "Canela, azahar, cardamomo, bergamota / Vainilla bourbon, elemi / Praliné, almizcle, ambroxan, haba tonka, guaiac wood",
     imagen: "Parfums%20de%20Marly%20Althair.avif"
   }
@@ -2458,7 +2320,6 @@ const PERFUMES = [
     estilo: "Versátil",
     potencia: "Normal",
     presupuesto: "Económico",
-    precioUSD: 24,
     notas: "Manzana, lavanda, jazmín, violeta / Vainilla, patchouli, bergamota, mandarina / Sándalo, cardamomo, pimienta, guaiac wood",
     imagen: "Al%20Haramain%20D%C3%A9tour%20Noir.avif"
   }
@@ -2476,7 +2337,6 @@ const PERFUMES = [
     estilo: "Versátil",
     potencia: "Normal",
     presupuesto: "Económico",
-    precioUSD: 45,
     notas: "Bergamota, lavanda, romero / Notas marinas, geranio, salvia / Musgo, vetiver, ámbar, cedro",
     imagen: "Al%20Haramain%20Amber%20Oud%20Carbon%20Edition.avif"
   }

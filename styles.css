@@ -990,3 +990,67 @@ body {
   justify-content: center;
   text-decoration: none;
 }
+
+
+/* ============ DIÁLOGO DE ZONA DE ADMINISTRACIÓN ============ */
+
+.modal-fondo {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(6, 5, 3, 0.78);
+  backdrop-filter: blur(3px);
+}
+
+.modal-fondo[hidden] { display: none; }
+
+body.modal-abierto { overflow: hidden; }
+
+.modal-caja {
+  width: 100%;
+  max-width: 430px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 36px 32px 28px;
+  background: var(--negro-panel);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-lg);
+  box-shadow: var(--sombra-elevada);
+}
+
+.modal-icono { font-size: 28px; line-height: 1; margin-bottom: 16px; }
+
+.modal-titulo {
+  margin: 0 0 10px;
+  font-family: var(--fuente-display);
+  font-size: 23px;
+  font-weight: 600;
+  color: var(--crema);
+}
+
+.modal-texto {
+  margin: 0 0 24px;
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--texto-secundario);
+}
+
+.modal-acciones {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.modal-acciones .boton { width: 100%; justify-content: center; }
+
+@media (max-width: 420px) {
+  .modal-caja { padding: 30px 22px 22px; }
+  .modal-titulo { font-size: 20px; }
+}
