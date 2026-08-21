@@ -1534,19 +1534,18 @@ const PERFUMES = [
   {
     id: 90,
     activo: true,
-    nombre: "Ard Al Zaafaran Aicha",
-    tipo: "Árabe",
-    aromaPrincipal: "Dulce / Gourmand",
-    subAroma: "Frutal jugoso",
-    notaEspecifica: "floral-dulce",
+    nombre: "Nautica Voyage",
+    tipo: "Diseñador",
+    aromaPrincipal: "Fresco",
+    subAroma: "Marina / Salada",
     momento: "Diario",
-    clima: "Templado",
+    clima: "Caliente / Sol",
     estilo: "Joven",
     potencia: "Normal",
     presupuesto: "Económico",
-    precioUSD: 24,
-    notas: "Frutas rojas, bergamota / Rosa, jazmín / Almizcle, vainilla, madera clara",
-    imagen: "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20width%3D%27375%27%20height%3D%27500%27%20viewBox%3D%270%200%20375%20500%27%3E%0A%20%20%20%20%3Cdefs%3E%0A%20%20%20%20%20%20%3ClinearGradient%20id%3D%27g90%27%20x1%3D%270%27%20y1%3D%270%27%20x2%3D%270%27%20y2%3D%271%27%3E%0A%20%20%20%20%20%20%20%20%3Cstop%20offset%3D%270%25%27%20stop-color%3D%27%231a1206%27/%3E%0A%20%20%20%20%20%20%20%20%3Cstop%20offset%3D%27100%25%27%20stop-color%3D%27%232b1d08%27/%3E%0A%20%20%20%20%20%20%3C/linearGradient%3E%0A%20%20%20%20%3C/defs%3E%0A%20%20%20%20%3Crect%20width%3D%27375%27%20height%3D%27500%27%20fill%3D%27url%28%23g90%29%27/%3E%0A%20%20%20%20%3Cg%20fill%3D%27none%27%20stroke%3D%27%23d6c174%27%20stroke-width%3D%272%27%20opacity%3D%270.9%27%3E%0A%20%20%20%20%20%20%3Crect%20x%3D%22138%22%20y%3D%22165%22%20width%3D%2299%22%20height%3D%22155%22%20rx%3D%228%22/%3E%0A%20%20%20%20%20%20%3Crect%20x%3D%22158%22%20y%3D%22128%22%20width%3D%2259%22%20height%3D%2242%22%20rx%3D%225%22/%3E%0A%20%20%20%20%20%20%3Crect%20x%3D%22168%22%20y%3D%22112%22%20width%3D%2239%22%20height%3D%2220%22%20rx%3D%223%22/%3E%0A%20%20%20%20%20%20%3Cline%20x1%3D%22138%22%20y1%3D%22215%22%20x2%3D%22237%22%20y2%3D%22215%22/%3E%0A%20%20%20%20%20%20%3Cline%20x1%3D%22138%22%20y1%3D%22255%22%20x2%3D%22237%22%20y2%3D%22255%22/%3E%0A%20%20%20%20%3C/g%3E%0A%20%20%20%20%3Ctext%20x%3D%27187%27%20y%3D%27395%27%20font-family%3D%27Georgia%2C%20serif%27%20font-size%3D%2734%27%20font-weight%3D%27600%27%20fill%3D%27%23d6c174%27%20text-anchor%3D%27middle%27%20opacity%3D%270.9%27%3EAA%3C/text%3E%0A%20%20%20%20%3Ctext%20x%3D%27187%27%20y%3D%27445%27%20font-family%3D%27Georgia%2C%20serif%27%20font-size%3D%2711%27%20letter-spacing%3D%272%27%20fill%3D%27%238a7d5f%27%20text-anchor%3D%27middle%27%3E%C3%81RABE%3C/text%3E%0A%20%20%3C/svg%3E"
+    precioUSD: 30,
+    notas: "Hojas verdes, manzana / Loto, mimosa / Almizcle, cedro, musgo de encina, ámbar",
+    imagen: "Nautica%20Voyage.avif"
   },
   {
     id: 91,
