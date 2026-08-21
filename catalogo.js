@@ -293,13 +293,21 @@
     actualizarContadorActivos();
   }
 
+  // El precio original de data.js es la base de todos los cálculos, así que
+  // se muestra SIEMPRE, esté ajustado o no. Cuando hay ajuste añadimos la
+  // diferencia en porcentaje para saber de un vistazo cuánto se le aplicó.
   function actualizarEtiquetasPrecio(spanOriginal, spanCategoria, perfume, precioMostrado) {
     const original = perfume.precioUSD;
-    if (formatearPrecio(precioMostrado) !== formatearPrecio(original)) {
-      spanOriginal.textContent = `Original: $${formatearPrecio(original)}`;
+    const mostrado = formatearPrecio(precioMostrado);
+    const base = formatearPrecio(original);
+
+    if (mostrado !== base) {
+      const delta = Math.round(((mostrado - base) / base) * 100);
+      const signo = delta > 0 ? "+" : "";
+      spanOriginal.textContent = `Original: $${base} · ${signo}${delta}%`;
       spanOriginal.classList.add("cambiado");
     } else {
-      spanOriginal.textContent = "Precio original";
+      spanOriginal.textContent = `Original: $${base}`;
       spanOriginal.classList.remove("cambiado");
     }
     spanCategoria.textContent = categoriaParaPrecio(precioMostrado);
@@ -326,10 +334,19 @@
     const direccion = selectDireccion.value; // "subir" | "bajar"
     const factor = direccion === "subir" ? 1 + porcentaje / 100 : 1 - porcentaje / 100;
 
+    // El porcentaje se aplica SIEMPRE sobre el precio original de data.js
+    // (el valor de compra), nunca sobre el precio ya ajustado. Si no fuera
+    // así los ajustes se acumularían: aplicar +10% dos veces daría +21% en
+    // vez de +10%, y bastarían unos pocos ajustes para perder de vista cuál
+    // era el precio de partida.
+    //
+    // Como consecuencia, aplicar un ajuste es idempotente: puedes aplicar
+    // +10% las veces que quieras y el resultado siempre será el original
+    // más 10%. Y para cambiar de +10% a +25% no hace falta restablecer
+    // primero: basta con aplicar el 25%.
     const nuevosPrecios = {};
     PERFUMES.forEach((perfume) => {
-      const base = precioActual(perfume, overrides);
-      nuevosPrecios[perfume.id] = Math.max(1, formatearPrecio(base * factor));
+      nuevosPrecios[perfume.id] = Math.max(1, formatearPrecio(perfume.precioUSD * factor));
     });
 
     // Las 143 filas viajan en una sola petición, no una por perfume.
@@ -341,7 +358,7 @@
         sincronizarMapasLocales();
         renderizarCatalogo();
         const verbo = direccion === "subir" ? "subido" : "bajado";
-        panelNota.textContent = `Precios de las ${PERFUMES.length} fragancias ${verbo} un ${porcentaje}%. Los cambios ya se aplican también en los resultados del test, para todos los visitantes.`;
+        panelNota.textContent = `Precios de las ${PERFUMES.length} fragancias ${verbo} un ${porcentaje}% sobre el precio original. Los cambios ya se aplican también en los resultados del test, para todos los visitantes.`;
       })
       .catch((e) => {
         console.warn("No se pudo aplicar el ajuste global:", e);
@@ -364,7 +381,7 @@
       .then(() => {
         sincronizarMapasLocales();
         renderizarCatalogo();
-        panelNota.textContent = "Precios restablecidos a los valores originales del catálogo.";
+        panelNota.textContent = "Precios restablecidos: todas las fragancias vuelven a su precio original.";
       })
       .catch((e) => {
         console.warn("No se pudieron restablecer los precios:", e);
