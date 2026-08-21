@@ -17,15 +17,17 @@
   // Los mapas siguen teniendo exactamente la misma forma { id: valor } que
   // antes, así que todo el render de más abajo funciona sin modificarse.
 
-  let overrides = {};          // { id: precioEditado }
+  let costos = {};             // { id: loQuePagamos }
+  let ventas = {};             // { id: loQueVeElCliente }
   let overridesImagenes = {};  // { id: urlDeLaFotoReal }
   let overridesActivos = {};   // { id: true | false }
 
-  // db.js mantiene una única copia en memoria de los overrides. Aquí
-  // refrescamos nuestras referencias a esa copia después de cada cambio.
+  // db.js mantiene una única copia en memoria. Aquí refrescamos nuestras
+  // referencias a esa copia después de cada cambio.
   function sincronizarMapasLocales() {
     const datos = PerfumesDB.overrides();
-    overrides = datos.precios;
+    costos = datos.costos;
+    ventas = datos.ventas;
     overridesImagenes = datos.imagenes;
     overridesActivos = datos.activos;
   }
@@ -114,11 +116,32 @@
       INSTRUCCIONES_USUARIO_ADMIN);
   };
 
-  function precioActual(perfume, overrides) {
-    const guardado = overrides[perfume.id];
-    return typeof guardado === "number" && !Number.isNaN(guardado)
-      ? guardado
-      : perfume.precioUSD;
+  // El COSTO y la VENTA viven en la base de datos, no en data.js.
+  //
+  // TRANSITORIO: mientras la carga inicial de precios no se haya ejecutado,
+  // caemos al precioUSD de data.js para no dejar el catálogo sin precios.
+  // Ese campo desaparece de data.js en cuanto la base de datos esté
+  // poblada, y entonces una fragancia sin precio queda marcada como tal.
+  function costoActual(perfume) {
+    const guardado = costos[perfume.id];
+    if (typeof guardado === "number" && !Number.isNaN(guardado)) return guardado;
+    return typeof perfume.precioUSD === "number" ? perfume.precioUSD : null;
+  }
+
+  function ventaActual(perfume) {
+    const guardado = ventas[perfume.id];
+    if (typeof guardado === "number" && !Number.isNaN(guardado)) return guardado;
+    return typeof perfume.precioUSD === "number" ? perfume.precioUSD : null;
+  }
+
+  // Una fragancia sin precio de venta no se puede vender, así que el test
+  // público no la muestra. Aquí sí aparece, marcada, para poder arreglarla.
+  function sinPrecio(perfume) {
+    return ventaActual(perfume) === null;
+  }
+
+  function contarSinPrecio() {
+    return PERFUMES.filter(sinPrecio).length;
   }
 
   // Determina la categoría de presupuesto (Económico/Medio/Sin límite) a partir
@@ -151,6 +174,21 @@
     if (contador) {
       contador.textContent = `${contarActivos()} de ${PERFUMES.length} activas`;
     }
+  }
+
+  // Una fragancia sin precio de venta no aparece en el test público, así
+  // que hay que poder verlo sin revisar las 143 filas una por una.
+  function actualizarAvisoSinPrecio() {
+    const aviso = $("#aviso-sin-precio");
+    if (!aviso) return;
+    const cuantas = contarSinPrecio();
+    if (cuantas === 0) {
+      aviso.hidden = true;
+      return;
+    }
+    aviso.hidden = false;
+    aviso.textContent =
+      `⚠️ ${cuantas} fragancia(s) sin precio de venta. No aparecen en el test hasta que se lo pongas.`;
   }
 
   /* ============ REFERENCIAS DOM ============ */
@@ -300,27 +338,48 @@
           });
       });
 
-      const precio = precioActual(perfume, overrides);
-      const inputPrecio = nodo.querySelector('[data-campo="precio-input"]');
-      inputPrecio.value = formatearPrecio(precio);
-      inputPrecio.dataset.id = perfume.id;
-
-      const spanOriginal = nodo.querySelector('[data-campo="precio-original"]');
+      const inputCosto = nodo.querySelector('[data-campo="costo-input"]');
+      const inputVenta = nodo.querySelector('[data-campo="venta-input"]');
+      const spanMargen = nodo.querySelector('[data-campo="margen"]');
       const spanCategoria = nodo.querySelector('[data-campo="presupuesto"]');
-      actualizarEtiquetasPrecio(spanOriginal, spanCategoria, perfume, precio);
 
-      inputPrecio.addEventListener("change", () => {
-        const nuevoValor = parseFloat(inputPrecio.value);
-        if (Number.isNaN(nuevoValor) || nuevoValor <= 0) {
-          inputPrecio.value = formatearPrecio(precioActual(perfume, overrides));
-          return;
-        }
-        guardarPrecioIndividual(perfume.id, nuevoValor).then(() => {
-          const precioNuevo = precioActual(perfume, overrides);
-          inputPrecio.value = formatearPrecio(precioNuevo);
-          actualizarEtiquetasPrecio(spanOriginal, spanCategoria, perfume, precioNuevo);
+      function pintarPrecios() {
+        const costo = costoActual(perfume);
+        const venta = ventaActual(perfume);
+        inputCosto.value = costo === null ? "" : formatearPrecio(costo);
+        inputVenta.value = venta === null ? "" : formatearPrecio(venta);
+        fila.classList.toggle("sin-precio", venta === null);
+        actualizarEtiquetasPrecio(spanMargen, spanCategoria, costo, venta);
+      }
+      inputCosto.dataset.id = perfume.id;
+      inputVenta.dataset.id = perfume.id;
+      pintarPrecios();
+
+      // Un mismo manejador para los dos campos: cambian columnas distintas
+      // pero se comportan igual, y ambos recalculan el margen al terminar.
+      function conectarCampoPrecio(input, campo) {
+        input.addEventListener("change", () => {
+          const valor = parseFloat(input.value);
+          if (Number.isNaN(valor) || valor <= 0) {
+            pintarPrecios(); // valor inválido: dejamos lo que había
+            return;
+          }
+          input.disabled = true;
+          PerfumesDB.guardarCampo(perfume.id, campo, formatearPrecio(valor))
+            .catch((e) => {
+              console.warn("No se pudo guardar el " + campo + ":", e);
+              panelNota.textContent = mensajeDeError(e);
+            })
+            .then(() => {
+              sincronizarMapasLocales();
+              pintarPrecios();
+              actualizarAvisoSinPrecio();
+              input.disabled = false;
+            });
         });
-      });
+      }
+      conectarCampoPrecio(inputCosto, "costo");
+      conectarCampoPrecio(inputVenta, "venta");
 
       // Toggle activar / desactivar: un perfume desactivado nunca aparece
       // como resultado del test, pero sigue visible aquí (atenuado) para
@@ -363,39 +422,43 @@
     });
 
     actualizarContadorActivos();
+    actualizarAvisoSinPrecio();
   }
 
-  // El precio original de data.js es la base de todos los cálculos, así que
-  // se muestra SIEMPRE, esté ajustado o no. Cuando hay ajuste añadimos la
-  // diferencia en porcentaje para saber de un vistazo cuánto se le aplicó.
-  function actualizarEtiquetasPrecio(spanOriginal, spanCategoria, perfume, precioMostrado) {
-    const original = perfume.precioUSD;
-    const mostrado = formatearPrecio(precioMostrado);
-    const base = formatearPrecio(original);
+  // Muestra el margen de utilidad: cuánto se le está ganando a esa
+  // fragancia respecto a lo que cuesta. Es la cifra que importa de un
+  // vistazo, más que el precio suelto.
+  function actualizarEtiquetasPrecio(spanMargen, spanCategoria, costo, venta) {
+    spanMargen.classList.remove("cambiado", "fila-margen-negativo");
 
-    if (mostrado !== base) {
-      const delta = Math.round(((mostrado - base) / base) * 100);
-      const signo = delta > 0 ? "+" : "";
-      spanOriginal.textContent = `Original: $${base} · ${signo}${delta}%`;
-      spanOriginal.classList.add("cambiado");
-    } else {
-      spanOriginal.textContent = `Original: $${base}`;
-      spanOriginal.classList.remove("cambiado");
+    if (venta === null) {
+      spanMargen.textContent = "Sin precio de venta";
+      spanMargen.classList.add("fila-margen-negativo");
+      spanCategoria.textContent = "—";
+      return;
     }
-    spanCategoria.textContent = categoriaParaPrecio(precioMostrado);
+
+    spanCategoria.textContent = categoriaParaPrecio(venta);
+
+    if (costo === null || costo <= 0) {
+      spanMargen.textContent = "Sin costo";
+      return;
+    }
+
+    const margen = Math.round(((venta - costo) / costo) * 100);
+    if (margen === 0) {
+      spanMargen.textContent = "Margen 0% — al costo";
+      spanMargen.classList.add("fila-margen-negativo");
+    } else if (margen < 0) {
+      spanMargen.textContent = `Margen ${margen}% — pérdida`;
+      spanMargen.classList.add("fila-margen-negativo");
+    } else {
+      spanMargen.textContent = `Margen +${margen}%`;
+      spanMargen.classList.add("cambiado");
+    }
   }
 
   /* ============ AJUSTE GLOBAL POR PORCENTAJE ============ */
-
-  function guardarPrecioIndividual(id, nuevoPrecio) {
-    return PerfumesDB.guardarCampo(id, "precio", formatearPrecio(nuevoPrecio))
-      .then(sincronizarMapasLocales)
-      .catch((e) => {
-        console.warn("No se pudo guardar el precio:", e);
-        sincronizarMapasLocales();
-        panelNota.textContent = mensajeDeError(e);
-      });
-  }
 
   function aplicarAjusteGlobal() {
     const porcentaje = parseFloat(inputPorcentaje.value);
@@ -406,31 +469,35 @@
     const direccion = selectDireccion.value; // "subir" | "bajar"
     const factor = direccion === "subir" ? 1 + porcentaje / 100 : 1 - porcentaje / 100;
 
-    // El porcentaje se aplica SIEMPRE sobre el precio original de data.js
-    // (el valor de compra), nunca sobre el precio ya ajustado. Si no fuera
-    // así los ajustes se acumularían: aplicar +10% dos veces daría +21% en
-    // vez de +10%, y bastarían unos pocos ajustes para perder de vista cuál
-    // era el precio de partida.
+    // El porcentaje actúa sobre el precio de VENTA actual y es acumulativo:
+    // aplicar +10% dos veces deja la venta un 21% por encima de donde
+    // estaba. El COSTO no se toca nunca desde aquí.
     //
-    // Como consecuencia, aplicar un ajuste es idempotente: puedes aplicar
-    // +10% las veces que quieras y el resultado siempre será el original
-    // más 10%. Y para cambiar de +10% a +25% no hace falta restablecer
-    // primero: basta con aplicar el 25%.
-    const nuevosPrecios = {};
+    // Para volver al punto de partida está "Restablecer precios", que copia
+    // el costo sobre la venta y deja el margen en cero.
+    const nuevasVentas = {};
     PERFUMES.forEach((perfume) => {
-      nuevosPrecios[perfume.id] = Math.max(1, formatearPrecio(perfume.precioUSD * factor));
+      const venta = ventaActual(perfume);
+      if (venta === null) return; // sin precio: no hay nada que ajustar
+      nuevasVentas[perfume.id] = Math.max(1, formatearPrecio(venta * factor));
     });
+
+    if (Object.keys(nuevasVentas).length === 0) {
+      panelNota.textContent = "No hay fragancias con precio de venta para ajustar.";
+      return;
+    }
 
     // Las 143 filas viajan en una sola petición, no una por perfume.
     btnAplicarGlobal.disabled = true;
     panelNota.textContent = "Guardando…";
 
-    PerfumesDB.guardarPreciosEnLote(nuevosPrecios)
+    PerfumesDB.guardarVentasEnLote(nuevasVentas)
       .then(() => {
         sincronizarMapasLocales();
         renderizarCatalogo();
         const verbo = direccion === "subir" ? "subido" : "bajado";
-        panelNota.textContent = `Precios de las ${PERFUMES.length} fragancias ${verbo} un ${porcentaje}% sobre el precio original. Los cambios ya se aplican también en los resultados del test, para todos los visitantes.`;
+        const cuantas = Object.keys(nuevasVentas).length;
+        panelNota.textContent = `Precio de venta de ${cuantas} fragancia(s) ${verbo} un ${porcentaje}%. El costo no cambió. Los visitantes del test ya ven los precios nuevos.`;
       })
       .catch((e) => {
         console.warn("No se pudo aplicar el ajuste global:", e);
@@ -445,18 +512,25 @@
 
   function restablecerPrecios() {
     btnResetPrecios.disabled = true;
-    panelNota.textContent = "Restableciendo…";
+    panelNota.textContent = "Igualando el precio de venta al costo…";
 
-    // Solo borra los precios: las fotos y los activados/desactivados
-    // se quedan como están.
-    PerfumesDB.restablecerPrecios()
+    // Copia el COSTO sobre la VENTA. Las fotos y los activados/desactivados
+    // no se tocan.
+    PerfumesDB.ventaIgualACosto()
       .then((r) => {
         sincronizarMapasLocales();
         renderizarCatalogo();
-        panelNota.textContent =
-          r && r.sinCambios
-            ? "No había precios ajustados: todas las fragancias ya estaban en su precio original."
-            : "Precios restablecidos: todas las fragancias vuelven a su precio original. Te sugerimos aplicar un aumento para tener margen de utilidad.";
+        if (r && r.sinCambios && r.motivo === "sin-costos") {
+          panelNota.textContent = "No hay costos configurados, así que no hay nada que copiar al precio de venta.";
+        } else if (r && r.sinCambios) {
+          panelNota.textContent = "El precio de venta ya era igual al costo en todas las fragancias. Margen actual: 0%.";
+        } else {
+          panelNota.textContent =
+            `Listo: el precio de venta de ${r.cambiadas} fragancia(s) quedó igual al costo, con margen 0%. ` +
+            "Ahora aplica un aumento aquí arriba para fijar tu utilidad — por ejemplo 30%.";
+          inputPorcentaje.value = 30;
+          selectDireccion.value = "subir";
+        }
       })
       .catch((e) => {
         console.warn("No se pudieron restablecer los precios:", e);

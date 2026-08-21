@@ -575,3 +575,23 @@
 @media (max-width: 420px) {
   .fila-tags { display: none; }
 }
+
+
+/* ============ COSTO Y VENTA ============ */
+/* Dos precios por fragancia: el costo (lo que se paga) y la venta (lo que
+   ve el cliente). Se distinguen por color para no confundirlos de un
+   vistazo, porque editar el equivocado desajusta el margen. */
+
+.fila-precio-etiqueta-venta { margin-top: 8px; }
+
+.fila-precio-costo { color: var(--texto-secundario); }
+
+.fila-precio-venta { font-weight: 700; }
+
+/* Fragancia sin precio configurado: no se puede vender, así que el test
+   público no la muestra. Se marca aquí para que salte a la vista. */
+.fila-catalogo.sin-precio { outline: 1px solid rgba(220, 68, 68, 0.5); }
+
+.fila-catalogo.sin-precio .fila-precio-input { border-color: rgba(220, 68, 68, 0.6); }
+
+.fila-margen-negativo { color: #ff9b9b !important; }

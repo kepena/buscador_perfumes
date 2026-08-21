@@ -289,15 +289,21 @@
     return PerfumesDB.overrides();
   }
 
+  // El precio que ve el visitante es el de VENTA. El costo es interno del
+  // panel y nunca sale de ahí.
   function leerOverridesPrecio() {
-    return overridesEnMemoria().precios;
+    return overridesEnMemoria().ventas;
   }
 
+  // Devuelve el precio de venta, o null si esa fragancia todavía no tiene
+  // uno configurado. Sin precio no se puede vender, así que no se ofrece.
+  //
+  // TRANSITORIO: mientras la carga inicial de precios no se haya ejecutado
+  // caemos al precioUSD de data.js, para no dejar el test sin catálogo.
   function precioVigente(perfume, overrides) {
     const guardado = overrides[perfume.id];
-    return typeof guardado === "number" && !Number.isNaN(guardado)
-      ? guardado
-      : perfume.precioUSD;
+    if (typeof guardado === "number" && !Number.isNaN(guardado)) return guardado;
+    return typeof perfume.precioUSD === "number" ? perfume.precioUSD : null;
   }
 
   function categoriaParaPrecio(precio) {
@@ -660,10 +666,14 @@
 
     // 1. Calculamos el precio vigente y la categoría de cada perfume, y
     //    filtramos por presupuesto usando esa categoría dinámica.
-    const conPrecioVigente = soloActivos.map((p) => {
-      const precio = precioVigente(p, overrides);
-      return { perfume: p, precio, categoria: categoriaParaPrecio(precio) };
-    });
+    const conPrecioVigente = soloActivos
+      .map((p) => {
+        const precio = precioVigente(p, overrides);
+        return { perfume: p, precio, categoria: precio === null ? null : categoriaParaPrecio(precio) };
+      })
+      // Una fragancia sin precio de venta no aparece en los resultados. El
+      // panel de administración las marca para poder ponerles precio.
+      .filter((item) => item.precio !== null);
 
     const dentroDePresupuesto = conPrecioVigente.filter((item) =>
       presupuestoCompatible(item.categoria, r.presupuesto)
@@ -927,6 +937,7 @@
     let empatados = [];
     PERFUMES.forEach((p) => {
       if (!estaActivo(p, leerOverridesActivo())) return;
+      if (precioVigente(p, leerOverridesPrecio()) === null) return;
       let score = 0;
       if (filtros.aromaPrincipal && p.aromaPrincipal === filtros.aromaPrincipal) score += 22;
       if (filtros.subAroma && p.subAroma === filtros.subAroma) score += 13;
@@ -1052,7 +1063,13 @@
 
   function renderListaVersatilesSet(cfg) {
     const overridesActivo = leerOverridesActivo();
-    const todos = PERFUMES.filter((p) => estaActivo(p, overridesActivo) && p.clima === "Templado");
+    const overridesPrecio = leerOverridesPrecio();
+    const todos = PERFUMES.filter(
+      (p) =>
+        estaActivo(p, overridesActivo) &&
+        p.clima === "Templado" &&
+        precioVigente(p, overridesPrecio) !== null
+    );
     const filtro = estadoSetOcasion.filtroTipoLibre;
     const candidatos = filtro === "Todos" ? todos : todos.filter((p) => p.tipo === filtro);
 
