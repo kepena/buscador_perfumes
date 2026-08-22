@@ -255,6 +255,16 @@
   const btnGuardarRangos = $("#btn-guardar-rangos");
   const txtRangoResto = $("#txt-rango-resto");
   const conteoRangos = $("#conteo-rangos");
+
+  const filtroEstado = $("#filtro-estado");
+  const filtroPrecioMin = $("#filtro-precio-min");
+  const filtroPrecioMax = $("#filtro-precio-max");
+  const filtroMargenMin = $("#filtro-margen-min");
+  const filtroMargenMax = $("#filtro-margen-max");
+  const btnLimpiarFiltros = $("#btn-limpiar-filtros");
+  const badgeFiltros = $("#filtros-activos-badge");
+  const textoResultado = $("#filtros-resultado");
+  const selectsCaracteristica = $$("[data-campo-perfume]");
   const chipsFiltro = $$(".filtro-chip");
 
   let filtroTipoActual = "Todos";
@@ -269,12 +279,8 @@
   function renderizarCatalogo() {
     gridCatalogo.innerHTML = "";
 
-    const filtrados = PERFUMES.filter((p) => {
-      const coincideTipo = filtroTipoActual === "Todos" || p.tipo === filtroTipoActual;
-      const coincideBusqueda =
-        !terminoBusqueda || p.nombre.toLowerCase().includes(terminoBusqueda.toLowerCase());
-      return coincideTipo && coincideBusqueda;
-    });
+    const filtrados = PERFUMES.filter(pasaTodosLosFiltros);
+    actualizarResumenFiltros(filtrados.length);
 
     if (filtrados.length === 0) {
       const vacio = document.createElement("p");
@@ -601,6 +607,132 @@
       });
   }
 
+  /* ============ FILTROS AVANZADOS ============ */
+  // Con 143 fragancias, encontrar una concreta a ojo es inviable. Estos
+  // filtros se combinan entre sí y con los chips de tipo y el buscador.
+
+  function numeroDe(input) {
+    const v = parseFloat(input.value);
+    return Number.isNaN(v) ? null : v;
+  }
+
+  // Margen de utilidad en porcentaje, o null si no se puede calcular
+  // (sin costo o sin venta no hay margen del que hablar).
+  function margenDe(perfume) {
+    const costo = costoActual(perfume);
+    const venta = ventaActual(perfume);
+    if (costo === null || venta === null || costo <= 0) return null;
+    return Math.round(((venta - costo) / costo) * 100);
+  }
+
+  function pasaTodosLosFiltros(perfume) {
+    if (filtroTipoActual !== "Todos" && perfume.tipo !== filtroTipoActual) return false;
+
+    if (terminoBusqueda &&
+        !perfume.nombre.toLowerCase().includes(terminoBusqueda.toLowerCase())) return false;
+
+    const estado = filtroEstado.value;
+    if (estado !== "todos") {
+      const activo = estaActivo(perfume, overridesActivos);
+      if (estado === "activos" && !activo) return false;
+      if (estado === "inactivos" && activo) return false;
+    }
+
+    // Precio y margen: una fragancia sin ese dato queda fuera en cuanto se
+    // filtra por él, porque no hay forma de decir si cumple o no.
+    const precioMin = numeroDe(filtroPrecioMin);
+    const precioMax = numeroDe(filtroPrecioMax);
+    if (precioMin !== null || precioMax !== null) {
+      const venta = ventaActual(perfume);
+      if (venta === null) return false;
+      if (precioMin !== null && venta < precioMin) return false;
+      if (precioMax !== null && venta > precioMax) return false;
+    }
+
+    const margenMin = numeroDe(filtroMargenMin);
+    const margenMax = numeroDe(filtroMargenMax);
+    if (margenMin !== null || margenMax !== null) {
+      const margen = margenDe(perfume);
+      if (margen === null) return false;
+      if (margenMin !== null && margen < margenMin) return false;
+      if (margenMax !== null && margen > margenMax) return false;
+    }
+
+    for (let i = 0; i < selectsCaracteristica.length; i++) {
+      const select = selectsCaracteristica[i];
+      if (select.value && perfume[select.dataset.campoPerfume] !== select.value) return false;
+    }
+
+    return true;
+  }
+
+  // Los desplegables se llenan con los valores que existen de verdad en el
+  // catálogo, para que no aparezcan opciones que no filtran nada ni falten
+  // valores nuevos al crecer data.js.
+  function llenarSelectsCaracteristica() {
+    selectsCaracteristica.forEach((select) => {
+      const campo = select.dataset.campoPerfume;
+      const valores = Array.from(new Set(PERFUMES.map((p) => p[campo]).filter(Boolean))).sort(
+        (a, b) => a.localeCompare(b, "es")
+      );
+      select.innerHTML = '<option value="">Cualquiera</option>';
+      valores.forEach((valor) => {
+        const opcion = document.createElement("option");
+        opcion.value = valor;
+        opcion.textContent = valor;
+        select.appendChild(opcion);
+      });
+    });
+  }
+
+  function controlesDeFiltro() {
+    return [filtroEstado, filtroPrecioMin, filtroPrecioMax, filtroMargenMin, filtroMargenMax]
+      .concat(selectsCaracteristica);
+  }
+
+  function contarFiltrosActivos() {
+    return controlesDeFiltro().filter((el) => el.value && el.value !== "todos").length;
+  }
+
+  // Resalta los filtros con valor y avisa cuántos hay puestos. Sin esto es
+  // fácil dejar un filtro olvidado y creer que el catálogo se vació.
+  function actualizarResumenFiltros(cuantasSeVen) {
+    controlesDeFiltro().forEach((el) => {
+      el.classList.toggle("con-valor", Boolean(el.value) && el.value !== "todos");
+    });
+
+    const activos = contarFiltrosActivos();
+    if (activos === 0) {
+      badgeFiltros.hidden = true;
+    } else {
+      badgeFiltros.hidden = false;
+      badgeFiltros.textContent = activos === 1 ? "1 filtro" : `${activos} filtros`;
+    }
+
+    const hayFiltro = activos > 0 || filtroTipoActual !== "Todos" || terminoBusqueda;
+    textoResultado.textContent = hayFiltro
+      ? `Mostrando ${cuantasSeVen} de ${PERFUMES.length} fragancias`
+      : "";
+  }
+
+  function limpiarFiltros() {
+    filtroEstado.value = "todos";
+    [filtroPrecioMin, filtroPrecioMax, filtroMargenMin, filtroMargenMax].forEach((i) => {
+      i.value = "";
+    });
+    selectsCaracteristica.forEach((s) => { s.value = ""; });
+    inputBuscar.value = "";
+    terminoBusqueda = "";
+    seleccionarFiltroTipo("Todos");
+  }
+
+  llenarSelectsCaracteristica();
+  btnLimpiarFiltros.addEventListener("click", limpiarFiltros);
+  controlesDeFiltro().forEach((el) => {
+    const evento = el.tagName === "SELECT" ? "change" : "input";
+    el.addEventListener(evento, renderizarCatalogo);
+  });
+
   /* ============ RANGOS DE PRESUPUESTO ============ */
   // Definen en qué categoría cae cada fragancia según su precio de VENTA.
   // Cambiarlos redefine qué se le ofrece a quien elige un presupuesto en el
@@ -785,9 +917,23 @@
     PerfumesDB.verificarBucket().then((r) => {
       if (r.ok || r.motivo === "sin-red") return;
 
-      console.warn("Bucket de fotos ausente:", r.detalle);
+      console.warn("Problema con el bucket de fotos:", r.motivo, r.detalle || "");
       const aviso = $("#aviso-bucket");
       if (!aviso) return;
+
+      if (r.motivo === "bucket-privado") {
+        // Caso traicionero: la foto se sube sin error, pero los visitantes
+        // ven un hueco porque no tienen permiso para leerla.
+        aviso.className = "panel-estado aviso";
+        aviso.innerHTML =
+          "<strong>⚠ El bucket de fotos no es público</strong>" +
+          "Puedes subir fotos, pero los visitantes del test <strong>no las verán</strong>. " +
+          "Entra a <strong>Storage</strong>, abre <code>fotos-perfumes</code>, y en su configuración " +
+          "activa <strong>Public bucket</strong>.";
+        aviso.hidden = false;
+        return;
+      }
+
       aviso.className = "panel-estado error";
       aviso.innerHTML =
         "<strong>⚠ Falta crear el bucket de fotos</strong>" +
