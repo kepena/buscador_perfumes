@@ -109,12 +109,43 @@ precio y hay que configurárselo en el panel antes de que se ofrezca.
 
 ### Rangos de presupuesto
 
-Se calculan sobre la **VENTA**, con `RANGOS_PRECIO` de `data.js`:
-Económico ≤ $45 · Medio ≤ $110 · Sin límite > $110.
+Se calculan sobre la **VENTA** y **se configuran desde el panel**, no en el
+código. Los cortes viven en la base de datos, en una fila reservada con
+`id 0` de la misma tabla (`costo_usd` = tope de Económico, `venta_usd` =
+tope de Medio). No existe ninguna fragancia con id 0, así que no choca con
+nada y evita crear una tabla aparte para dos números.
+
+Si nunca se han configurado, se usan los valores por defecto de
+`RANGOS_PRECIO` en `data.js`: Económico ≤ $45 · Medio ≤ $110.
+
+Al editarlos, el panel muestra cuántas fragancias quedarían en cada rango
+**antes** de guardar, y rechaza un corte de "Medio" menor que el de
+"Económico".
 
 > **Pendiente:** el test público todavía no muestra el precio en números,
 > solo la categoría. Cuando se trabajen los precios de las 3 opciones
 > (Probar / Set Ocasión / Botella) hay que revisitarlo.
+
+## Filtros del panel
+
+Con 143 fragancias hacen falta para encontrar una concreta. Todos se
+combinan entre sí:
+
+- Chips de tipo (Todos / Diseñador / Árabe / Lujo) y búsqueda por nombre.
+- Bloque plegable **Filtros avanzados**: estado (activas/desactivadas),
+  rango de precio de venta, rango de margen %, y característica (aroma,
+  momento, clima, estilo, potencia).
+
+Los desplegables de característica se llenan con los valores que existen
+de verdad en `PERFUMES`, para que no aparezcan opciones vacías ni falten
+valores al crecer el catálogo.
+
+Los filtros con valor se resaltan en dorado y se muestra cuántos hay
+puestos más el total visible. Es fácil dejar uno olvidado y creer que el
+catálogo se quedó corto.
+
+Al filtrar por precio o margen, una fragancia sin ese dato queda fuera: no
+hay forma de decir si cumple.
 
 ## Base de datos (Supabase)
 
@@ -144,9 +175,24 @@ publishable es pública por diseño; **nunca** poner ahí la `service_role`).
 
 ### Storage
 
-Bucket público `fotos-perfumes`. El archivo va ahí y en la tabla solo queda
-la URL. Antes las fotos se guardaban en base64 dentro de `localStorage`, que
-se llenaba con 3 o 4 fotos y fallaba en silencio.
+Bucket **público** `fotos-perfumes`. El archivo va ahí y en la tabla solo
+queda la URL. Antes las fotos se guardaban en base64 dentro de
+`localStorage`, que se llenaba con 3 o 4 fotos y fallaba en silencio.
+
+Formatos: cualquier imagen (el selector filtra por `image/*`). JPG, PNG,
+WebP, AVIF y GIF conservan su extensión correcta. **Máximo 5 MB.** Cada
+fragancia guarda una sola foto, con nombre fijo `perfume-<id>.<ext>`;
+subir otra reemplaza la anterior.
+
+Las políticas de Storage son políticas RLS sobre `storage.objects`:
+lectura para `anon` y `authenticated`, escritura (insert/update/delete)
+solo para `authenticated`, todas acotadas a
+`bucket_id = 'fotos-perfumes'`.
+
+El panel comprueba el bucket al entrar y distingue tres situaciones que
+dan síntomas parecidos pero se arreglan distinto: que no exista, que
+exista pero **no sea público** (la foto sube sin error y los visitantes
+ven un hueco), y que falten permisos de escritura.
 
 ### El proyecto gratuito se pausa
 
@@ -206,6 +252,13 @@ Se usa en: portada, tarjeta "Probar", tarjeta "Botella", Set Ocasión.
 - **No meter precios en `data.js`.** Van en la base de datos.
 - El diseño visual (paleta dorada/oscura, Fraunces/Manrope) no cambia.
 - `catalogo.html` sigue protegido con la misma contraseña simple.
+- El panel separa el **estado de la conexión** (recuadro fijo arriba) del
+  **resultado de la última acción** (nota gris). No volver a mezclarlos:
+  cuando compartían el mismo párrafo, el diagnóstico real desaparecía al
+  primer clic y el panel parecía averiado sin explicación.
+- Los mensajes de error van en rojo (`.error`). Heredar el gris terciario
+  sobre el fondo oscuro los vuelve ilegibles, y un error que no se lee es
+  lo mismo que no mostrarlo.
 
 ## Historial de decisiones ya tomadas (para no repetir trabajo)
 
@@ -227,3 +280,15 @@ Se usa en: portada, tarjeta "Probar", tarjeta "Botella", Set Ocasión.
   mismo párrafo y el diagnóstico real se perdía al primer clic.
 - Cuando no hay permiso de escritura, los controles del panel se bloquean.
   Es preferible a dejar hacer cambios que se pierden.
+- Los guardados fallidos NO se escriben en `localStorage`. Cuando se hacía,
+  el panel ofrecía "subir 143 cambios pendientes" que no correspondían a
+  ningún cambio real.
+- La pantalla de acceso no tenía ninguna regla CSS propia pese a traer las
+  clases en el HTML: caía en los estilos por defecto del navegador. Ya
+  tiene estilo, está centrada y lleva un enlace para volver al test.
+- Las fragancias desactivadas se marcan con **color de borde y una
+  etiqueta**, no bajando la opacidad de la tarjeta: atenuarlas las volvía
+  ilegibles sobre el fondo oscuro.
+- El enlace al catálogo desde el test abre un diálogo que avisa que es una
+  zona de administración, en vez de mandar al visitante contra una
+  pantalla de contraseña.
