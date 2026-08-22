@@ -865,3 +865,107 @@
   .panel-rango-resto { padding-bottom: 0; }
   #btn-guardar-rangos { width: 100%; justify-content: center; }
 }
+
+
+/* ============ FILTROS AVANZADOS ============ */
+/* Plegados por defecto: la mayoría de las búsquedas se resuelven con los
+   chips de tipo y el buscador por nombre. */
+
+.filtros-avanzados {
+  margin-top: 12px;
+  background: var(--negro-panel);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-md);
+}
+
+.filtros-avanzados-titulo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 16px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--texto-secundario);
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+
+.filtros-avanzados-titulo::-webkit-details-marker { display: none; }
+
+.filtros-avanzados-titulo::before {
+  content: "▸";
+  color: var(--dorado);
+  transition: transform var(--transicion);
+}
+
+.filtros-avanzados[open] .filtros-avanzados-titulo::before { transform: rotate(90deg); }
+
+.filtros-avanzados-titulo:hover { color: var(--texto-principal); }
+
+.filtros-avanzados-activos {
+  padding: 2px 9px;
+  border-radius: 99px;
+  background: var(--dorado);
+  color: #241c05;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.filtros-avanzados-cuerpo {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(158px, 1fr));
+  gap: 14px;
+  padding: 4px 16px 18px;
+  border-top: 1px solid var(--borde-suave);
+  padding-top: 16px;
+}
+
+.filtro-campo { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+
+.filtro-campo > label {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--texto-terciario);
+}
+
+.filtro-campo select,
+.filtro-rango input {
+  width: 100%;
+  min-width: 0;
+  padding: 8px 10px;
+  font-family: var(--fuente-ui);
+  font-size: 13px;
+  color: var(--texto-principal);
+  background: var(--negro-panel-2);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-sm);
+  outline: none;
+}
+
+.filtro-campo select:focus,
+.filtro-rango input:focus { border-color: var(--dorado); }
+
+.filtro-rango { display: flex; align-items: center; gap: 6px; }
+.filtro-rango-guion { color: var(--texto-terciario); }
+.filtro-rango input { text-align: center; }
+
+/* Un filtro con valor se resalta, para no dejar filtros puestos sin darse
+   cuenta y creer que el catálogo se quedó corto. */
+.filtro-campo select.con-valor,
+.filtro-rango input.con-valor {
+  border-color: var(--dorado);
+  color: var(--dorado-suave);
+  font-weight: 700;
+}
+
+.filtro-campo-acciones { justify-content: flex-end; }
+.filtro-campo-acciones .boton { width: 100%; justify-content: center; }
+
+.filtros-resultado {
+  margin: 12px 0 0;
+  font-size: 12.5px;
+  color: var(--texto-secundario);
+}

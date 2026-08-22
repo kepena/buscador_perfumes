@@ -121,6 +121,76 @@
       <input type="search" id="input-buscar" class="filtro-buscar" placeholder="Buscar por nombre…" aria-label="Buscar perfume por nombre" />
     </div>
 
+    <!-- Filtros avanzados. Van dentro de un <details> para que no ocupen
+         espacio mientras no se usen: la mayoría de las veces basta con los
+         chips de tipo y la búsqueda por nombre. -->
+    <details class="filtros-avanzados" id="filtros-avanzados">
+      <summary class="filtros-avanzados-titulo">
+        <span>Filtros avanzados</span>
+        <span class="filtros-avanzados-activos" id="filtros-activos-badge" hidden></span>
+      </summary>
+
+      <div class="filtros-avanzados-cuerpo">
+        <div class="filtro-campo">
+          <label for="filtro-estado">Estado</label>
+          <select id="filtro-estado">
+            <option value="todos">Todas</option>
+            <option value="activos">Solo activas</option>
+            <option value="inactivos">Solo desactivadas</option>
+          </select>
+        </div>
+
+        <div class="filtro-campo">
+          <label for="filtro-precio-min">Precio de venta</label>
+          <div class="filtro-rango">
+            <input type="number" id="filtro-precio-min" min="0" step="1" placeholder="desde" aria-label="Precio de venta desde" />
+            <span class="filtro-rango-guion">–</span>
+            <input type="number" id="filtro-precio-max" min="0" step="1" placeholder="hasta" aria-label="Precio de venta hasta" />
+          </div>
+        </div>
+
+        <div class="filtro-campo">
+          <label for="filtro-margen-min">Margen %</label>
+          <div class="filtro-rango">
+            <input type="number" id="filtro-margen-min" step="1" placeholder="desde" aria-label="Margen desde" />
+            <span class="filtro-rango-guion">–</span>
+            <input type="number" id="filtro-margen-max" step="1" placeholder="hasta" aria-label="Margen hasta" />
+          </div>
+        </div>
+
+        <div class="filtro-campo">
+          <label for="filtro-aroma">Aroma</label>
+          <select id="filtro-aroma" data-campo-perfume="aromaPrincipal"></select>
+        </div>
+
+        <div class="filtro-campo">
+          <label for="filtro-momento">Momento</label>
+          <select id="filtro-momento" data-campo-perfume="momento"></select>
+        </div>
+
+        <div class="filtro-campo">
+          <label for="filtro-clima">Clima</label>
+          <select id="filtro-clima" data-campo-perfume="clima"></select>
+        </div>
+
+        <div class="filtro-campo">
+          <label for="filtro-estilo">Estilo</label>
+          <select id="filtro-estilo" data-campo-perfume="estilo"></select>
+        </div>
+
+        <div class="filtro-campo">
+          <label for="filtro-potencia">Potencia</label>
+          <select id="filtro-potencia" data-campo-perfume="potencia"></select>
+        </div>
+
+        <div class="filtro-campo filtro-campo-acciones">
+          <button type="button" id="btn-limpiar-filtros" class="boton boton-fantasma">↺ Limpiar filtros</button>
+        </div>
+      </div>
+    </details>
+
+    <p class="filtros-resultado" id="filtros-resultado"></p>
+
     <!-- ============ TABLA / GRID DE CATÁLOGO ============ -->
     <div id="grid-catalogo" class="grid-catalogo">
       <!-- Renderizado por JS -->

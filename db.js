@@ -367,20 +367,36 @@ window.PerfumesDB = (function () {
   function verificarBucket() {
     if (!configurada) return Promise.resolve({ ok: false, motivo: "sin-configurar" });
 
-    const url =
-      SUPABASE_URL + "/storage/v1/object/public/" + BUCKET + "/__comprobacion__";
-
+    // Preguntamos por el bucket en sí, no por un archivo. Así distinguimos
+    // tres situaciones que dan síntomas parecidos pero se arreglan distinto:
+    // que no exista, que exista pero no sea público (se sube la foto y los
+    // visitantes no la ven), y que falten los permisos de escritura.
     return conTimeout(
-      fetch(url, { headers: { apikey: SUPABASE_KEY } }).then((r) => {
-        if (r.ok) return { ok: true };
-        return r.text().then((t) => {
-          const texto = String(t || "").toLowerCase();
-          if (texto.indexOf("bucket not found") !== -1 || texto.indexOf("nosuchbucket") !== -1) {
-            return { ok: false, motivo: "sin-bucket", detalle: t };
-          }
-          // Cualquier otra respuesta (típicamente "Object not found") significa
-          // que el bucket sí existe.
-          return { ok: true };
+      fetch(SUPABASE_URL + "/storage/v1/bucket/" + BUCKET, { headers: cabeceras() }).then((r) => {
+        if (r.ok) {
+          return r.json().then((info) => {
+            if (info && info.public === false) {
+              return { ok: false, motivo: "bucket-privado" };
+            }
+            return { ok: true };
+          });
+        }
+        if (r.status === 404) return { ok: false, motivo: "sin-bucket" };
+        // 401/403: el bucket puede existir, pero no podemos consultarlo.
+        // Caemos a la comprobación por URL pública, que no necesita permiso.
+        return fetch(
+          SUPABASE_URL + "/storage/v1/object/public/" + BUCKET + "/__comprobacion__",
+          { headers: { apikey: SUPABASE_KEY } }
+        ).then((r2) => {
+          if (r2.ok) return { ok: true };
+          return r2.text().then((t) => {
+            const texto = String(t || "").toLowerCase();
+            if (texto.indexOf("bucket not found") !== -1 || texto.indexOf("nosuchbucket") !== -1) {
+              return { ok: false, motivo: "sin-bucket", detalle: t };
+            }
+            // "Object not found" significa que el bucket sí está.
+            return { ok: true };
+          });
         });
       }),
       TIMEOUT_MS
