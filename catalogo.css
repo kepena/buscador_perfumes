@@ -969,3 +969,62 @@
   font-size: 12.5px;
   color: var(--texto-secundario);
 }
+
+
+/* ============ VOLUMEN, VERIFICACIÓN Y PRECIOS CALCULADOS ============ */
+
+.fila-volumen { text-align: right; }
+.fila-precio-ml { font-size: 11px; color: var(--texto-terciario); font-weight: 600; }
+
+/* Los precios de decant, set y botella no se editan: salen del costo, el
+   volumen y los parámetros. Se muestran para poder verlos sin calcular. */
+.fila-precios-calculados {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  font-size: 11.5px;
+  color: var(--texto-secundario);
+  margin-top: 2px;
+}
+
+.fila-precios-calculados b { color: var(--dorado-suave); font-weight: 700; }
+
+.fila-precios-calculados .sin-datos { color: #ff9b9b; }
+
+.fila-verificado {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--texto-terciario);
+  cursor: pointer;
+}
+
+.fila-verificado input { accent-color: var(--dorado); cursor: pointer; }
+.fila-verificado.esta-verificado { color: var(--exito); }
+
+/* Una fragancia sin revisar lleva el volumen y el precio como sugeridos.
+   Se marca sin atenuarla: hay que poder leerla para poder revisarla. */
+.fila-catalogo.sin-verificar { border-left: 3px solid var(--dorado); }
+
+.panel-parametros { margin-top: 14px; }
+.panel-parametros input[type="number"] {
+  width: 100%;
+  padding: 8px 10px;
+  font-family: var(--fuente-ui);
+  font-size: 13px;
+  color: var(--texto-principal);
+  background: var(--negro-panel-2);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-sm);
+  outline: none;
+}
+.panel-parametros input[type="number"]:focus { border-color: var(--dorado); }
+
+@media (max-width: 860px) {
+  .fila-precio-panel .fila-precios-calculados { grid-column: 1 / -1; align-items: flex-start; }
+  .fila-precio-panel .fila-verificado { grid-column: 1 / -1; margin-top: 0; }
+}
