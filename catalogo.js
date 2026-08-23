@@ -821,10 +821,28 @@
   // cualquiera recalcula las 143 fragancias, así que antes de guardar se
   // muestra el efecto sobre un ejemplo concreto.
 
+  // Los parámetros se guardan como fracciones (0.4) porque así entran en la
+  // fórmula, pero en pantalla se escriben como porcentajes (40%), que es
+  // como se piensan. Estas dos funciones traducen entre ambos.
+  //
+  //   "porcentaje": 0.4  ⇄  40
+  //   "recargo":    1.2  ⇄  20   (un 20% por encima del costo)
+  function aPantalla(valorGuardado, formato) {
+    if (formato === "porcentaje") return Math.round(valorGuardado * 1000) / 10;
+    if (formato === "recargo") return Math.round((valorGuardado - 1) * 1000) / 10;
+    return valorGuardado;
+  }
+
+  function aGuardar(valorEnPantalla, formato) {
+    if (formato === "porcentaje") return valorEnPantalla / 100;
+    if (formato === "recargo") return 1 + valorEnPantalla / 100;
+    return valorEnPantalla;
+  }
+
   function pintarParametros() {
     const par = PerfumesDB.parametros();
     inputsParametro.forEach((input) => {
-      input.value = par[input.dataset.parametro];
+      input.value = aPantalla(par[input.dataset.parametro], input.dataset.formato);
     });
     actualizarEjemploPrecios();
   }
@@ -839,9 +857,11 @@
     }
     const pr = PerfumesDB.preciosDe(muestra.id);
     const cop = PerfumesDB.formatearCOP;
+    const par = PerfumesDB.parametros();
     ejemploPrecios.textContent =
-      `Ejemplo · ${muestra.nombre} (${pr.volumenMl}ml): costo real ${cop(pr.costoRealCop)} · ` +
-      `decant ${cop(pr.decantCop)} · botella ${cop(pr.botellaCop)} · ` +
+      `Ejemplo · ${muestra.nombre} (${pr.volumenMl}ml): ` +
+      `costo real ${cop(pr.costoRealCop)} (importación +${aPantalla(par.factor_importacion, "recargo")}%) · ` +
+      `decant ${cop(pr.decantCop)} · botella ${cop(pr.botellaCop)} (margen +${aPantalla(par.margen_botella, "porcentaje")}%) · ` +
       `recuperas el frasco con ${pr.decantsParaRecuperar} de ${pr.decantsUtiles} decants.`;
   }
 
@@ -850,11 +870,12 @@
     let invalido = null;
 
     inputsParametro.forEach((input) => {
-      const valor = parseFloat(input.value);
-      if (Number.isNaN(valor) || valor < 0) {
+      const enPantalla = parseFloat(input.value);
+      if (Number.isNaN(enPantalla) || enPantalla < 0) {
         invalido = input.dataset.parametro;
         return;
       }
+      const valor = aGuardar(enPantalla, input.dataset.formato);
       if (valor !== PerfumesDB.parametros()[input.dataset.parametro]) {
         cambios.push([input.dataset.parametro, valor]);
       }
