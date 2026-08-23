@@ -49,6 +49,24 @@ window.PerfumesDB = (function () {
   // No existe ninguna fragancia con id 0, así que no choca con nada, y
   // evita tener que crear una tabla aparte solo para dos números.
   const ID_CONFIGURACION = 0;
+
+  // Tabla de parámetros del cálculo de precios. Vive aparte porque no son
+  // datos de una fragancia sino del negocio entero.
+  const TABLA_CONFIG = "configuracion";
+
+  // Valores por defecto si la tabla todavía no existe o está vacía. Están
+  // aquí y no repartidos por el código para poder verlos todos juntos.
+  const CONFIG_DEFECTO = {
+    trm: 4000,                 // pesos por dólar
+    factor_importacion: 1.2,   // flete + aduana + comisiones
+    multiplicador_decant: 3,   // recupera el frasco en ~7 de 18 decants
+    costo_vial_cop: 3000,      // atomizador + etiqueta + tiempo
+    merma: 0.08,               // se pierde al trasvasar
+    margen_botella: 0.4,       // sobre el costo real puesto en Colombia
+    descuento_set: 0.1,        // por llevar los tres decants
+    minimo_decant_cop: 15000,  // piso comercial
+    ml_decant: 5               // tamaño del decant
+  };
   const BUCKET = "fotos-perfumes";
   const TIMEOUT_MS = 6000; // si la BD no responde, seguimos sin ella
   const CLAVE_TOKEN = "perfumesPro_tokenEscritura";
@@ -74,11 +92,12 @@ window.PerfumesDB = (function () {
   // lento, así que descargamos UNA sola vez y servimos desde memoria.
 
   let cache = cacheVacia();
+  let config = Object.assign({}, CONFIG_DEFECTO);
   let cargado = false;
   let promesaEnCurso = null;
 
   function cacheVacia() {
-    return { costos: {}, ventas: {}, imagenes: {}, activos: {}, rangos: null };
+    return { costos: {}, ventas: {}, imagenes: {}, activos: {}, volumenes: {}, verificados: {}, rangos: null };
   }
 
   /* ============ UTILIDADES DE RED ============ */
@@ -188,6 +207,12 @@ window.PerfumesDB = (function () {
       if (typeof fila.activo === "boolean") {
         datos.activos[id] = fila.activo;
       }
+      if (fila.volumen_ml !== null && fila.volumen_ml !== undefined) {
+        datos.volumenes[id] = Number(fila.volumen_ml);
+      }
+      // Marca de revisión: hasta que se apruebe, el panel muestra el
+      // volumen y el precio como sugeridos, no como confirmados.
+      datos.verificados[id] = fila.verificado === true;
       if (typeof fila.imagen_url === "string" && fila.imagen_url.trim() !== "") {
         datos.imagenes[id] = fila.imagen_url;
       }
@@ -211,15 +236,33 @@ window.PerfumesDB = (function () {
     // funcionando tanto antes como después de añadir costo_usd y venta_usd.
     const url = SUPABASE_URL + "/rest/v1/" + TABLA + "?select=*";
 
+    // Los parámetros de precio se piden a la vez que los overrides: son una
+    // sola tabla diminuta y así el test no hace dos viajes seguidos.
+    const urlConfig = SUPABASE_URL + "/rest/v1/" + TABLA_CONFIG + "?select=*";
+
     promesaEnCurso = conTimeout(
-      fetch(url, { headers: cabeceras() }).then((r) => {
-        if (!r.ok) throw new Error("HTTP " + r.status);
-        return r.json();
-      }),
+      Promise.all([
+        fetch(url, { headers: cabeceras() }).then((r) => {
+          if (!r.ok) throw new Error("HTTP " + r.status);
+          return r.json();
+        }),
+        // Si la tabla de configuración no existe todavía, seguimos con los
+        // valores por defecto en vez de dejar el sitio sin precios.
+        fetch(urlConfig, { headers: cabeceras() })
+          .then((r) => (r.ok ? r.json() : []))
+          .catch(() => [])
+      ]),
       TIMEOUT_MS
     )
-      .then((filas) => {
+      .then((respuestas) => {
+        const filas = respuestas[0];
         cache = filasAMapas(Array.isArray(filas) ? filas : []);
+        config = Object.assign({}, CONFIG_DEFECTO);
+        (Array.isArray(respuestas[1]) ? respuestas[1] : []).forEach((fila) => {
+          if (fila && fila.clave !== undefined && fila.valor !== null) {
+            config[fila.clave] = Number(fila.valor);
+          }
+        });
         cargado = true;
         promesaEnCurso = null;
         return cache;
@@ -329,6 +372,121 @@ window.PerfumesDB = (function () {
     return tokenGuardado() !== null;
   }
 
+  /* ============ CÁLCULO DE PRECIOS ============ */
+  // El costo se paga en dólares y la venta se hace en pesos, así que todo
+  // pasa primero por el costo real puesto en Colombia:
+  //
+  //   COSTO_REAL_COP = costo_usd × factor_importación × TRM
+  //
+  // Sobre esa base:
+  //   BOTELLA = COSTO_REAL_COP × (1 + margen_botella)
+  //   DECANT  = (COSTO_REAL_COP ÷ volumen) × ml_decant × multiplicador + vial
+  //
+  // El multiplicador es, en la práctica, la velocidad de recuperación: con
+  // 3 el frasco se paga con ~7 de los ~18 decants que salen de él, y esa
+  // proporción se mantiene igual para un árabe de $30 que para un Creed de
+  // $325, porque el cálculo parte del costo de cada uno.
+
+  function parametros() {
+    return config;
+  }
+
+  function guardarParametro(clave, valor) {
+    const previo = config[clave];
+    config[clave] = Number(valor);
+
+    if (!configurada) return Promise.resolve(true);
+
+    return conTimeout(
+      fetch(SUPABASE_URL + "/rest/v1/" + TABLA_CONFIG, {
+        method: "POST",
+        headers: cabeceras({
+          "Content-Type": "application/json",
+          Prefer: "resolution=merge-duplicates,return=minimal"
+        }),
+        body: JSON.stringify([{ clave: clave, valor: Number(valor) }])
+      }).then((r) => {
+        if (!r.ok) {
+          return r.text().then((t) => {
+            throw new Error("HTTP " + r.status + " " + t);
+          });
+        }
+        return true;
+      }),
+      TIMEOUT_MS
+    ).catch((e) => {
+      config[clave] = previo;
+      throw e;
+    });
+  }
+
+  function volumenDe(id) {
+    const v = cache.volumenes[Number(id)];
+    return typeof v === "number" && v > 0 ? v : null;
+  }
+
+  function estaVerificado(id) {
+    return cache.verificados[Number(id)] === true;
+  }
+
+  // Redondeo a miles: un precio de 58.734 no se cobra, se cobra 59.000.
+  function redondearCOP(n) {
+    return Math.round(n / 1000) * 1000;
+  }
+
+  // Devuelve null si falta el costo o el volumen: sin esos dos datos no hay
+  // precio que calcular, y es preferible no mostrar nada a mostrar un número
+  // inventado.
+  function preciosDe(id) {
+    const costoUsd = cache.costos[Number(id)];
+    const volumen = volumenDe(id);
+    if (typeof costoUsd !== "number" || volumen === null) return null;
+
+    const c = config;
+    const costoRealCop = costoUsd * c.factor_importacion * c.trm;
+
+    const decantBruto = (costoRealCop / volumen) * c.ml_decant * c.multiplicador_decant + c.costo_vial_cop;
+    const decant = Math.max(c.minimo_decant_cop, redondearCOP(decantBruto));
+    const botella = redondearCOP(costoRealCop * (1 + c.margen_botella));
+
+    // Cuántos decants aprovechables salen del frasco, descontando la merma.
+    const decantsUtiles = Math.floor((volumen * (1 - c.merma)) / c.ml_decant);
+    const paraRecuperar = decant > 0 ? Math.ceil(costoRealCop / decant) : 0;
+
+    return {
+      costoRealCop: Math.round(costoRealCop),
+      decantCop: decant,
+      botellaCop: botella,
+      volumenMl: volumen,
+      decantsUtiles: decantsUtiles,
+      decantsParaRecuperar: paraRecuperar,
+      verificado: estaVerificado(id)
+    };
+  }
+
+  // El Set son tres decants de fragancias distintas, así que su precio se
+  // arma sumando los tres y aplicando el descuento por llevarlos juntos.
+  function precioSet(ids) {
+    let suma = 0;
+    let completo = true;
+    ids.forEach((id) => {
+      const p = preciosDe(id);
+      if (!p) { completo = false; return; }
+      suma += p.decantCop;
+    });
+    if (!completo || suma === 0) return null;
+    return {
+      sinDescuento: redondearCOP(suma),
+      total: redondearCOP(suma * (1 - config.descuento_set)),
+      descuentoPct: Math.round(config.descuento_set * 100)
+    };
+  }
+
+  function formatearCOP(n) {
+    if (typeof n !== "number") return "";
+    return "$" + Math.round(n).toLocaleString("es-CO");
+  }
+
   /* ============ COMPROBACIÓN DEL ESQUEMA ============ */
   // Pregunta a la base de datos si ya existen las columnas del modelo de
   // dos precios. Sin ellas TODA escritura se rechaza con un error 400, y
@@ -423,6 +581,8 @@ window.PerfumesDB = (function () {
       id: idNum,
       costo_usd: typeof costo === "number" ? costo : null,
       venta_usd: typeof venta === "number" ? venta : null,
+      volumen_ml: typeof cache.volumenes[idNum] === "number" ? cache.volumenes[idNum] : null,
+      verificado: cache.verificados[idNum] === true,
       activo: typeof activo === "boolean" ? activo : null,
       imagen_url: typeof imagen === "string" && imagen !== "" ? imagen : null
     };
@@ -469,7 +629,10 @@ window.PerfumesDB = (function () {
   // subirlo.
   function guardarCampo(id, campo, valor) {
     const idNum = Number(id);
-    const mapa = { costo: "costos", venta: "ventas", activo: "activos", imagen: "imagenes" };
+    const mapa = {
+      costo: "costos", venta: "ventas", activo: "activos",
+      imagen: "imagenes", volumen: "volumenes", verificado: "verificados"
+    };
     const destino = mapa[campo];
     if (!destino) return Promise.reject(new Error("Campo desconocido: " + campo));
 
@@ -703,6 +866,13 @@ window.PerfumesDB = (function () {
     verificarBucket: verificarBucket,
     rangos: rangos,
     guardarRangos: guardarRangos,
+    parametros: parametros,
+    guardarParametro: guardarParametro,
+    preciosDe: preciosDe,
+    precioSet: precioSet,
+    volumenDe: volumenDe,
+    estaVerificado: estaVerificado,
+    formatearCOP: formatearCOP,
     guardarCampo: guardarCampo,
     guardarVentasEnLote: guardarVentasEnLote,
     ventaIgualACosto: ventaIgualACosto,

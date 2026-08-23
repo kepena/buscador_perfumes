@@ -1054,3 +1054,24 @@ body.modal-abierto { overflow: hidden; }
   .modal-caja { padding: 30px 22px 22px; }
   .modal-titulo { font-size: 20px; }
 }
+
+
+/* ============ PRECIOS EN LAS OPCIONES DE FORMATO ============ */
+
+.formato-precio {
+  margin-top: 10px;
+  font-family: var(--fuente-display);
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--dorado);
+  letter-spacing: -0.01em;
+}
+
+.formato-precio-nota {
+  margin-top: 2px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--texto-terciario);
+}
+
+.formato-card.destacada .formato-precio { color: var(--dorado-suave); }

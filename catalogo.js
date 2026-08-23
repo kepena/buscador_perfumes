@@ -94,6 +94,7 @@
     if (btnAplicarGlobal) btnAplicarGlobal.disabled = !puede;
     if (btnResetPrecios) btnResetPrecios.disabled = !puede;
     if (btnGuardarRangos) btnGuardarRangos.disabled = !puede;
+    if (btnGuardarParametros) btnGuardarParametros.disabled = !puede;
   }
 
   const INSTRUCCIONES_BUCKET =
@@ -224,6 +225,22 @@
 
   // Una fragancia sin precio de venta no aparece en el test público, así
   // que hay que poder verlo sin revisar las 143 filas una por una.
+  // Cuántas fragancias siguen con el volumen y el precio sugeridos.
+  function actualizarAvisoSinVerificar() {
+    const aviso = $("#aviso-sin-verificar");
+    if (!aviso) return;
+    const cuantas = PERFUMES.filter((p) => !PerfumesDB.estaVerificado(p.id)).length;
+    if (cuantas === 0) {
+      aviso.hidden = true;
+      return;
+    }
+    aviso.hidden = false;
+    aviso.innerHTML =
+      "<strong>⚠ " + cuantas + " de " + PERFUMES.length + " fragancias con volumen/precio sin verificar</strong>" +
+      "Se muestran en el test con el precio sugerido. Revisa el frasco y el costo de cada una y marca " +
+      "<strong>Verificado</strong> para confirmarla. Usa el filtro <em>Verificación → Solo sin verificar</em>.";
+  }
+
   function actualizarAvisoSinPrecio() {
     const aviso = $("#aviso-sin-precio");
     if (!aviso) return;
@@ -265,6 +282,10 @@
   const badgeFiltros = $("#filtros-activos-badge");
   const textoResultado = $("#filtros-resultado");
   const selectsCaracteristica = $$("[data-campo-perfume]");
+  const filtroVerificado = $("#filtro-verificado");
+  const inputsParametro = $$("[data-parametro]");
+  const btnGuardarParametros = $("#btn-guardar-parametros");
+  const ejemploPrecios = $("#ejemplo-precios");
   const chipsFiltro = $$(".filtro-chip");
 
   let filtroTipoActual = "Todos";
@@ -395,6 +416,12 @@
           });
       });
 
+      const inputVolumen = nodo.querySelector('[data-campo="volumen-input"]');
+      const spanPreciosCalc = nodo.querySelector('[data-campo="precios-calculados"]');
+      const inputVerificado = nodo.querySelector('[data-campo="verificado-input"]');
+      const textoVerificado = nodo.querySelector('[data-campo="verificado-texto"]');
+      const labelVerificado = inputVerificado.closest(".fila-verificado");
+
       const inputCosto = nodo.querySelector('[data-campo="costo-input"]');
       const inputVenta = nodo.querySelector('[data-campo="venta-input"]');
       const spanMargen = nodo.querySelector('[data-campo="margen"]');
@@ -407,6 +434,33 @@
         inputVenta.value = venta === null ? "" : formatearPrecio(venta);
         fila.classList.toggle("sin-precio", venta === null);
         actualizarEtiquetasPrecio(spanMargen, spanCategoria, costo, venta);
+
+        const vol = PerfumesDB.volumenDe(perfume.id);
+        inputVolumen.value = vol === null ? "" : vol;
+
+        const verificado = PerfumesDB.estaVerificado(perfume.id);
+        inputVerificado.checked = verificado;
+        textoVerificado.textContent = verificado ? "✓ Verificado" : "Sin verificar";
+        labelVerificado.classList.toggle("esta-verificado", verificado);
+        fila.classList.toggle("sin-verificar", !verificado);
+
+        pintarPreciosCalculados();
+      }
+
+      // Decant y botella salen del costo, el volumen y los parámetros. Se
+      // muestran para poder revisarlos sin hacer la cuenta a mano.
+      function pintarPreciosCalculados() {
+        const pr = PerfumesDB.preciosDe(perfume.id);
+        if (!pr) {
+          spanPreciosCalc.innerHTML =
+            '<span class="sin-datos">Falta costo o volumen para calcular precios</span>';
+          return;
+        }
+        const cop = PerfumesDB.formatearCOP;
+        spanPreciosCalc.innerHTML =
+          "Decant 5ml <b>" + cop(pr.decantCop) + "</b><br>" +
+          "Botella <b>" + cop(pr.botellaCop) + "</b><br>" +
+          "Recuperas en " + pr.decantsParaRecuperar + " de " + pr.decantsUtiles + " decants";
       }
       inputCosto.dataset.id = perfume.id;
       inputVenta.dataset.id = perfume.id;
@@ -437,6 +491,26 @@
       }
       conectarCampoPrecio(inputCosto, "costo");
       conectarCampoPrecio(inputVenta, "venta");
+      conectarCampoPrecio(inputVolumen, "volumen");
+
+      // Marcar como verificada es la forma de decir "revisé el volumen y el
+      // precio de esta fragancia". Hasta entonces el test muestra el precio
+      // sugerido, pero el panel la deja señalada.
+      inputVerificado.addEventListener("change", () => {
+        const nuevo = inputVerificado.checked;
+        inputVerificado.disabled = true;
+        PerfumesDB.guardarCampo(perfume.id, "verificado", nuevo)
+          .catch((e) => {
+            console.warn("No se pudo guardar la verificación:", e);
+            errorEn(panelNota, mensajeDeError(e));
+          })
+          .then(() => {
+            sincronizarMapasLocales();
+            pintarPrecios();
+            actualizarAvisoSinVerificar();
+            inputVerificado.disabled = false;
+          });
+      });
 
       // Toggle activar / desactivar: un perfume desactivado nunca aparece
       // como resultado del test, pero sigue visible aquí (atenuado) para
@@ -480,6 +554,7 @@
 
     actualizarContadorActivos();
     actualizarAvisoSinPrecio();
+    actualizarAvisoSinVerificar();
   }
 
   // Muestra el margen de utilidad: cuánto se le está ganando a esa
@@ -658,6 +733,13 @@
       if (margenMax !== null && margen > margenMax) return false;
     }
 
+    const verif = filtroVerificado.value;
+    if (verif !== "todos") {
+      const esta = PerfumesDB.estaVerificado(perfume.id);
+      if (verif === "sin" && esta) return false;
+      if (verif === "con" && !esta) return false;
+    }
+
     for (let i = 0; i < selectsCaracteristica.length; i++) {
       const select = selectsCaracteristica[i];
       if (select.value && perfume[select.dataset.campoPerfume] !== select.value) return false;
@@ -686,7 +768,7 @@
   }
 
   function controlesDeFiltro() {
-    return [filtroEstado, filtroPrecioMin, filtroPrecioMax, filtroMargenMin, filtroMargenMax]
+    return [filtroEstado, filtroVerificado, filtroPrecioMin, filtroPrecioMax, filtroMargenMin, filtroMargenMax]
       .concat(selectsCaracteristica);
   }
 
@@ -717,6 +799,7 @@
 
   function limpiarFiltros() {
     filtroEstado.value = "todos";
+    filtroVerificado.value = "todos";
     [filtroPrecioMin, filtroPrecioMax, filtroMargenMin, filtroMargenMax].forEach((i) => {
       i.value = "";
     });
@@ -732,6 +815,90 @@
     const evento = el.tagName === "SELECT" ? "change" : "input";
     el.addEventListener(evento, renderizarCatalogo);
   });
+
+  /* ============ PARÁMETROS DE PRECIO ============ */
+  // Nueve números que definen todos los precios del catálogo. Cambiar
+  // cualquiera recalcula las 143 fragancias, así que antes de guardar se
+  // muestra el efecto sobre un ejemplo concreto.
+
+  function pintarParametros() {
+    const par = PerfumesDB.parametros();
+    inputsParametro.forEach((input) => {
+      input.value = par[input.dataset.parametro];
+    });
+    actualizarEjemploPrecios();
+  }
+
+  function actualizarEjemploPrecios() {
+    if (!ejemploPrecios) return;
+    // Tomamos la primera fragancia con costo y volumen como muestra.
+    const muestra = PERFUMES.find((p) => PerfumesDB.preciosDe(p.id));
+    if (!muestra) {
+      ejemploPrecios.textContent = "Sin fragancias con costo y volumen para mostrar un ejemplo.";
+      return;
+    }
+    const pr = PerfumesDB.preciosDe(muestra.id);
+    const cop = PerfumesDB.formatearCOP;
+    ejemploPrecios.textContent =
+      `Ejemplo · ${muestra.nombre} (${pr.volumenMl}ml): costo real ${cop(pr.costoRealCop)} · ` +
+      `decant ${cop(pr.decantCop)} · botella ${cop(pr.botellaCop)} · ` +
+      `recuperas el frasco con ${pr.decantsParaRecuperar} de ${pr.decantsUtiles} decants.`;
+  }
+
+  function guardarParametros() {
+    const cambios = [];
+    let invalido = null;
+
+    inputsParametro.forEach((input) => {
+      const valor = parseFloat(input.value);
+      if (Number.isNaN(valor) || valor < 0) {
+        invalido = input.dataset.parametro;
+        return;
+      }
+      if (valor !== PerfumesDB.parametros()[input.dataset.parametro]) {
+        cambios.push([input.dataset.parametro, valor]);
+      }
+    });
+
+    if (invalido) {
+      errorEn(panelNota, `El parámetro "${invalido}" no tiene un número válido.`);
+      return;
+    }
+    if (cambios.length === 0) {
+      limpiarError(panelNota);
+      panelNota.textContent = "No hay cambios en los parámetros.";
+      return;
+    }
+
+    btnGuardarParametros.disabled = true;
+    limpiarError(panelNota);
+    panelNota.textContent = "Guardando parámetros…";
+
+    // Se guardan en secuencia para que un fallo a mitad no deje unos
+    // aplicados y otros no sin que quede claro cuáles.
+    cambios
+      .reduce(
+        (cadena, [clave, valor]) => cadena.then(() => PerfumesDB.guardarParametro(clave, valor)),
+        Promise.resolve()
+      )
+      .then(() => {
+        renderizarCatalogo();
+        pintarParametros();
+        limpiarError(panelNota);
+        panelNota.textContent =
+          `${cambios.length} parámetro(s) guardado(s). Los precios de las ${PERFUMES.length} fragancias se recalcularon.`;
+      })
+      .catch((e) => {
+        console.warn("No se pudieron guardar los parámetros:", e);
+        pintarParametros();
+        errorEn(panelNota, mensajeDeError(e));
+      })
+      .then(() => {
+        btnGuardarParametros.disabled = !puedeEscribir;
+      });
+  }
+
+  btnGuardarParametros.addEventListener("click", guardarParametros);
 
   /* ============ RANGOS DE PRESUPUESTO ============ */
   // Definen en qué categoría cae cada fragancia según su precio de VENTA.
@@ -864,6 +1031,7 @@
 
     PerfumesDB.cargarOverrides().then(() => {
       sincronizarMapasLocales();
+      pintarParametros();
       pintarRangos();
       renderizarCatalogo();
       avisarModoDeGuardado();

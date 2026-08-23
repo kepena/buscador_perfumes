@@ -822,8 +822,28 @@
 
   /* ============ SET OCASIÓN: elegir formato tras seleccionar un resultado ============ */
 
+  // Precio en pesos de cada formato. Si a una fragancia le falta el costo o
+  // el volumen no se inventa un número: simplemente no se muestra precio y
+  // el cliente pregunta por WhatsApp, como hacía antes.
+  function etiquetaPrecio(valor) {
+    if (typeof valor !== "number" || valor <= 0) return "";
+    return `<div class="formato-precio">${PerfumesDB.formatearCOP(valor)}</div>`;
+  }
+
+  // El Set se arma con tres fragancias que el cliente todavía no ha
+  // elegido, así que aquí solo se puede anticipar el mínimo: tres decants
+  // de esta misma, con su descuento.
+  function precioSetDesde(precios) {
+    if (!precios) return "";
+    const base = precios.decantCop * 3;
+    const conDescuento = Math.round((base * (1 - PerfumesDB.parametros().descuento_set)) / 1000) * 1000;
+    return `<div class="formato-precio">desde ${PerfumesDB.formatearCOP(conDescuento)}</div>
+            <div class="formato-precio-nota">3 decants · ahorras ${Math.round(PerfumesDB.parametros().descuento_set * 100)}%</div>`;
+  }
+
   function seleccionarPerfumeResultado(perfume, articuloEl) {
     estadoSetOcasion.perfumeSeleccionado = perfume;
+    const precios = PerfumesDB.preciosDe(perfume.id);
 
     tarjetasResultado.querySelectorAll(".tarjeta-perfume").forEach((a) => a.classList.remove("seleccionada"));
     articuloEl.classList.add("seleccionada");
@@ -843,16 +863,19 @@
             <div class="formato-emoji">🧪</div>
             <div class="formato-titulo">Probar</div>
             <div class="formato-desc">Decant de 5ml de esta fragancia</div>
+            ${etiquetaPrecio(precios && precios.decantCop)}
           </div>
           <div class="formato-card destacada" id="btn-formato-set">
             <div class="formato-emoji">🎁</div>
             <div class="formato-titulo">Set Ocasión</div>
             <div class="formato-desc">3 decants de 5ml para cada momento</div>
+            ${precioSetDesde(precios)}
           </div>
           <div class="formato-card" id="btn-formato-botella">
             <div class="formato-emoji">🍾</div>
             <div class="formato-titulo">Botella</div>
-            <div class="formato-desc">El frasco completo</div>
+            <div class="formato-desc">El frasco completo${precios ? " de " + precios.volumenMl + "ml" : ""}</div>
+            ${etiquetaPrecio(precios && precios.botellaCop)}
           </div>
         </div>
         <div id="zona-detalle-formato"></div>
