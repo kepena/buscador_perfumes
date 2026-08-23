@@ -493,26 +493,40 @@ window.PerfumesDB = (function () {
   // desde el panel eso se vive como "el botón no hace nada": conviene
   // detectarlo al entrar y decirlo, en vez de fallar en cada intento.
 
+  // Se comprueban los dos grupos de columnas por separado porque cada uno
+  // viene de una carga distinta, y saber cuál falta es lo que permite decir
+  // qué hay que ejecutar. Antes solo se miraba el primero: si faltaba el
+  // segundo, el panel decía "conectado" y cada guardado de volumen se
+  // revertía sin explicación.
+  const GRUPOS_COLUMNAS = [
+    { clave: "precios", columnas: "costo_usd,venta_usd" },
+    { clave: "volumen", columnas: "volumen_ml,verificado" }
+  ];
+
   function verificarEsquema() {
     if (!configurada) return Promise.resolve({ ok: false, motivo: "sin-configurar" });
 
-    const url =
-      SUPABASE_URL + "/rest/v1/" + TABLA + "?select=costo_usd,venta_usd&limit=1";
+    const pruebas = GRUPOS_COLUMNAS.map((grupo) =>
+      fetch(SUPABASE_URL + "/rest/v1/" + TABLA + "?select=" + grupo.columnas + "&limit=1", {
+        headers: cabeceras()
+      }).then((r) => (r.ok ? null : r.text().then((t) => ({ grupo: grupo.clave, detalle: t }))))
+    );
 
-    return conTimeout(
-      fetch(url, { headers: cabeceras() }).then((r) => {
-        if (r.ok) return { ok: true };
-        return r.text().then((t) => ({
+    return conTimeout(Promise.all(pruebas), TIMEOUT_MS)
+      .then((resultados) => {
+        const faltan = resultados.filter(Boolean);
+        if (faltan.length === 0) return { ok: true };
+        return {
           ok: false,
           motivo: "faltan-columnas",
-          detalle: t
-        }));
-      }),
-      TIMEOUT_MS
-    ).catch((e) => {
-      console.warn("No se pudo verificar el esquema:", e);
-      return { ok: false, motivo: "sin-red" };
-    });
+          grupos: faltan.map((f) => f.grupo),
+          detalle: faltan[0].detalle
+        };
+      })
+      .catch((e) => {
+        console.warn("No se pudo verificar el esquema:", e);
+        return { ok: false, motivo: "sin-red" };
+      });
   }
 
   // Igual que con las columnas: si el bucket de fotos no existe, cada

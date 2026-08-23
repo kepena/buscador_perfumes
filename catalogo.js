@@ -59,13 +59,16 @@
     if (texto.toLowerCase().indexOf("bucket not found") !== -1 || texto.indexOf("NoSuchBucket") !== -1) {
       return "Falta crear el bucket de fotos en Supabase. Mira el recuadro rojo de arriba.";
     }
-    if (
-      texto.indexOf("PGRST204") !== -1 ||
-      texto.indexOf("costo_usd") !== -1 ||
-      texto.indexOf("venta_usd") !== -1 ||
-      texto.indexOf("schema cache") !== -1
-    ) {
+    // Falta alguna columna en la base de datos. Se nombra cuál, porque cada
+    // una se arregla ejecutando una carga distinta.
+    if (texto.indexOf("volumen_ml") !== -1 || texto.indexOf("verificado") !== -1) {
+      return "Falta la columna de volumen en la base de datos. Mira el recuadro rojo de arriba.";
+    }
+    if (texto.indexOf("costo_usd") !== -1 || texto.indexOf("venta_usd") !== -1) {
       return "Faltan las columnas de costo y venta en la base de datos. Mira el recuadro rojo de arriba.";
+    }
+    if (texto.indexOf("PGRST204") !== -1 || texto.indexOf("schema cache") !== -1) {
+      return "Falta una columna en la base de datos. Mira el recuadro rojo de arriba.";
     }
     return "No se pudo guardar. Detalle: " + texto.slice(0, 160);
   }
@@ -96,6 +99,18 @@
     if (btnGuardarRangos) btnGuardarRangos.disabled = !puede;
     if (btnGuardarParametros) btnGuardarParametros.disabled = !puede;
   }
+
+  const INSTRUCCIONES_SQL_VOLUMEN =
+    "<ol>" +
+    "<li>Entra a tu proyecto en <strong>supabase.com</strong></li>" +
+    "<li>Menú izquierdo → <strong>SQL Editor</strong> → <strong>New query</strong></li>" +
+    "<li>Ejecuta el archivo <code>02-precios-decant.sql</code> <strong>completo</strong>, " +
+    "desde la primera línea. Si solo se ejecutó el final, la tabla de configuración " +
+    "quedó creada pero las columnas no.</li>" +
+    "<li>Comprueba con: <code>select count(*) filter (where volumen_ml is not null) from perfume_overrides;</code> " +
+    "— debe dar 143</li>" +
+    "<li>Vuelve aquí y recarga la página</li>" +
+    "</ol>";
 
   const INSTRUCCIONES_BUCKET =
     "<ol>" +
@@ -421,6 +436,7 @@
       const inputVerificado = nodo.querySelector('[data-campo="verificado-input"]');
       const textoVerificado = nodo.querySelector('[data-campo="verificado-texto"]');
       const labelVerificado = inputVerificado.closest(".fila-verificado");
+      const spanErrorFila = nodo.querySelector('[data-campo="error-fila"]');
 
       const inputCosto = nodo.querySelector('[data-campo="costo-input"]');
       const inputVenta = nodo.querySelector('[data-campo="venta-input"]');
@@ -477,8 +493,16 @@
           }
           input.disabled = true;
           PerfumesDB.guardarCampo(perfume.id, campo, formatearPrecio(valor))
+            .then(() => {
+              limpiarError(spanErrorFila);
+              spanErrorFila.textContent = "";
+            })
             .catch((e) => {
               console.warn("No se pudo guardar el " + campo + ":", e);
+              // El aviso va junto al campo que falló. Ponerlo solo en la nota
+              // del fondo hacía que el valor se revirtiera sin explicación
+              // visible: parecía que el panel simplemente no guardaba.
+              errorEn(spanErrorFila, mensajeDeError(e));
               errorEn(panelNota, mensajeDeError(e));
             })
             .then(() => {
@@ -1087,7 +1111,21 @@
     PerfumesDB.verificarEsquema().then((r) => {
       if (r.ok || r.motivo === "sin-red") return;
 
-      console.warn("Esquema incompleto:", r.detalle);
+      console.warn("Esquema incompleto:", r.grupos, r.detalle);
+      const grupos = r.grupos || ["precios"];
+
+      // Falta la carga de volumen, pero costo y venta sí están: el panel
+      // funciona a medias, así que se bloquea solo lo que no puede guardar.
+      if (grupos.length === 1 && grupos[0] === "volumen") {
+        mostrarEstado("error",
+          "<strong>⚠ Falta la segunda parte de la carga de precios</strong>" +
+          "La tabla no tiene las columnas <code>volumen_ml</code> ni <code>verificado</code>, así que " +
+          "<strong>el volumen del frasco no se puede guardar</strong> (se revierte al escribirlo) y no se " +
+          "calculan los precios de decant ni botella. Los precios en dólares y las activaciones sí funcionan." +
+          INSTRUCCIONES_SQL_VOLUMEN);
+        return;
+      }
+
       fijarPermisoDeEscritura(false);
       mostrarEstado("error",
         "<strong>⚠ Falta preparar la base de datos</strong>" +
