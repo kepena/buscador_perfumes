@@ -50,7 +50,7 @@
   function mensajeDeError(e) {
     const texto = String((e && e.message) || e || "");
     if (texto.indexOf("401") !== -1 || texto.indexOf("403") !== -1) {
-      return "La base de datos rechazó el cambio por falta de permiso. Mira el recuadro rojo de arriba.";
+      return "Tu sesión de escritura venció. Vuelve a entrar con la contraseña (arriba tienes el botón).";
     }
     if (texto.indexOf("timeout") !== -1) {
       return "La conexión tardó demasiado. Revisa tu internet e intenta de nuevo.";
@@ -173,6 +173,21 @@
     }
 
     fijarPermisoDeEscritura(false);
+
+    // El token de escritura caduca a la hora. db.js intenta renovarlo solo;
+    // si tampoco puede, avisa por aquí. Es importante decir que NO se perdió
+    // nada y que se arregla tecleando la contraseña otra vez: el sintoma
+    // (todo empieza a fallar de golpe) parece mucho mas grave de lo que es.
+    if (motivo === "sesion-vencida") {
+      mostrarEstado("error",
+        "<strong>⚠ Tu sesión de escritura venció</strong>" +
+        "Pasó más de una hora desde que entraste, así que la base de datos dejó de aceptar cambios. " +
+        "No se perdió nada de lo que ya guardaste: solo hay que volver a entrar." +
+        '<p style="margin:10px 0 0;"><button type="button" class="boton boton-primario" id="btn-volver-a-entrar">Volver a entrar</button></p>');
+      const btn = document.getElementById("btn-volver-a-entrar");
+      if (btn) btn.addEventListener("click", () => window.location.reload());
+      return;
+    }
 
     if (motivo === "sin-red") {
       mostrarEstado("error",

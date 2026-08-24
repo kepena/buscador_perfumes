@@ -70,6 +70,17 @@ window.PerfumesDB = (function () {
   const BUCKET = "fotos-perfumes";
   const TIMEOUT_MS = 6000; // si la BD no responde, seguimos sin ella
   const CLAVE_TOKEN = "perfumesPro_tokenEscritura";
+  // Supabase caduca el token de escritura al cabo de una hora. Guardamos
+  // también el de refresco para poder renovarlo sin volver a pedir la
+  // contraseña: si no, a mitad de trabajo el panel empieza a rechazar todo
+  // sin explicación, porque el recuadro verde de "conectado" se pintó al
+  // entrar y ya no vuelve a comprobarse.
+  const CLAVE_REFRESCO = "perfumesPro_refrescoEscritura";
+  // La define auth-catalogo.js. Aquí se limpia cuando la sesión muere, para
+  // que recargar vuelva a pedir la contraseña. Sin eso, recargar te devuelve
+  // al panel "desbloqueado" pero sin permiso de escritura: todo falla igual
+  // y no hay forma de arreglarlo desde la pantalla.
+  const CLAVE_DESBLOQUEADO = "perfumesPro_catalogoDesbloqueado";
 
   // Claves de localStorage originales. Se mantienen como respaldo para
   // que el sitio funcione si la BD no está configurada todavía, y para
@@ -144,6 +155,85 @@ window.PerfumesDB = (function () {
     const token = tokenGuardado();
     if (token) h.Authorization = "Bearer " + token;
     return h;
+  }
+
+  // Para consultas que solo leen. La lectura es pública, así que no hace
+  // falta el token — y mandarlo sería contraproducente: uno vencido hace
+  // que Supabase responda 401 a una consulta que habría funcionado sin él,
+  // y quien la llama acaba culpando a la base de datos de algo que no pasa.
+  function cabecerasPublicas() {
+    return { apikey: SUPABASE_KEY };
+  }
+
+  /* ============ VIDA DE LA SESIÓN DE ESCRITURA ============ */
+
+  function guardarTokens(data) {
+    try {
+      if (data && data.access_token) sessionStorage.setItem(CLAVE_TOKEN, data.access_token);
+      if (data && data.refresh_token) sessionStorage.setItem(CLAVE_REFRESCO, data.refresh_token);
+    } catch (e) { /* sesión sin storage: seguimos sin persistir */ }
+  }
+
+  // Se llama cuando la base rechaza una escritura por permiso y el refresco
+  // tampoco funciona. Borra las tres llaves a la vez: dejar el "desbloqueado"
+  // sin el token es justo el estado que deja el panel abierto pero inútil.
+  function cerrarSesionDeEscritura() {
+    try {
+      sessionStorage.removeItem(CLAVE_TOKEN);
+      sessionStorage.removeItem(CLAVE_REFRESCO);
+      sessionStorage.removeItem(CLAVE_DESBLOQUEADO);
+    } catch (e) { /* nada que limpiar */ }
+    if (typeof window !== "undefined" && typeof window.PerfumesPanelEstado === "function") {
+      window.PerfumesPanelEstado({ ok: false, motivo: "sesion-vencida" });
+    }
+  }
+
+  // Renueva el token con el de refresco. Devuelve true si lo consiguió.
+  function refrescarSesion() {
+    if (!configurada) return Promise.resolve(false);
+    let refresco = null;
+    try {
+      refresco = sessionStorage.getItem(CLAVE_REFRESCO);
+    } catch (e) { /* sin storage no hay nada que refrescar */ }
+    if (!refresco) return Promise.resolve(false);
+
+    return conTimeout(
+      fetch(SUPABASE_URL + "/auth/v1/token?grant_type=refresh_token", {
+        method: "POST",
+        headers: { apikey: SUPABASE_KEY, "Content-Type": "application/json" },
+        body: JSON.stringify({ refresh_token: refresco })
+      }).then((r) => r.json()),
+      TIMEOUT_MS
+    )
+      .then((data) => {
+        if (data && data.access_token) {
+          guardarTokens(data);
+          return true;
+        }
+        return false;
+      })
+      .catch(() => false);
+  }
+
+  // Envoltorio de toda escritura: si la base la rechaza por permiso, renueva
+  // la sesión y la repite UNA vez. Solo si eso falla se da la sesión por
+  // muerta. Así una hora de trabajo no se pierde por un token caducado.
+  function conSesionViva(hacerPeticion) {
+    return hacerPeticion().then((r) => {
+      if (r.status !== 401 && r.status !== 403) return r;
+      return refrescarSesion().then((renovada) => {
+        if (!renovada) {
+          cerrarSesionDeEscritura();
+          return r;
+        }
+        return hacerPeticion().then((r2) => {
+          // Renovamos y aun así nos rechaza: no era el token, es que este
+          // usuario no tiene permiso de escritura en la tabla.
+          if (r2.status === 401 || r2.status === 403) cerrarSesionDeEscritura();
+          return r2;
+        });
+      });
+    });
   }
 
   /* ============ RESPALDO EN LOCALSTORAGE ============ */
@@ -381,9 +471,7 @@ window.PerfumesDB = (function () {
     )
       .then((data) => {
         if (data && data.access_token) {
-          try {
-            sessionStorage.setItem(CLAVE_TOKEN, data.access_token);
-          } catch (e) { /* sesión sin storage: seguimos sin persistir */ }
+          guardarTokens(data);
           return { ok: true, motivo: null };
         }
 
@@ -434,14 +522,14 @@ window.PerfumesDB = (function () {
     if (!configurada) return Promise.resolve(true);
 
     return conTimeout(
-      fetch(SUPABASE_URL + "/rest/v1/" + TABLA_CONFIG, {
+      conSesionViva(() => fetch(SUPABASE_URL + "/rest/v1/" + TABLA_CONFIG, {
         method: "POST",
         headers: cabeceras({
           "Content-Type": "application/json",
           Prefer: "resolution=merge-duplicates,return=minimal"
         }),
         body: JSON.stringify([{ clave: clave, valor: Number(valor) }])
-      }).then((r) => {
+      })).then((r) => {
         if (!r.ok) {
           return r.text().then((t) => {
             throw new Error("HTTP " + r.status + " " + t);
@@ -585,9 +673,13 @@ window.PerfumesDB = (function () {
   function verificarEsquema() {
     if (!configurada) return Promise.resolve({ ok: false, motivo: "sin-configurar" });
 
+    // Sin token a propósito: preguntar qué columnas hay es una lectura, y la
+    // lectura es pública. Con el token puesto, uno vencido devolvía 401 y el
+    // panel lo leía como "faltan las columnas de costo y venta", mandando a
+    // ejecutar un SQL que ya estaba ejecutado.
     const pruebas = GRUPOS_COLUMNAS.map((grupo) =>
       fetch(SUPABASE_URL + "/rest/v1/" + TABLA + "?select=" + grupo.columnas + "&limit=1", {
-        headers: cabeceras()
+        headers: cabecerasPublicas()
       }).then((r) => (r.ok ? null : r.text().then((t) => ({ grupo: grupo.clave, detalle: t }))))
     );
 
@@ -703,14 +795,14 @@ window.PerfumesDB = (function () {
     }
 
     return conTimeout(
-      fetch(SUPABASE_URL + "/rest/v1/" + TABLA, {
+      conSesionViva(() => fetch(SUPABASE_URL + "/rest/v1/" + TABLA, {
         method: "POST",
         headers: cabeceras({
           "Content-Type": "application/json",
           Prefer: "resolution=merge-duplicates,return=minimal"
         }),
         body: JSON.stringify(filas)
-      }).then((r) => {
+      })).then((r) => {
         if (!r.ok) {
           return r.text().then((t) => {
             throw new Error("HTTP " + r.status + " " + t);
@@ -839,11 +931,11 @@ window.PerfumesDB = (function () {
     }
 
     return conTimeout(
-      fetch(SUPABASE_URL + "/storage/v1/object/" + BUCKET + "/" + ruta, {
+      conSesionViva(() => fetch(SUPABASE_URL + "/storage/v1/object/" + BUCKET + "/" + ruta, {
         method: "POST",
         headers: cabeceras({ "Content-Type": archivo.type || "image/jpeg", "x-upsert": "true" }),
         body: archivo
-      }).then((r) => {
+      })).then((r) => {
         if (!r.ok) {
           return r.text().then((t) => { throw new Error("HTTP " + r.status + " " + t); });
         }
@@ -874,10 +966,10 @@ window.PerfumesDB = (function () {
     // Si ese borrado falla no es grave: lo importante es soltar la
     // referencia en la tabla, así que limpiamos la fila igual.
     return conTimeout(
-      fetch(SUPABASE_URL + "/storage/v1/object/" + BUCKET + "/" + rutaLimpia, {
+      conSesionViva(() => fetch(SUPABASE_URL + "/storage/v1/object/" + BUCKET + "/" + rutaLimpia, {
         method: "DELETE",
         headers: cabeceras()
-      }),
+      })),
       TIMEOUT_MS
     )
       .catch((e) => console.warn("No se pudo borrar el archivo del bucket:", e))
@@ -969,6 +1061,7 @@ window.PerfumesDB = (function () {
     estaCargado: estaCargado,
     iniciarSesion: iniciarSesion,
     sesionDeEscrituraActiva: sesionDeEscrituraActiva,
+    cerrarSesionDeEscritura: cerrarSesionDeEscritura,
     verificarEsquema: verificarEsquema,
     verificarBucket: verificarBucket,
     rangos: rangos,

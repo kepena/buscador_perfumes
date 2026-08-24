@@ -266,6 +266,34 @@ ejecutar.
 - Usuario administrador: `admin@buscadorperfumes.kaiketek.com`, con la
   misma contraseña del panel, y **confirmado** (Auto Confirm User).
 
+### La sesión de escritura vence a la hora
+
+El token que Supabase entrega al teclear la contraseña dura una hora. Al
+caducar, la base rechaza toda escritura con 401 y el panel parecía roto de
+formas que no tenían nada que ver:
+
+- *"La base de datos rechazó el cambio por falta de permiso"* al tocar
+  cualquier control, mientras arriba seguía el recuadro verde de
+  "Conectado" — ese se pinta al entrar y no volvía a comprobarse.
+- El recuadro rojo de *"Falta preparar la base de datos"*, mandando a
+  ejecutar un SQL ya ejecutado. El chequeo de columnas mandaba el token, el
+  401 llegaba antes que cualquier respuesta sobre columnas, y el código
+  trataba todo lo que no fuera 200 como "faltan columnas".
+
+Cómo funciona ahora:
+
+- `db.js` guarda también el **token de refresco**. Si una escritura recibe
+  401 o 403, renueva la sesión y **repite la escritura una vez**. En el
+  caso normal no te enteras de nada.
+- Si el refresco tampoco funciona, se borran las tres llaves de sesión a la
+  vez — token, refresco y el flag de "desbloqueado" de `auth-catalogo.js` —
+  y sale un recuadro que dice qué pasó, con un botón para volver a entrar.
+  Borrar el flag es lo que hace que recargar vuelva a pedir la contraseña:
+  dejarlo puesto sin token es el estado que dejaba el panel abierto pero
+  incapaz de guardar nada.
+- **El chequeo de columnas va sin token**, porque la lectura es pública. Así
+  un token vencido no puede volver a disfrazarse de columna que falta.
+
 ### Storage
 
 Bucket **público** `fotos-perfumes`. El archivo va ahí y en la tabla solo
