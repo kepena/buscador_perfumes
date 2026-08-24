@@ -105,7 +105,8 @@
     "<li>Entra a tu proyecto en <strong>supabase.com</strong></li>" +
     "<li>Menú izquierdo → <strong>SQL Editor</strong> → <strong>New query</strong></li>" +
     "<li>Ejecuta el archivo <code>02-precios-decant.sql</code> <strong>completo</strong>, " +
-    "desde la primera línea. Si solo se ejecutó el final, la tabla de configuración " +
+    "desde la primera línea. Está en la raíz del repo, al lado de este panel. " +
+    "Si solo se ejecutó el final, la tabla de configuración " +
     "quedó creada pero las columnas no.</li>" +
     "<li>Comprueba con: <code>select count(*) filter (where volumen_ml is not null) from perfume_overrides;</code> " +
     "— debe dar 143</li>" +
@@ -129,7 +130,8 @@
     "<ol>" +
     "<li>Entra a tu proyecto en <strong>supabase.com</strong></li>" +
     "<li>Menú izquierdo → <strong>SQL Editor</strong> → <strong>New query</strong></li>" +
-    "<li>Pega y ejecuta el archivo <code>01-costo-y-venta.sql</code></li>" +
+    "<li>Pega y ejecuta el archivo <code>01-costo-y-venta.sql</code> <strong>completo</strong>. " +
+    "Está en la raíz del repo, al lado de este panel.</li>" +
     "<li>Debe terminar mostrando <code>filas 143 · con_costo 143 · con_venta 143</code></li>" +
     "<li>Vuelve aquí y recarga la página</li>" +
     "</ol>";
