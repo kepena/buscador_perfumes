@@ -24,6 +24,8 @@ DNS: gestionado en **HostGator** (CNAME apuntando a kepena.github.io)
 | `catalogo.css` | Estilos del panel |
 | `catalogo.js` | Lógica del panel: costo, venta, fotos, activar/desactivar |
 | `auth-catalogo.js` | Contraseña del panel (`94458370`, hasheada con SHA-256) |
+| `01-costo-y-venta.sql` | Prepara la base: columnas `costo_usd`/`venta_usd` + precios sugeridos |
+| `02-precios-decant.sql` | Columnas `volumen_ml`/`verificado` + tabla `configuracion` |
 | `.github/workflows/mantener-supabase-activo.yml` | Cron que evita que Supabase se pause |
 
 ## Qué vive en `data.js` y qué vive en la base de datos
@@ -161,7 +163,32 @@ publishable es pública por diseño; **nunca** poner ahí la `service_role`).
 | `venta_usd` | VENTA |
 | `activo` | `true`/`false`, o `null` si vale lo de `data.js` |
 | `imagen_url` | URL pública de la foto en Storage |
+| `volumen_ml` | Tamaño del frasco; sin él no se puede calcular el decant |
+| `verificado` | `false` mientras el costo y el volumen sean los sugeridos |
 | `precio_usd` | *Columna del modelo anterior, de un solo precio. En desuso.* |
+
+### Cómo se prepara la base desde cero
+
+Los dos archivos `.sql` de la raíz del repo dejan la base lista. Se pegan
+**completos** en supabase.com → SQL Editor → New query, en este orden:
+
+| Archivo | Qué crea | Debe terminar mostrando |
+|---|---|---|
+| `01-costo-y-venta.sql` | Columnas `costo_usd`, `venta_usd`, `activo`, `imagen_url` + COSTO y VENTA sugeridos para las 143 | `filas 143 · con_costo 143 · con_venta 143` |
+| `02-precios-decant.sql` | Columnas `volumen_ml`, `verificado` + tabla `configuracion` con los 9 parámetros | `filas 143 · con_volumen 143 · parametros 9` |
+
+Los dos se pueden repetir las veces que haga falta: **nunca pisan un valor
+que ya exista**, solo rellenan lo que esté vacío. Si ya corregiste precios a
+mano en el panel, volver a ejecutarlos no te los borra.
+
+Los precios y volúmenes que traen son **sugerencias** (costo = precio típico
+del frasco en el mercado de descuento, venta = costo + 40%), por eso las
+fragancias entran marcadas como *sin verificar*. El panel las lista con el
+filtro *Verificación → Solo sin verificar* para irlas confirmando una a una.
+
+Si el panel muestra el recuadro rojo *“Falta preparar la base de datos”*, es
+que le faltan columnas: el propio recuadro dice cuál de los dos archivos
+ejecutar.
 
 ### Seguridad
 
