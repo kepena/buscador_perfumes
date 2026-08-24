@@ -628,6 +628,9 @@ body {
 .resultados-acciones {
   display: flex;
   justify-content: center;
+  /* Sin este margen el botón queda pegado a las tarjetas de formato, que
+     al ser oscuras y el botón dorado, lo hace parecer montado encima. */
+  margin-top: 32px;
 }
 
 /* ============ RESPONSIVE ============ */
