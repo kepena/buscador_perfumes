@@ -26,6 +26,7 @@ DNS: gestionado en **HostGator** (CNAME apuntando a kepena.github.io)
 | `auth-catalogo.js` | Contraseña del panel (`94458370`, hasheada con SHA-256) |
 | `01-costo-y-venta.sql` | Prepara la base: columnas `costo_usd`/`venta_usd` + precios sugeridos |
 | `02-precios-decant.sql` | Columnas `volumen_ml`/`verificado` + tabla `configuracion` |
+| `03-decants.sql` | Columna `decant`: si esa fragancia se decanta o va solo en frasco |
 | `.github/workflows/mantener-supabase-activo.yml` | Cron que evita que Supabase se pause |
 
 ## Qué vive en `data.js` y qué vive en la base de datos
@@ -128,6 +129,55 @@ Al editarlos, el panel muestra cuántas fragancias quedarían en cada rango
 > solo la categoría. Cuando se trabajen los precios de las 3 opciones
 > (Probar / Set Ocasión / Botella) hay que revisitarlo.
 
+## Disponible en decant
+
+No todo el catálogo se puede decantar: hay frascos que solo se consiguen
+sellados. Cada fragancia lleva una marca (`decant`) que se edita desde el
+panel, y de ella depende lo que ve el cliente:
+
+| Marca | Qué se le ofrece en el test |
+|---|---|
+| Con decant | Probar (5 ml) · Set Ocasión · Botella |
+| Solo frasco completo | **Solo Botella**, con una línea que explica por qué |
+
+Una fragancia sin decant sigue apareciendo en el Top 4 y se sigue
+vendiendo: lo único que cambia es el formato. Tampoco entra nunca en el Set
+Ocasión, ni siquiera como relleno de una casilla.
+
+**Ante la duda, se asume que sí hay decant.** Si la base de datos no
+responde, o la columna todavía no existe, el sitio se comporta como antes
+de que esta opción existiera. Equivocarse hacia "sí" cuesta una
+conversación por WhatsApp; equivocarse hacia "no" esconde el formato más
+vendido.
+
+### El Set son 15 ml, siempre
+
+El Set Ocasión son 15 ml repartidos entre fragancias distintas. Si no hay
+tres que se puedan decantar, no se cancela ni se entrega menos producto: se
+reparten los mismos 15 ml en decants más grandes, en pasos de 5 ml, y el
+decant grande va para la fragancia que el cliente eligió en el test.
+
+| Fragancias con decant | Reparto |
+|---|---|
+| 3 o más | 5 + 5 + 5 (el Set de casillas de siempre) |
+| 2 | 10 + 5 |
+| 1 | 15 |
+
+Con menos de tres, el Set se arma solo y se muestra en una pantalla, sin
+las preguntas de las casillas: no hay entre qué elegir.
+
+El precio de un decant grande **no** es el múltiplo del de 5 ml: el vial y
+el trabajo de trasvase se cobran una sola vez, así que uno de 10 ml sale
+más barato que dos de 5 ml. La fórmula es la misma de siempre, con los ml
+como variable:
+
+```
+DECANT(ml) = (COSTO_REAL_COP ÷ volumen) × ml × multiplicador + costo_vial
+```
+
+El piso comercial (`minimo_decant_cop`) sí escala: si 5 ml no se venden por
+menos de $15.000, 15 ml no pueden venderse por menos de $45.000.
+
 ## Filtros del panel
 
 Con 143 fragancias hacen falta para encontrar una concreta. Todos se
@@ -145,6 +195,20 @@ valores al crecer el catálogo.
 Los filtros con valor se resaltan en dorado y se muestra cuántos hay
 puestos más el total visible. Es fácil dejar uno olvidado y creer que el
 catálogo se quedó corto.
+
+### Tamaño de las tarjetas
+
+Al final de la barra de filtros hay dos vistas:
+
+- **Cómoda** — la tarjeta completa: foto grande, notas, etiquetas, precios
+  calculados de decant y botella.
+- **Compacta** — dos tarjetas por fila y sin lo que no se edita. Deja a la
+  vista costo, venta, frasco, verificado, decant y el interruptor de
+  activo. Una tarjeta pasa de ~390 px de alto a ~210, y al ir en dos
+  columnas se ve casi cuatro veces más catálogo por pantalla.
+
+La elección se recuerda en ese navegador (`localStorage`): es una
+preferencia de cómo trabajas, no un dato del catálogo.
 
 Al filtrar por precio o margen, una fragancia sin ese dato queda fuera: no
 hay forma de decir si cumple.
@@ -165,6 +229,7 @@ publishable es pública por diseño; **nunca** poner ahí la `service_role`).
 | `imagen_url` | URL pública de la foto en Storage |
 | `volumen_ml` | Tamaño del frasco; sin él no se puede calcular el decant |
 | `verificado` | `false` mientras el costo y el volumen sean los sugeridos |
+| `decant` | `true` si se ofrece en decant; `false` = solo frasco completo |
 | `precio_usd` | *Columna del modelo anterior, de un solo precio. En desuso.* |
 
 ### Cómo se prepara la base desde cero
@@ -176,6 +241,7 @@ Los dos archivos `.sql` de la raíz del repo dejan la base lista. Se pegan
 |---|---|---|
 | `01-costo-y-venta.sql` | Columnas `costo_usd`, `venta_usd`, `activo`, `imagen_url` + COSTO y VENTA sugeridos para las 143 | `filas 143 · con_costo 143 · con_venta 143` |
 | `02-precios-decant.sql` | Columnas `volumen_ml`, `verificado` + tabla `configuracion` con los 9 parámetros | `filas 143 · con_volumen 143 · parametros 9` |
+| `03-decants.sql` | Columna `decant`, con todas las fragancias en `true` | `filas 143 · con_decant 143 · solo_botella 0` |
 
 Los dos se pueden repetir las veces que haga falta: **nunca pisan un valor
 que ya exista**, solo rellenan lo que esté vacío. Si ya corregiste precios a

@@ -180,6 +180,33 @@
   margin-bottom: 24px;
   flex-wrap: wrap;
 }
+/* Selector de tamaño de tarjeta. Va al final de la barra, pegado a la
+   derecha, porque se toca una vez y no cada búsqueda. */
+.filtro-vista {
+  display: flex;
+  gap: 4px;
+  padding: 3px;
+  border: 1.5px solid var(--borde);
+  border-radius: 100px;
+}
+.filtro-vista-btn {
+  font-family: var(--fuente-ui);
+  font-weight: 700;
+  font-size: 12px;
+  padding: 5px 13px;
+  color: var(--texto-terciario);
+  background: transparent;
+  border: none;
+  border-radius: 100px;
+  cursor: pointer;
+  transition: color 160ms ease, background 160ms ease;
+}
+.filtro-vista-btn:hover { color: var(--texto-principal); }
+.filtro-vista-btn.activo {
+  color: var(--negro-fondo);
+  background: var(--dorado);
+}
+
 .filtro-chip {
   font-family: var(--fuente-ui);
   font-weight: 700;
@@ -225,6 +252,59 @@
   display: flex;
   flex-direction: column;
   gap: 14px;
+}
+
+/* ============ VISTA COMPACTA ============
+   Dos tarjetas por fila y sin lo que no se edita. Con 143 fragancias, la
+   vista cómoda son casi 30 pantallas de scroll; así caben el doble por
+   pantalla sin perder ningún control: los precios, el frasco, el decant y
+   el interruptor de activo siguen todos ahí. */
+.grid-catalogo.compacta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  align-items: start;
+}
+
+.grid-catalogo.compacta .fila-catalogo {
+  grid-template-columns: 56px minmax(0, 1fr);
+  gap: 12px;
+  padding: 12px 14px;
+  align-items: start;
+}
+.grid-catalogo.compacta .fila-imagen-wrap { width: 56px; height: 56px; }
+
+/* Lo que se lee pero no se toca sale de la vista compacta. La cabecera con
+   el tipo y el id se queda: es lo que permite reconocer la fragancia. */
+.grid-catalogo.compacta .fila-notas,
+.grid-catalogo.compacta .fila-tags,
+.grid-catalogo.compacta .fila-imagen-subir-grupo,
+.grid-catalogo.compacta .fila-precios-calculados,
+.grid-catalogo.compacta .fila-precio-categoria { display: none; }
+
+.grid-catalogo.compacta .fila-nombre { font-size: 15px; }
+
+/* El panel de precios pasa a ocupar el ancho completo debajo del nombre, en
+   una rejilla de tres columnas: costo, venta y frasco de un vistazo. */
+.grid-catalogo.compacta .fila-precio-panel {
+  grid-column: 2;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px 10px;
+  align-items: end;
+  margin-top: 8px;
+}
+.grid-catalogo.compacta .fila-precio-campo { align-items: flex-start; }
+.grid-catalogo.compacta .fila-precio-original,
+.grid-catalogo.compacta .fila-error { grid-column: 1 / -1; text-align: left; }
+.grid-catalogo.compacta .fila-verificado,
+.grid-catalogo.compacta .fila-decant { margin-top: 4px; }
+.grid-catalogo.compacta .fila-toggle-activo { grid-column: 3; justify-self: end; }
+
+/* En pantalla estrecha no caben dos tarjetas: la vista compacta sigue
+   sirviendo (recorta lo que no se edita) pero vuelve a una columna. */
+@media (max-width: 900px) {
+  .grid-catalogo.compacta { grid-template-columns: minmax(0, 1fr); }
 }
 
 .fila-catalogo {
@@ -1005,6 +1085,25 @@
 
 .fila-verificado input { accent-color: var(--dorado); cursor: pointer; }
 .fila-verificado.esta-verificado { color: var(--exito); }
+
+/* Disponible en decant. Comparte el aspecto de "verificado" porque son dos
+   marcas del mismo tipo: cosas que se revisan fragancia por fragancia. */
+.fila-decant {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--texto-terciario);
+  cursor: pointer;
+}
+.fila-decant input { accent-color: var(--dorado); cursor: pointer; }
+.fila-decant.tiene-decant { color: var(--dorado-suave); }
+
+/* Solo frasco completo: se marca la tarjeta entera para poder barrer el
+   catálogo de un vistazo y ver cuáles no se decantan. */
+.fila-catalogo.solo-botella { border-right: 3px solid #8a5a2b; }
 
 /* Una fragancia sin revisar lleva el volumen y el precio como sugeridos.
    Se marca sin atenuarla: hay que poder leerla para poder revisarla. */

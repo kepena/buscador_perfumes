@@ -350,6 +350,59 @@
     return typeof guardado === "boolean" ? guardado : perfume.activo !== false;
   }
 
+  /* ============ DISPONIBILIDAD EN DECANT ============ */
+  // No todo lo que está en el catálogo se puede decantar: hay frascos que
+  // solo se consiguen sellados. Esas fragancias se siguen recomendando y se
+  // siguen vendiendo, pero únicamente como botella completa.
+  //
+  // Ante la duda decimos que sí hay decant. Es como funcionaba el sitio
+  // antes de que existiera esta marca, y el error barato es ofrecer de más
+  // (se resuelve en la conversación de WhatsApp) en vez de esconder el
+  // formato más vendido porque la base de datos no respondió.
+
+  function hayDecantDe(perfume) {
+    if (typeof PerfumesDB === "undefined") return true;
+    return PerfumesDB.hayDecant(perfume.id);
+  }
+
+  // El Set son 15 ml repartidos entre fragancias distintas. Solo entran las
+  // que se puedan decantar, así que aquí se recogen todas las candidatas.
+  function perfumesConDecant() {
+    const overridesActivo = leerOverridesActivo();
+    const overridesPrecio = leerOverridesPrecio();
+    return PERFUMES.filter(
+      (p) =>
+        estaActivo(p, overridesActivo) &&
+        hayDecantDe(p) &&
+        (precioVigente(p, overridesPrecio) !== null || !hayPreciosDisponibles())
+    );
+  }
+
+  const ML_SET = 15;
+
+  // Reparte los 15 ml del Set entre las fragancias que sí se decantan,
+  // en pasos de 5 ml y dándole el decant grande a la que el cliente eligió.
+  //
+  //   3 o más disponibles →  5 + 5 + 5   (el Set de siempre, por casillas)
+  //   2 disponibles       → 10 + 5
+  //   1 disponible        → 15
+  //
+  // La idea es que el cliente reciba siempre los mismos 15 ml: si no hay
+  // tres fragancias que decantar, se le da más cantidad de las que sí hay
+  // en vez de quitarle producto o cancelarle el Set.
+  function repartirMlSet(cuantasFragancias) {
+    const pasos = ML_SET / 5;
+    const reparto = [];
+    for (let i = 0; i < cuantasFragancias; i++) reparto.push(5);
+    // Los 5 ml que sobran se acumulan en la primera, que es la elegida.
+    let sobrantes = pasos - cuantasFragancias;
+    while (sobrantes > 0) {
+      reparto[0] += 5;
+      sobrantes--;
+    }
+    return reparto;
+  }
+
   /* ============ REFERENCIAS DOM ============ */
   const $ = (sel) => document.querySelector(sel);
 
@@ -840,15 +893,23 @@
     return `<div class="formato-precio">${PerfumesDB.formatearCOP(valor)}</div>`;
   }
 
-  // El Set se arma con tres fragancias que el cliente todavía no ha
-  // elegido, así que aquí solo se puede anticipar el mínimo: tres decants
-  // de esta misma, con su descuento.
-  function precioSetDesde(precios) {
+  // El Set se arma con fragancias que el cliente todavía no ha elegido, así
+  // que aquí solo se puede anticipar el mínimo: los 15 ml salidos de esta
+  // misma, con su descuento.
+  function precioSetDesde(perfumeId, precios, cuantasPiezas) {
     if (!precios) return "";
-    const base = precios.decantCop * 3;
+    const piezas = cuantasPiezas || 3;
+    const ml = repartirMlSet(piezas);
+    let base = 0;
+    for (let i = 0; i < ml.length; i++) {
+      const parcial = PerfumesDB.precioDecantMl(perfumeId, ml[i]);
+      if (parcial === null) return "";
+      base += parcial;
+    }
     const conDescuento = Math.round((base * (1 - PerfumesDB.parametros().descuento_set)) / 1000) * 1000;
+    const detalle = piezas === 1 ? "15ml" : ml.map((n) => n + "ml").join(" + ");
     return `<div class="formato-precio">desde ${PerfumesDB.formatearCOP(conDescuento)}</div>
-            <div class="formato-precio-nota">3 decants · ahorras ${Math.round(PerfumesDB.parametros().descuento_set * 100)}%</div>`;
+            <div class="formato-precio-nota">${detalle} · ahorras ${Math.round(PerfumesDB.parametros().descuento_set * 100)}%</div>`;
   }
 
   function seleccionarPerfumeResultado(perfume, articuloEl) {
@@ -867,6 +928,14 @@
     tarjetasResultado.querySelectorAll(".tarjeta-perfume").forEach((a) => a.classList.remove("seleccionada"));
     articuloEl.classList.add("seleccionada");
 
+    // Esta fragancia solo se ofrece en decant si el panel la tiene marcada.
+    // Y el Set, además, necesita que haya con qué armarlo: si esta es la
+    // única que se decanta, se le da a el cliente en un decant de 15ml.
+    const conDecant = hayDecantDe(perfume);
+    const candidatasSet = conDecant ? perfumesConDecant() : [];
+    const piezasSet = Math.min(3, candidatasSet.length);
+    const hayQueOfrecerSet = conDecant && piezasSet >= 1;
+
     const linkProbar = generarLinkWhatsApp(
       `Hola, quiero pedir el decant de 5ml de ${perfume.nombre} 🧪`
     );
@@ -874,23 +943,47 @@
       `Hola, quiero pedir la botella completa de ${perfume.nombre} 🍾`
     );
 
-    zonaFormatos.innerHTML = `
-      <div class="formatos-desplegados">
-        <p class="formatos-titulo-llamativo">✨ Tu fragancia ideal te espera — elige cómo la quieres</p>
-        <div class="formatos-opciones">
-          <div class="formato-card" id="btn-formato-probar">
+    // El Set se describe según con cuántas fragancias se puede armar de
+    // verdad, no según cuántas casillas tiene la pantalla.
+    const descSet =
+      piezasSet >= 3
+        ? "3 decants de 5ml para cada momento"
+        : piezasSet === 2
+          ? "15ml en 2 decants (10ml + 5ml)"
+          : "Un decant grande de 15ml";
+
+    const tarjetaProbar = conDecant
+      ? `<div class="formato-card" id="btn-formato-probar">
             <div class="formato-emoji">🧪</div>
             <div class="formato-titulo">Probar</div>
             <div class="formato-desc">Decant de 5ml de esta fragancia</div>
             ${etiquetaPrecio(precios && precios.decantCop)}
-          </div>
-          <div class="formato-card destacada" id="btn-formato-set">
+          </div>`
+      : "";
+
+    const tarjetaSet = hayQueOfrecerSet
+      ? `<div class="formato-card destacada" id="btn-formato-set">
             <div class="formato-emoji">🎁</div>
             <div class="formato-titulo">Set Ocasión</div>
-            <div class="formato-desc">3 decants de 5ml para cada momento</div>
-            ${precioSetDesde(precios)}
-          </div>
-          <div class="formato-card" id="btn-formato-botella">
+            <div class="formato-desc">${descSet}</div>
+            ${precioSetDesde(perfume.id, precios, piezasSet)}
+          </div>`
+      : "";
+
+    // Sin decant, la botella deja de ser "una opción más" y pasa a ser la
+    // única: se dice, para que no parezca que faltan opciones por cargar.
+    const notaSoloBotella = conDecant
+      ? ""
+      : `<p class="formatos-nota-solo-botella">Esta fragancia se consigue solo en frasco sellado, así que no hay decants de ella.</p>`;
+
+    zonaFormatos.innerHTML = `
+      <div class="formatos-desplegados">
+        <p class="formatos-titulo-llamativo">✨ Tu fragancia ideal te espera — elige cómo la quieres</p>
+        ${notaSoloBotella}
+        <div class="formatos-opciones${conDecant ? "" : " una-sola"}">
+          ${tarjetaProbar}
+          ${tarjetaSet}
+          <div class="formato-card${conDecant ? "" : " destacada"}" id="btn-formato-botella">
             <div class="formato-emoji">🍾</div>
             <div class="formato-titulo">Botella</div>
             <div class="formato-desc">El frasco completo${precios ? " de " + precios.volumenMl + "ml" : ""}</div>
@@ -929,11 +1022,18 @@
       }, 50);
     }
 
-    $("#btn-formato-set").addEventListener("click", () => {
-      renderSetOcasion();
-      irAPantalla(pantallaSetOcasion);
-    });
-    $("#btn-formato-probar").addEventListener("click", () => renderDetalleCompra("5ML"));
+    // Las dos primeras tarjetas solo existen si esta fragancia se decanta.
+    const botonSet = $("#btn-formato-set");
+    if (botonSet) {
+      botonSet.addEventListener("click", () => {
+        renderSetOcasion();
+        irAPantalla(pantallaSetOcasion);
+      });
+    }
+    const botonProbar = $("#btn-formato-probar");
+    if (botonProbar) {
+      botonProbar.addEventListener("click", () => renderDetalleCompra("5ML"));
+    }
     $("#btn-formato-botella").addEventListener("click", () => renderDetalleCompra("BOTELLA"));
 
     setTimeout(() => {
@@ -987,6 +1087,9 @@
     PERFUMES.forEach((p) => {
       if (!estaActivo(p, leerOverridesActivo())) return;
       if (precioVigente(p, leerOverridesPrecio()) === null && hayPreciosDisponibles()) return;
+      // El Set son decants: una fragancia que solo se vende sellada no
+      // puede entrar en él por muy bien que encaje con las respuestas.
+      if (!hayDecantDe(p)) return;
       let score = 0;
       if (filtros.aromaPrincipal && p.aromaPrincipal === filtros.aromaPrincipal) score += 22;
       if (filtros.subAroma && p.subAroma === filtros.subAroma) score += 13;
@@ -1010,10 +1113,19 @@
   }
 
   function renderSetOcasion() {
+    // Con menos de tres fragancias decantables no hay casillas que llenar:
+    // el Set se arma solo, dándole al cliente los mismos 15 ml en decants
+    // más grandes. Se resuelve en una pantalla, sin preguntas.
+    const candidatas = perfumesConDecant();
+    if (candidatas.length < 3) {
+      renderSetReducido(candidatas);
+      return;
+    }
+
     // Llenamos la casilla correspondiente al perfume que el usuario eligió
     // en el Top4, si esa casilla todavía no tenía nada.
     const p = estadoSetOcasion.perfumeSeleccionado;
-    if (p) {
+    if (p && hayDecantDe(p)) {
       const casillaDelElegido = mapearClimaACasillaSet(p.clima);
       if (!estadoSetOcasion.porCasilla[casillaDelElegido]) {
         estadoSetOcasion.porCasilla[casillaDelElegido] = p;
@@ -1034,15 +1146,96 @@
     // las 3 casillas ya tienen un perfume asignado.
     const completas = CASILLAS_SET_OCASION.every((cfg) => estadoSetOcasion.porCasilla[cfg.id]);
     if (completas) {
-      const nombres = CASILLAS_SET_OCASION.map((cfg) => estadoSetOcasion.porCasilla[cfg.id].nombre);
+      const elegidas = CASILLAS_SET_OCASION.map((cfg) => estadoSetOcasion.porCasilla[cfg.id]);
+      const nombres = elegidas.map((perfume) => perfume.nombre);
       const mensaje = `Hola, quiero pedir mi Set Ocasión con estos 3 decants de 5ml: ${nombres.join(", ")} 🎁`;
       const zonaContacto = $("#zona-contacto-set");
-      zonaContacto.innerHTML = `
-        <a href="${generarLinkWhatsApp(mensaje)}" target="_blank" rel="noopener" class="boton boton-primario detalle-compra-contacto" style="margin-top:22px;">
+      zonaContacto.innerHTML =
+        etiquetaPrecioSet(elegidas.map((perfume) => ({ id: perfume.id, ml: 5 }))) +
+        `<a href="${generarLinkWhatsApp(mensaje)}" target="_blank" rel="noopener" class="boton boton-primario detalle-compra-contacto" style="margin-top:22px;">
           💬 Contáctanos para pedir tu Set Ocasión
-        </a>
-      `;
+        </a>`;
     }
+  }
+
+  // Precio del set ya armado. Se calcula sobre las piezas reales, así que
+  // vale igual para tres decants de 5ml que para uno de 10 y otro de 5.
+  function etiquetaPrecioSet(piezas) {
+    let precio = null;
+    try {
+      precio = PerfumesDB.precioSet(piezas);
+    } catch (e) {
+      console.warn("No se pudo calcular el precio del Set:", e);
+    }
+    if (!precio) return "";
+    return `<p class="set-ocasion-precio">Total ${PerfumesDB.formatearCOP(precio.total)}
+              <span class="set-ocasion-precio-antes">${PerfumesDB.formatearCOP(precio.sinDescuento)}</span>
+              <span class="set-ocasion-precio-ahorro">−${precio.descuentoPct}%</span>
+            </p>`;
+  }
+
+  // Set con menos de tres fragancias decantables. En vez de cancelarlo o
+  // entregar menos producto, se reparten los mismos 15 ml entre las que
+  // haya: dos decants de 10 y 5, o uno solo de 15.
+  function renderSetReducido(candidatas) {
+    // La que el cliente eligió va primera, y por tanto se lleva el decant
+    // grande: es la que quiere probar de verdad.
+    const elegida = estadoSetOcasion.perfumeSeleccionado;
+    const ordenadas = candidatas.slice().sort((a, b) => {
+      if (elegida && a.id === elegida.id) return -1;
+      if (elegida && b.id === elegida.id) return 1;
+      return 0;
+    });
+
+    const mililitros = repartirMlSet(ordenadas.length);
+    const piezas = ordenadas.map((perfume, i) => ({ perfume: perfume, ml: mililitros[i] }));
+
+    contenidoSetOcasion.innerHTML = `
+      <button class="btn-volver-setocasion" id="btn-volver-a-resultados">← Volver al resultado</button>
+      <h2 class="set-ocasion-titulo">Tu Set Ocasión</h2>
+      <p class="set-ocasion-sub">
+        Ahora mismo solo ${ordenadas.length === 1 ? "una fragancia se está decantando" : "hay dos fragancias en decant"},
+        así que tus 15ml van ${ordenadas.length === 1 ? "completos en un solo decant" : "repartidos en dos decants más grandes"}.
+      </p>
+      <div class="casillas-set-ocasion" id="lista-casillas-set"></div>
+      <div id="zona-contacto-set"></div>
+    `;
+    $("#btn-volver-a-resultados").addEventListener("click", () => irAPantalla(pantallaResultados));
+
+    const cont = $("#lista-casillas-set");
+    piezas.forEach((pieza) => {
+      const div = document.createElement("div");
+      div.className = "casilla-set llena";
+
+      const iconoSlot = document.createElement("div");
+      iconoSlot.className = "casilla-set-icono";
+      iconoSlot.appendChild(imgConFallbackSet(pieza.perfume, ""));
+
+      const info = document.createElement("div");
+      info.className = "casilla-set-info";
+      info.innerHTML = `
+        <div class="casilla-set-etiqueta">Decant de ${pieza.ml}ml</div>
+        <p class="casilla-set-nombre">${pieza.perfume.nombre}</p>
+        <div class="casilla-set-notas">${pieza.perfume.notas}</div>
+      `;
+
+      const check = document.createElement("div");
+      check.className = "casilla-set-check";
+      check.textContent = "✓";
+
+      div.appendChild(iconoSlot);
+      div.appendChild(info);
+      div.appendChild(check);
+      cont.appendChild(div);
+    });
+
+    const detalle = piezas.map((pieza) => `${pieza.ml}ml de ${pieza.perfume.nombre}`).join(", ");
+    const mensaje = `Hola, quiero pedir mi Set Ocasión de 15ml: ${detalle} 🎁`;
+    $("#zona-contacto-set").innerHTML =
+      etiquetaPrecioSet(piezas.map((pieza) => ({ id: pieza.perfume.id, ml: pieza.ml }))) +
+      `<a href="${generarLinkWhatsApp(mensaje)}" target="_blank" rel="noopener" class="boton boton-primario detalle-compra-contacto" style="margin-top:22px;">
+        💬 Contáctanos para pedir tu Set Ocasión
+      </a>`;
   }
 
   function imgConFallbackSet(perfume, clase) {
@@ -1117,6 +1310,7 @@
       (p) =>
         estaActivo(p, overridesActivo) &&
         p.clima === "Templado" &&
+        hayDecantDe(p) &&
         (precioVigente(p, overridesPrecio) !== null || !hayPreciosDisponibles())
     );
     const filtro = estadoSetOcasion.filtroTipoLibre;

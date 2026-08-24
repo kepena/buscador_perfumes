@@ -79,6 +79,9 @@ window.PerfumesDB = (function () {
     ventas: "perfumesPro_ventas",
     imagenes: "perfumesPro_imagenesOverride",
     activos: "perfumesPro_activosOverride",
+    volumenes: "perfumesPro_volumenes",
+    verificados: "perfumesPro_verificados",
+    decants: "perfumesPro_decants",
     // Clave del modelo anterior, de un solo precio. Se sigue leyendo para
     // poder recuperar lo que quedara guardado en el navegador de antes.
     preciosViejos: "perfumesPro_preciosOverride"
@@ -101,8 +104,17 @@ window.PerfumesDB = (function () {
   let promesaEnCurso = null;
 
   function cacheVacia() {
-    return { costos: {}, ventas: {}, imagenes: {}, activos: {}, volumenes: {}, verificados: {}, rangos: null };
+    return { costos: {}, ventas: {}, imagenes: {}, activos: {}, volumenes: {}, verificados: {}, decants: {}, rangos: null };
   }
+
+  // Qué columnas tiene de verdad la tabla. Se aprende de la primera carga:
+  // las filas que devuelve Supabase traen una llave por columna existente.
+  //
+  // Sirve para no mandar en cada guardado una columna que todavía no se ha
+  // creado. Sin esto, añadir una columna nueva al código rompe TODAS las
+  // escrituras (la base rechaza la fila entera con PGRST204) hasta que se
+  // ejecute la carga SQL correspondiente.
+  let columnasConocidas = null;
 
   /* ============ UTILIDADES DE RED ============ */
 
@@ -159,7 +171,10 @@ window.PerfumesDB = (function () {
       costos: leerLS(LS.costos),
       ventas: ventas,
       imagenes: leerLS(LS.imagenes),
-      activos: leerLS(LS.activos)
+      activos: leerLS(LS.activos),
+      volumenes: leerLS(LS.volumenes),
+      verificados: leerLS(LS.verificados),
+      decants: leerLS(LS.decants)
     });
   }
 
@@ -177,6 +192,9 @@ window.PerfumesDB = (function () {
     escribirLS(LS.ventas, datos.ventas);
     escribirLS(LS.imagenes, datos.imagenes);
     escribirLS(LS.activos, datos.activos);
+    escribirLS(LS.volumenes, datos.volumenes);
+    escribirLS(LS.verificados, datos.verificados);
+    escribirLS(LS.decants, datos.decants);
   }
 
   /* ============ LECTURA DE OVERRIDES ============ */
@@ -220,6 +238,10 @@ window.PerfumesDB = (function () {
       // Marca de revisión: hasta que se apruebe, el panel muestra el
       // volumen y el precio como sugeridos, no como confirmados.
       datos.verificados[id] = fila.verificado === true;
+      // Disponible en decants. Solo un false explícito lo desactiva: si la
+      // columna todavía no existe, o la fila la trae vacía, la fragancia se
+      // sigue ofreciendo en decant como hasta ahora.
+      datos.decants[id] = fila.decant !== false;
       if (typeof fila.imagen_url === "string" && fila.imagen_url.trim() !== "") {
         datos.imagenes[id] = fila.imagen_url;
       }
@@ -263,6 +285,11 @@ window.PerfumesDB = (function () {
     )
       .then((respuestas) => {
         const filas = respuestas[0];
+        // Cualquier fila sirve para saber qué columnas existen: Supabase
+        // devuelve una llave por columna, aunque venga vacía.
+        if (Array.isArray(filas) && filas.length > 0 && filas[0]) {
+          columnasConocidas = Object.keys(filas[0]);
+        }
         cache = filasAMapas(Array.isArray(filas) ? filas : []);
         config = Object.assign({}, CONFIG_DEFECTO);
         (Array.isArray(respuestas[1]) ? respuestas[1] : []).forEach((fila) => {
@@ -442,6 +469,15 @@ window.PerfumesDB = (function () {
     return (cache.verificados || {})[Number(id)] === true;
   }
 
+  // Si una fragancia se ofrece en decant o solo en frasco completo. Ante la
+  // duda (base sin cargar, columna sin crear) decimos que sí: es como
+  // funcionaba el sitio antes de que existiera esta opción, y equivocarse
+  // hacia "sí" solo cuesta una conversación por WhatsApp, mientras que
+  // equivocarse hacia "no" esconde el producto más vendido.
+  function hayDecant(id) {
+    return (cache.decants || {})[Number(id)] !== false;
+  }
+
   // Redondeo a miles: un precio de 58.734 no se cobra, se cobra 59.000.
   function redondearCOP(n) {
     return Math.round(n / 1000) * 1000;
@@ -450,6 +486,27 @@ window.PerfumesDB = (function () {
   // Devuelve null si falta el costo o el volumen: sin esos dos datos no hay
   // precio que calcular, y es preferible no mostrar nada a mostrar un número
   // inventado.
+  // Precio de un decant del tamaño que sea. El vial y su trabajo se cobran
+  // UNA vez, no por cada 5 ml: por eso un decant de 10 ml sale más barato
+  // que dos de 5 ml, que es justo lo que lo hace atractivo cuando hay que
+  // completar los 15 ml del Set con menos de tres fragancias.
+  //
+  // El piso comercial sí escala con el tamaño: si 5 ml no se venden por
+  // menos de $15.000, 10 ml no pueden venderse por menos de $30.000.
+  function precioDecantMl(id, ml) {
+    const costoUsd = (cache.costos || {})[Number(id)];
+    const volumen = volumenDe(id);
+    const mililitros = Number(ml);
+    if (typeof costoUsd !== "number" || volumen === null) return null;
+    if (!(mililitros > 0)) return null;
+
+    const c = config;
+    const costoRealCop = costoUsd * c.factor_importacion * c.trm;
+    const bruto = (costoRealCop / volumen) * mililitros * c.multiplicador_decant + c.costo_vial_cop;
+    const piso = c.minimo_decant_cop * (mililitros / c.ml_decant);
+    return Math.max(redondearCOP(piso), redondearCOP(bruto));
+  }
+
   function preciosDe(id) {
     const costoUsd = (cache.costos || {})[Number(id)];
     const volumen = volumenDe(id);
@@ -458,8 +515,7 @@ window.PerfumesDB = (function () {
     const c = config;
     const costoRealCop = costoUsd * c.factor_importacion * c.trm;
 
-    const decantBruto = (costoRealCop / volumen) * c.ml_decant * c.multiplicador_decant + c.costo_vial_cop;
-    const decant = Math.max(c.minimo_decant_cop, redondearCOP(decantBruto));
+    const decant = precioDecantMl(id, c.ml_decant);
     const botella = redondearCOP(costoRealCop * (1 + c.margen_botella));
 
     // Cuántos decants aprovechables salen del frasco, descontando la merma.
@@ -473,19 +529,28 @@ window.PerfumesDB = (function () {
       volumenMl: volumen,
       decantsUtiles: decantsUtiles,
       decantsParaRecuperar: paraRecuperar,
-      verificado: estaVerificado(id)
+      verificado: estaVerificado(id),
+      hayDecant: hayDecant(id)
     };
   }
 
-  // El Set son tres decants de fragancias distintas, así que su precio se
-  // arma sumando los tres y aplicando el descuento por llevarlos juntos.
-  function precioSet(ids) {
+  // El Set son 15 ml repartidos entre fragancias distintas, así que su
+  // precio se arma sumando cada decant y aplicando el descuento por
+  // llevarlos juntos.
+  //
+  // Acepta ids sueltos (tres decants de 5 ml, el caso normal) o piezas
+  // { id, ml } para cuando hay que completar los 15 ml con menos de tres
+  // fragancias, porque no todas se ofrecen en decant.
+  function precioSet(piezas) {
     let suma = 0;
     let completo = true;
-    ids.forEach((id) => {
-      const p = preciosDe(id);
-      if (!p) { completo = false; return; }
-      suma += p.decantCop;
+    piezas.forEach((pieza) => {
+      const esPieza = pieza && typeof pieza === "object";
+      const id = esPieza ? pieza.id : pieza;
+      const ml = esPieza && pieza.ml ? pieza.ml : config.ml_decant;
+      const precio = precioDecantMl(id, ml);
+      if (precio === null) { completo = false; return; }
+      suma += precio;
     });
     if (!completo || suma === 0) return null;
     return {
@@ -513,7 +578,8 @@ window.PerfumesDB = (function () {
   // revertía sin explicación.
   const GRUPOS_COLUMNAS = [
     { clave: "precios", columnas: "costo_usd,venta_usd" },
-    { clave: "volumen", columnas: "volumen_ml,verificado" }
+    { clave: "volumen", columnas: "volumen_ml,verificado" },
+    { clave: "decant", columnas: "decant" }
   ];
 
   function verificarEsquema() {
@@ -604,15 +670,28 @@ window.PerfumesDB = (function () {
     const imagen = cache.imagenes[idNum];
     // No incluimos precio_usd a propósito: es la columna del modelo anterior
     // y al no mandarla, la base de datos la deja intacta.
-    return {
+    const fila = {
       id: idNum,
       costo_usd: typeof costo === "number" ? costo : null,
       venta_usd: typeof venta === "number" ? venta : null,
       volumen_ml: typeof cache.volumenes[idNum] === "number" ? cache.volumenes[idNum] : null,
       verificado: cache.verificados[idNum] === true,
+      decant: cache.decants[idNum] !== false,
       activo: typeof activo === "boolean" ? activo : null,
       imagen_url: typeof imagen === "string" && imagen !== "" ? imagen : null
     };
+
+    // Quitamos las columnas que la tabla todavía no tiene. Mandarlas haría
+    // que la base rechazara la fila entera, así que el guardado de un precio
+    // fallaría por culpa de una columna que no tiene nada que ver con él.
+    if (columnasConocidas) {
+      Object.keys(fila).forEach((columna) => {
+        if (columna !== "id" && columnasConocidas.indexOf(columna) === -1) {
+          delete fila[columna];
+        }
+      });
+    }
+    return fila;
   }
 
   function enviarFilas(filas) {
@@ -658,7 +737,8 @@ window.PerfumesDB = (function () {
     const idNum = Number(id);
     const mapa = {
       costo: "costos", venta: "ventas", activo: "activos",
-      imagen: "imagenes", volumen: "volumenes", verificado: "verificados"
+      imagen: "imagenes", volumen: "volumenes", verificado: "verificados",
+      decant: "decants"
     };
     const destino = mapa[campo];
     if (!destino) return Promise.reject(new Error("Campo desconocido: " + campo));
@@ -897,8 +977,10 @@ window.PerfumesDB = (function () {
     guardarParametro: guardarParametro,
     preciosDe: preciosDe,
     precioSet: precioSet,
+    precioDecantMl: precioDecantMl,
     volumenDe: volumenDe,
     estaVerificado: estaVerificado,
+    hayDecant: hayDecant,
     huboFalloDeCarga: function () { return cargaFallida; },
     formatearCOP: formatearCOP,
     guardarCampo: guardarCampo,

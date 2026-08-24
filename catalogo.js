@@ -64,6 +64,9 @@
     if (texto.indexOf("volumen_ml") !== -1 || texto.indexOf("verificado") !== -1) {
       return "Falta la columna de volumen en la base de datos. Mira el recuadro rojo de arriba.";
     }
+    if (/\bdecant\b/.test(texto) && texto.indexOf("column") !== -1) {
+      return "Falta la columna de decants en la base de datos. Mira el recuadro de arriba.";
+    }
     if (texto.indexOf("costo_usd") !== -1 || texto.indexOf("venta_usd") !== -1) {
       return "Faltan las columnas de costo y venta en la base de datos. Mira el recuadro rojo de arriba.";
     }
@@ -133,6 +136,16 @@
     "<li>Pega y ejecuta el archivo <code>01-costo-y-venta.sql</code> <strong>completo</strong>. " +
     "Está en la raíz del repo, al lado de este panel.</li>" +
     "<li>Debe terminar mostrando <code>filas 143 · con_costo 143 · con_venta 143</code></li>" +
+    "<li>Vuelve aquí y recarga la página</li>" +
+    "</ol>";
+
+  const INSTRUCCIONES_SQL_DECANT =
+    "<ol>" +
+    "<li>Entra a tu proyecto en <strong>supabase.com</strong></li>" +
+    "<li>Menú izquierdo → <strong>SQL Editor</strong> → <strong>New query</strong></li>" +
+    "<li>Pega y ejecuta el archivo <code>03-decants.sql</code> <strong>completo</strong>. " +
+    "Está en la raíz del repo, al lado de este panel.</li>" +
+    "<li>Debe terminar mostrando <code>filas 143 · con_decant 143 · solo_botella 0</code></li>" +
     "<li>Vuelve aquí y recarga la página</li>" +
     "</ol>";
 
@@ -300,10 +313,12 @@
   const textoResultado = $("#filtros-resultado");
   const selectsCaracteristica = $$("[data-campo-perfume]");
   const filtroVerificado = $("#filtro-verificado");
+  const filtroDecant = $("#filtro-decant");
   const inputsParametro = $$("[data-parametro]");
   const btnGuardarParametros = $("#btn-guardar-parametros");
   const ejemploPrecios = $("#ejemplo-precios");
   const chipsFiltro = $$(".filtro-chip");
+  const botonesVista = $$(".filtro-vista-btn");
 
   let filtroTipoActual = "Todos";
   let terminoBusqueda = "";
@@ -438,6 +453,9 @@
       const inputVerificado = nodo.querySelector('[data-campo="verificado-input"]');
       const textoVerificado = nodo.querySelector('[data-campo="verificado-texto"]');
       const labelVerificado = inputVerificado.closest(".fila-verificado");
+      const inputDecant = nodo.querySelector('[data-campo="decant-input"]');
+      const textoDecant = nodo.querySelector('[data-campo="decant-texto"]');
+      const labelDecant = inputDecant.closest(".fila-decant");
       const spanErrorFila = nodo.querySelector('[data-campo="error-fila"]');
 
       const inputCosto = nodo.querySelector('[data-campo="costo-input"]');
@@ -462,6 +480,12 @@
         labelVerificado.classList.toggle("esta-verificado", verificado);
         fila.classList.toggle("sin-verificar", !verificado);
 
+        const conDecant = PerfumesDB.hayDecant(perfume.id);
+        inputDecant.checked = conDecant;
+        textoDecant.textContent = conDecant ? "🧪 Hay decants" : "Solo frasco completo";
+        labelDecant.classList.toggle("tiene-decant", conDecant);
+        fila.classList.toggle("solo-botella", !conDecant);
+
         pintarPreciosCalculados();
       }
 
@@ -475,10 +499,18 @@
           return;
         }
         const cop = PerfumesDB.formatearCOP;
+        // Sin decant, el precio del decant no es un dato: es ruido. Se
+        // sustituye por la razón, para no tener que mirar la casilla.
+        const lineaDecant = pr.hayDecant
+          ? "Decant 5ml <b>" + cop(pr.decantCop) + "</b><br>"
+          : '<span class="sin-datos">Sin decant · solo botella</span><br>';
+        const lineaRecupero = pr.hayDecant
+          ? "Recuperas en " + pr.decantsParaRecuperar + " de " + pr.decantsUtiles + " decants"
+          : "";
         spanPreciosCalc.innerHTML =
-          "Decant 5ml <b>" + cop(pr.decantCop) + "</b><br>" +
+          lineaDecant +
           "Botella <b>" + cop(pr.botellaCop) + "</b><br>" +
-          "Recuperas en " + pr.decantsParaRecuperar + " de " + pr.decantsUtiles + " decants";
+          lineaRecupero;
       }
       inputCosto.dataset.id = perfume.id;
       inputVenta.dataset.id = perfume.id;
@@ -535,6 +567,29 @@
             pintarPrecios();
             actualizarAvisoSinVerificar();
             inputVerificado.disabled = false;
+          });
+      });
+
+      // Disponible en decant. Al desmarcarla, el test público deja de
+      // ofrecer esta fragancia como decant suelto y dentro del Set Ocasión:
+      // solo enseña la botella completa.
+      inputDecant.addEventListener("change", () => {
+        const nuevo = inputDecant.checked;
+        inputDecant.disabled = true;
+        PerfumesDB.guardarCampo(perfume.id, "decant", nuevo)
+          .then(() => {
+            limpiarError(spanErrorFila);
+            spanErrorFila.textContent = "";
+          })
+          .catch((e) => {
+            console.warn("No se pudo guardar la disponibilidad en decant:", e);
+            errorEn(spanErrorFila, mensajeDeError(e));
+            errorEn(panelNota, mensajeDeError(e));
+          })
+          .then(() => {
+            sincronizarMapasLocales();
+            pintarPrecios();
+            inputDecant.disabled = false;
           });
       });
 
@@ -766,6 +821,13 @@
       if (verif === "con" && !esta) return false;
     }
 
+    const formato = filtroDecant.value;
+    if (formato !== "todos") {
+      const conDecant = PerfumesDB.hayDecant(perfume.id);
+      if (formato === "con" && !conDecant) return false;
+      if (formato === "sin" && conDecant) return false;
+    }
+
     for (let i = 0; i < selectsCaracteristica.length; i++) {
       const select = selectsCaracteristica[i];
       if (select.value && perfume[select.dataset.campoPerfume] !== select.value) return false;
@@ -794,7 +856,7 @@
   }
 
   function controlesDeFiltro() {
-    return [filtroEstado, filtroVerificado, filtroPrecioMin, filtroPrecioMax, filtroMargenMin, filtroMargenMax]
+    return [filtroEstado, filtroVerificado, filtroDecant, filtroPrecioMin, filtroPrecioMax, filtroMargenMin, filtroMargenMax]
       .concat(selectsCaracteristica);
   }
 
@@ -826,6 +888,7 @@
   function limpiarFiltros() {
     filtroEstado.value = "todos";
     filtroVerificado.value = "todos";
+    filtroDecant.value = "todos";
     [filtroPrecioMin, filtroPrecioMax, filtroMargenMin, filtroMargenMax].forEach((i) => {
       i.value = "";
     });
@@ -1032,6 +1095,40 @@
     renderizarCatalogo();
   }
 
+  /* ============ TAMAÑO DE LAS TARJETAS ============ */
+  // La elección se recuerda en este navegador: es una preferencia de cómo
+  // trabajas, no un dato del catálogo, así que no tiene por qué viajar a la
+  // base de datos ni verla los demás.
+
+  const CLAVE_VISTA = "perfumesPro_vistaCatalogo";
+
+  function aplicarVista(vista) {
+    const compacta = vista === "compacta";
+    gridCatalogo.classList.toggle("compacta", compacta);
+    botonesVista.forEach((btn) => {
+      btn.classList.toggle("activo", btn.dataset.vista === (compacta ? "compacta" : "comoda"));
+    });
+    try {
+      localStorage.setItem(CLAVE_VISTA, compacta ? "compacta" : "comoda");
+    } catch (e) {
+      // Modo incógnito o almacenamiento lleno: la vista funciona igual,
+      // solo que no se recuerda para la próxima visita.
+    }
+  }
+
+  function vistaGuardada() {
+    try {
+      return localStorage.getItem(CLAVE_VISTA) === "compacta" ? "compacta" : "comoda";
+    } catch (e) {
+      return "comoda";
+    }
+  }
+
+  botonesVista.forEach((btn) => {
+    btn.addEventListener("click", () => aplicarVista(btn.dataset.vista));
+  });
+  aplicarVista(vistaGuardada());
+
   /* ============ EVENT LISTENERS ============ */
 
   btnAplicarGlobal.addEventListener("click", aplicarAjusteGlobal);
@@ -1115,6 +1212,19 @@
 
       console.warn("Esquema incompleto:", r.grupos, r.detalle);
       const grupos = r.grupos || ["precios"];
+
+      // Falta solo la columna de decant: todo lo demás funciona y el test
+      // sigue ofreciendo decants de todas las fragancias, como antes. Es un
+      // aviso, no un bloqueo.
+      if (grupos.length === 1 && grupos[0] === "decant") {
+        mostrarEstado("aviso",
+          "<strong>⚠ Falta la columna de decants</strong>" +
+          "La tabla no tiene la columna <code>decant</code>, así que <strong>no puedes marcar " +
+          "cuáles se venden solo en frasco completo</strong> (la casilla se revierte al tocarla). " +
+          "Mientras tanto el test ofrece decant de todas, como hasta ahora." +
+          INSTRUCCIONES_SQL_DECANT);
+        return;
+      }
 
       // Falta la carga de volumen, pero costo y venta sí están: el panel
       // funciona a medias, así que se bloquea solo lo que no puede guardar.

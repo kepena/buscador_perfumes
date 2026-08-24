@@ -168,6 +168,13 @@
       <button type="button" class="filtro-chip" data-filtro-tipo="Lujo">Lujo</button>
       <span class="filtro-contador-activos" id="contador-activos"></span>
       <input type="search" id="input-buscar" class="filtro-buscar" placeholder="Buscar por nombre…" aria-label="Buscar perfume por nombre" />
+      <!-- Con 143 fragancias, la vista cómoda obliga a mucho scroll para
+           encontrar una. La compacta pone dos por fila y recorta lo que no
+           se edita (notas, etiquetas), dejando los precios a la vista. -->
+      <div class="filtro-vista" role="group" aria-label="Tamaño de las tarjetas">
+        <button type="button" class="filtro-vista-btn activo" data-vista="comoda">Cómoda</button>
+        <button type="button" class="filtro-vista-btn" data-vista="compacta">Compacta</button>
+      </div>
     </div>
 
     <!-- Filtros avanzados. Van dentro de un <details> para que no ocupen
@@ -195,6 +202,15 @@
             <option value="todos">Todas</option>
             <option value="sin">Solo sin verificar</option>
             <option value="con">Solo verificadas</option>
+          </select>
+        </div>
+
+        <div class="filtro-campo">
+          <label for="filtro-decant">Formato</label>
+          <select id="filtro-decant">
+            <option value="todos">Todas</option>
+            <option value="con">Con decant</option>
+            <option value="sin">Solo frasco completo</option>
           </select>
         </div>
 
@@ -319,6 +335,12 @@
         <label class="fila-verificado">
           <input type="checkbox" data-campo="verificado-input" />
           <span data-campo="verificado-texto"></span>
+        </label>
+        <!-- Si no se ofrece en decant, el test público solo enseña la
+             botella completa de esta fragancia. -->
+        <label class="fila-decant">
+          <input type="checkbox" data-campo="decant-input" />
+          <span data-campo="decant-texto"></span>
         </label>
         <label class="fila-toggle-activo">
           <input type="checkbox" class="fila-toggle-input" data-campo="toggle-activo" />

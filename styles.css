@@ -749,6 +749,22 @@ body {
   max-width: 640px;
   margin: 0 auto;
 }
+
+/* Fragancia que solo se vende sellada: queda una sola tarjeta, y estirarla
+   a un tercio del ancho la haría parecer un hueco. */
+.formatos-opciones.una-sola {
+  grid-template-columns: minmax(0, 260px);
+  justify-content: center;
+}
+
+/* Se dice por qué faltan las otras opciones. Sin esta línea, la pantalla
+   con una sola tarjeta parece a medio cargar. */
+.formatos-nota-solo-botella {
+  text-align: center;
+  font-size: 13px;
+  color: var(--texto-secundario);
+  margin: -8px 0 18px;
+}
 .formato-card {
   background: var(--negro-panel);
   border: 1.5px solid var(--borde);
@@ -813,6 +829,36 @@ body {
   color: var(--texto-secundario);
   text-align: center;
   margin: 0 0 26px;
+}
+
+/* Precio del set ya armado: total, precio sin descuento tachado y cuánto
+   se ahorra. Va justo encima del botón de contacto. */
+.set-ocasion-precio {
+  text-align: center;
+  font-family: var(--fuente-display);
+  font-size: 19px;
+  font-weight: 600;
+  color: var(--dorado);
+  margin: 24px 0 0;
+}
+.set-ocasion-precio-antes {
+  font-family: var(--fuente-ui);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--texto-terciario);
+  text-decoration: line-through;
+  margin-left: 8px;
+}
+.set-ocasion-precio-ahorro {
+  font-family: var(--fuente-ui);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--negro-fondo);
+  background: var(--dorado);
+  border-radius: 100px;
+  padding: 2px 8px;
+  margin-left: 6px;
+  vertical-align: middle;
 }
 
 .casillas-set-ocasion { display: flex; flex-direction: column; gap: 14px; }
