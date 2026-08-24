@@ -482,7 +482,10 @@
 
         const conDecant = PerfumesDB.hayDecant(perfume.id);
         inputDecant.checked = conDecant;
-        textoDecant.textContent = conDecant ? "🧪 Hay decants" : "Solo frasco completo";
+        // Los dos textos van cortos a propósito: en la vista compacta la
+        // columna es estrecha, y "Solo frasco completo" se partía en dos
+        // líneas, dejando esa tarjeta más alta que la de al lado.
+        textoDecant.textContent = conDecant ? "🧪 Hay decants" : "🍾 Solo botella";
         labelDecant.classList.toggle("tiene-decant", conDecant);
         fila.classList.toggle("solo-botella", !conDecant);
 

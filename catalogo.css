@@ -1083,7 +1083,8 @@
   cursor: pointer;
 }
 
-.fila-verificado input { accent-color: var(--dorado); cursor: pointer; }
+.fila-verificado span { white-space: nowrap; }
+.fila-verificado input { accent-color: var(--dorado); cursor: pointer; flex-shrink: 0; }
 .fila-verificado.esta-verificado { color: var(--exito); }
 
 /* Disponible en decant. Comparte el aspecto de "verificado" porque son dos
@@ -1098,7 +1099,8 @@
   color: var(--texto-terciario);
   cursor: pointer;
 }
-.fila-decant input { accent-color: var(--dorado); cursor: pointer; }
+.fila-decant span { white-space: nowrap; }
+.fila-decant input { accent-color: var(--dorado); cursor: pointer; flex-shrink: 0; }
 .fila-decant.tiene-decant { color: var(--dorado-suave); }
 
 /* Solo frasco completo: se marca la tarjeta entera para poder barrer el
