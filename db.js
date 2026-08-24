@@ -93,6 +93,10 @@ window.PerfumesDB = (function () {
 
   let cache = cacheVacia();
   let config = Object.assign({}, CONFIG_DEFECTO);
+  // Distingue "la base de datos respondió y no hay precios" de "no pudimos
+  // leer la base de datos". Sin esa distinción, una caída de Supabase
+  // dejaría el test sin ninguna fragancia que ofrecer.
+  let cargaFallida = false;
   let cargado = false;
   let promesaEnCurso = null;
 
@@ -148,12 +152,15 @@ window.PerfumesDB = (function () {
     Object.keys(viejos).forEach((id) => {
       if (ventas[id] === undefined) ventas[id] = viejos[id];
     });
-    return {
+    // Devolvemos la misma forma que cacheVacia(). Cuando faltaban las
+    // llaves de volumen y verificado, cualquier acceso a ellas tras una
+    // carga fallida lanzaba una excepción que rompía la pantalla entera.
+    return Object.assign(cacheVacia(), {
       costos: leerLS(LS.costos),
       ventas: ventas,
       imagenes: leerLS(LS.imagenes),
       activos: leerLS(LS.activos)
-    };
+    });
   }
 
   function escribirLS(clave, objeto) {
@@ -264,6 +271,7 @@ window.PerfumesDB = (function () {
           }
         });
         cargado = true;
+        cargaFallida = false;
         promesaEnCurso = null;
         return cache;
       })
@@ -274,6 +282,7 @@ window.PerfumesDB = (function () {
         console.warn("No se pudo leer la base de datos, usando respaldo local:", e);
         cache = leerTodoLS();
         cargado = true;
+        cargaFallida = true;
         promesaEnCurso = null;
         return cache;
       });
@@ -420,13 +429,17 @@ window.PerfumesDB = (function () {
     });
   }
 
+  // Estos accesores no deben lanzar nunca: se llaman desde el render del
+  // test público, y una excepción aquí deja al visitante sin las opciones
+  // de compra. Ante cualquier duda devuelven "no hay dato".
   function volumenDe(id) {
-    const v = cache.volumenes[Number(id)];
+    const mapa = cache.volumenes || {};
+    const v = mapa[Number(id)];
     return typeof v === "number" && v > 0 ? v : null;
   }
 
   function estaVerificado(id) {
-    return cache.verificados[Number(id)] === true;
+    return (cache.verificados || {})[Number(id)] === true;
   }
 
   // Redondeo a miles: un precio de 58.734 no se cobra, se cobra 59.000.
@@ -438,7 +451,7 @@ window.PerfumesDB = (function () {
   // precio que calcular, y es preferible no mostrar nada a mostrar un número
   // inventado.
   function preciosDe(id) {
-    const costoUsd = cache.costos[Number(id)];
+    const costoUsd = (cache.costos || {})[Number(id)];
     const volumen = volumenDe(id);
     if (typeof costoUsd !== "number" || volumen === null) return null;
 
@@ -886,6 +899,7 @@ window.PerfumesDB = (function () {
     precioSet: precioSet,
     volumenDe: volumenDe,
     estaVerificado: estaVerificado,
+    huboFalloDeCarga: function () { return cargaFallida; },
     formatearCOP: formatearCOP,
     guardarCampo: guardarCampo,
     guardarVentasEnLote: guardarVentasEnLote,

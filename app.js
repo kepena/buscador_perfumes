@@ -303,6 +303,14 @@
     return typeof guardado === "number" && !Number.isNaN(guardado) ? guardado : null;
   }
 
+  // Si la base de datos no respondió, ninguna fragancia tiene precio y el
+  // test se quedaría sin nada que recomendar. En ese caso se dejan pasar
+  // todas y simplemente no se muestran precios: es preferible un test que
+  // funciona sin cifras a una pantalla vacía.
+  function hayPreciosDisponibles() {
+    return typeof PerfumesDB === "undefined" || !PerfumesDB.huboFalloDeCarga();
+  }
+
   // Los cortes de presupuesto se configuran desde el panel y viven en la
   // base de datos. Si nunca se tocaron, se usan los de data.js.
   function categoriaParaPrecio(precio) {
@@ -671,11 +679,13 @@
     const conPrecioVigente = soloActivos
       .map((p) => {
         const precio = precioVigente(p, overrides);
-        return { perfume: p, precio, categoria: precio === null ? null : categoriaParaPrecio(precio) };
+        // Sin precio no hay categoría; se deja pasar el filtro de presupuesto
+        // en vez de descartarla, para no vaciar los resultados.
+        return { perfume: p, precio, categoria: precio === null ? r.presupuesto : categoriaParaPrecio(precio) };
       })
       // Una fragancia sin precio de venta no aparece en los resultados. El
       // panel de administración las marca para poder ponerles precio.
-      .filter((item) => item.precio !== null);
+      .filter((item) => item.precio !== null || !hayPreciosDisponibles());
 
     const dentroDePresupuesto = conPrecioVigente.filter((item) =>
       presupuestoCompatible(item.categoria, r.presupuesto)
@@ -843,7 +853,16 @@
 
   function seleccionarPerfumeResultado(perfume, articuloEl) {
     estadoSetOcasion.perfumeSeleccionado = perfume;
-    const precios = PerfumesDB.preciosDe(perfume.id);
+
+    // Las opciones de compra son lo más importante de esta pantalla, así que
+    // no pueden depender de que el precio se pueda calcular. Si algo falla
+    // al calcularlo, se muestran igual y sin cifras.
+    let precios = null;
+    try {
+      precios = PerfumesDB.preciosDe(perfume.id);
+    } catch (e) {
+      console.warn("No se pudieron calcular los precios de " + perfume.nombre + ":", e);
+    }
 
     tarjetasResultado.querySelectorAll(".tarjeta-perfume").forEach((a) => a.classList.remove("seleccionada"));
     articuloEl.classList.add("seleccionada");
@@ -967,7 +986,7 @@
     let empatados = [];
     PERFUMES.forEach((p) => {
       if (!estaActivo(p, leerOverridesActivo())) return;
-      if (precioVigente(p, leerOverridesPrecio()) === null) return;
+      if (precioVigente(p, leerOverridesPrecio()) === null && hayPreciosDisponibles()) return;
       let score = 0;
       if (filtros.aromaPrincipal && p.aromaPrincipal === filtros.aromaPrincipal) score += 22;
       if (filtros.subAroma && p.subAroma === filtros.subAroma) score += 13;
@@ -1098,7 +1117,7 @@
       (p) =>
         estaActivo(p, overridesActivo) &&
         p.clima === "Templado" &&
-        precioVigente(p, overridesPrecio) !== null
+        (precioVigente(p, overridesPrecio) !== null || !hayPreciosDisponibles())
     );
     const filtro = estadoSetOcasion.filtroTipoLibre;
     const candidatos = filtro === "Todos" ? todos : todos.filter((p) => p.tipo === filtro);
