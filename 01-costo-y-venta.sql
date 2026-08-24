@@ -30,10 +30,21 @@
 -- ============================================================
 
 -- ---------- 1) La tabla y sus columnas ----------
--- create table if not exists: si ya existe (que es lo normal), no la toca.
-create table if not exists public.perfume_overrides (
-  id integer primary key
-);
+-- La tabla solo se crea si de verdad no existe, y en ese caso nace ya con
+-- RLS activado y sus dos politicas. Va dentro de un bloque "do" a proposito:
+-- el editor de Supabase revisa el texto del script y, si ve un "create table"
+-- suelto, muestra una ventana de aviso sobre RLS aunque la tabla ya exista.
+do $$
+begin
+  if to_regclass('public.perfume_overrides') is null then
+    execute 'create table public.perfume_overrides (id integer primary key)';
+    execute 'alter table public.perfume_overrides enable row level security';
+    execute 'create policy "perfumes lectura publica" on public.perfume_overrides
+               for select to anon, authenticated using (true)';
+    execute 'create policy "perfumes escritura admin" on public.perfume_overrides
+               for all to authenticated using (true) with check (true)';
+  end if;
+end $$;
 
 alter table public.perfume_overrides add column if not exists costo_usd   numeric;
 alter table public.perfume_overrides add column if not exists venta_usd   numeric;
@@ -63,10 +74,9 @@ begin
   end if;
 end $$;
 
--- ---------- 3) Permisos, solo si la tabla es nueva ----------
--- Una tabla recien creada no tiene ninguna politica de acceso, y sin ellas
--- los visitantes no pueden leer los precios. Si tu tabla ya tiene politicas
--- (el caso normal) este bloque no toca absolutamente nada.
+-- ---------- 3) Permisos, si la tabla se creo a mano sin politicas ----------
+-- Sin politicas los visitantes no pueden leer los precios. Si tu tabla ya
+-- tiene las suyas (el caso normal) este bloque no toca absolutamente nada.
 do $$
 begin
   if not exists (select 1 from pg_policies

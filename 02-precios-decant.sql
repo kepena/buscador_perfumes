@@ -21,9 +21,19 @@
 -- ============================================================
 
 -- ---------- 1) Columnas de volumen y verificacion ----------
-create table if not exists public.perfume_overrides (
-  id integer primary key
-);
+-- Dentro de un bloque "do" para que el editor de Supabase no muestre la
+-- ventana de aviso sobre RLS al ver un "create table" en el script.
+do $$
+begin
+  if to_regclass('public.perfume_overrides') is null then
+    execute 'create table public.perfume_overrides (id integer primary key)';
+    execute 'alter table public.perfume_overrides enable row level security';
+    execute 'create policy "perfumes lectura publica" on public.perfume_overrides
+               for select to anon, authenticated using (true)';
+    execute 'create policy "perfumes escritura admin" on public.perfume_overrides
+               for all to authenticated using (true) with check (true)';
+  end if;
+end $$;
 
 alter table public.perfume_overrides add column if not exists volumen_ml integer;
 alter table public.perfume_overrides add column if not exists verificado boolean default false;
@@ -205,10 +215,20 @@ update public.perfume_overrides
  where verificado is null;
 
 -- ---------- 4) Parametros del calculo de precios ----------
-create table if not exists public.configuracion (
-  clave text primary key,
-  valor numeric not null
-);
+-- Igual que arriba: se crea desde un bloque "do", ya con RLS y politicas.
+do $$
+begin
+  if to_regclass('public.configuracion') is null then
+    execute 'create table public.configuracion (
+               clave text primary key,
+               valor numeric not null)';
+    execute 'alter table public.configuracion enable row level security';
+    execute 'create policy "configuracion lectura publica" on public.configuracion
+               for select to anon, authenticated using (true)';
+    execute 'create policy "configuracion escritura admin" on public.configuracion
+               for all to authenticated using (true) with check (true)';
+  end if;
+end $$;
 
 -- Valores por defecto, los mismos que trae db.js. Si ya cambiaste alguno
 -- desde el panel, "do nothing" lo respeta.
@@ -227,10 +247,13 @@ on conflict (clave) do nothing;
 -- ---------- 5) Permisos de la tabla de configuracion ----------
 -- Lectura para cualquiera (el test publico calcula precios con esto) y
 -- escritura solo para el usuario administrador, igual que perfume_overrides.
-alter table public.configuracion enable row level security;
-
+-- Solo hace falta si la tabla ya existia creada a mano.
 do $$
 begin
+  if not exists (select 1 from pg_policies
+                  where schemaname = 'public' and tablename = 'configuracion') then
+    execute 'alter table public.configuracion enable row level security';
+  end if;
   if not exists (select 1 from pg_policies
                   where schemaname = 'public' and tablename = 'configuracion'
                     and policyname = 'configuracion lectura publica') then
