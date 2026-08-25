@@ -933,16 +933,16 @@
   // como se piensan. Estas dos funciones traducen entre ambos.
   //
   //   "porcentaje": 0.4  ⇄  40
-  //   "recargo":    1.2  ⇄  20   (un 20% por encima del costo)
+  //
+  // Los que son cifras en pesos (importación, vial, mínimo) no llevan
+  // formato: se escriben y se guardan igual.
   function aPantalla(valorGuardado, formato) {
     if (formato === "porcentaje") return Math.round(valorGuardado * 1000) / 10;
-    if (formato === "recargo") return Math.round((valorGuardado - 1) * 1000) / 10;
     return valorGuardado;
   }
 
   function aGuardar(valorEnPantalla, formato) {
     if (formato === "porcentaje") return valorEnPantalla / 100;
-    if (formato === "recargo") return 1 + valorEnPantalla / 100;
     return valorEnPantalla;
   }
 
@@ -967,7 +967,7 @@
     const par = PerfumesDB.parametros();
     ejemploPrecios.textContent =
       `Ejemplo · ${muestra.nombre} (${pr.volumenMl}ml): ` +
-      `costo real ${cop(pr.costoRealCop)} (importación +${aPantalla(par.factor_importacion, "recargo")}%) · ` +
+      `costo real ${cop(pr.costoRealCop)} (compra + ${cop(par.importacion_cop)} de importación) · ` +
       `decant ${cop(pr.decantCop)} · botella ${cop(pr.botellaCop)} (margen +${aPantalla(par.margen_botella, "porcentaje")}%) · ` +
       `recuperas el frasco con ${pr.decantsParaRecuperar} de ${pr.decantsUtiles} decants.`;
   }

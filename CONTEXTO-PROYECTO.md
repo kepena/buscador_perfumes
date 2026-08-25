@@ -27,6 +27,7 @@ DNS: gestionado en **HostGator** (CNAME apuntando a kepena.github.io)
 | `01-costo-y-venta.sql` | Prepara la base: columnas `costo_usd`/`venta_usd` + precios sugeridos |
 | `02-precios-decant.sql` | Columnas `volumen_ml`/`verificado` + tabla `configuracion` |
 | `03-decants.sql` | Columna `decant`: si esa fragancia se decanta o va solo en frasco |
+| `04-importacion-fija.sql` | Cambia la importación de porcentaje a valor fijo en pesos |
 | `.github/workflows/mantener-supabase-activo.yml` | Cron que evita que Supabase se pause |
 
 ## Qué vive en `data.js` y qué vive en la base de datos
@@ -128,6 +129,38 @@ Al editarlos, el panel muestra cuántas fragancias quedarían en cada rango
 > **Pendiente:** el test público todavía no muestra el precio en números,
 > solo la categoría. Cuando se trabajen los precios de las 3 opciones
 > (Probar / Set Ocasión / Botella) hay que revisitarlo.
+
+## Cómo se calcula el precio de la botella
+
+```
+costo puesto en Colombia = (costo_usd × TRM) + importación_cop
+precio botella           = costo puesto en Colombia × (1 + margen_botella)
+```
+
+La **importación es un valor fijo en pesos por frasco**, no un porcentaje
+del costo. Traer un Creed de US$300 y un Lattafa de US$26 cuesta
+prácticamente lo mismo: flete, aduana y comisiones dependen del envío, no
+del valor de la fragancia.
+
+Antes era un factor multiplicador (`factor_importacion` = 1.2, un 20%), y
+eso inflaba los caros y regalaba los baratos: el Creed pagaba $240.000 de
+"importación" y el Lattafa $20.800, por venir en la misma caja.
+
+Ejemplo con TRM 4.000, importación $30.000 y margen 40%:
+
+| Fragancia | Costo USD | Costo puesto aquí | Botella | Decant 5 ml |
+|---|---|---|---|---|
+| Lattafa Khamrah | $26 | $134.000 | $188.000 | $23.000 |
+| Dior Sauvage EDT | $78 | $342.000 | $479.000 | $54.000 |
+| Creed Aventus | $300 | $1.230.000 | $1.722.000 | $188.000 |
+
+El margen se aplica sobre el costo **ya puesto en Colombia**, así que ese
+40% también cubre la plata que se puso en traerlo.
+
+> **Ojo:** el campo VENTA en dólares del panel **no** es el precio que ve el
+> cliente. El cliente ve la botella calculada arriba. VENTA solo decide en
+> qué rango de presupuesto cae la fragancia (Económico / Medio / Sin
+> límite) y sirve para los filtros del panel.
 
 ## Disponible en decant
 
@@ -242,6 +275,7 @@ Los dos archivos `.sql` de la raíz del repo dejan la base lista. Se pegan
 | `01-costo-y-venta.sql` | Columnas `costo_usd`, `venta_usd`, `activo`, `imagen_url` + COSTO y VENTA sugeridos para las 143 | `filas 143 · con_costo 143 · con_venta 143` |
 | `02-precios-decant.sql` | Columnas `volumen_ml`, `verificado` + tabla `configuracion` con los 9 parámetros | `filas 143 · con_volumen 143 · parametros 9` |
 | `03-decants.sql` | Columna `decant`, con todas las fragancias en `true` | `filas 143 · con_decant 143 · solo_botella 0` |
+| `04-importacion-fija.sql` | Reemplaza `factor_importacion` por `importacion_cop` | la fila `importacion_cop` con tu valor |
 
 Los dos se pueden repetir las veces que haga falta: **nunca pisan un valor
 que ya exista**, solo rellenan lo que esté vacío. Si ya corregiste precios a

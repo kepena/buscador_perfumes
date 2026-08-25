@@ -58,7 +58,12 @@ window.PerfumesDB = (function () {
   // aquí y no repartidos por el código para poder verlos todos juntos.
   const CONFIG_DEFECTO = {
     trm: 4000,                 // pesos por dólar
-    factor_importacion: 1.2,   // flete + aduana + comisiones
+    // Lo que cuesta traer UN frasco, en pesos: flete, aduana y comisiones.
+    // Es un valor fijo por unidad, no un porcentaje del costo: traer un
+    // Creed de US$300 y un Lattafa de US$26 cuesta prácticamente lo mismo,
+    // así que cobrarlo como porcentaje inflaba los caros y regalaba los
+    // baratos. Este número lo pone Kike en el panel con su costo real.
+    importacion_cop: 30000,
     multiplicador_decant: 3,   // recupera el frasco en ~7 de 18 decants
     costo_vial_cop: 3000,      // atomizador + etiqueta + tiempo
     merma: 0.08,               // se pierde al trasvasar
@@ -500,7 +505,7 @@ window.PerfumesDB = (function () {
   // El costo se paga en dólares y la venta se hace en pesos, así que todo
   // pasa primero por el costo real puesto en Colombia:
   //
-  //   COSTO_REAL_COP = costo_usd × factor_importación × TRM
+  //   COSTO_REAL_COP = (costo_usd × TRM) + importación_cop
   //
   // Sobre esa base:
   //   BOTELLA = COSTO_REAL_COP × (1 + margen_botella)
@@ -589,7 +594,7 @@ window.PerfumesDB = (function () {
     if (!(mililitros > 0)) return null;
 
     const c = config;
-    const costoRealCop = costoUsd * c.factor_importacion * c.trm;
+    const costoRealCop = costoUsd * c.trm + c.importacion_cop;
     const bruto = (costoRealCop / volumen) * mililitros * c.multiplicador_decant + c.costo_vial_cop;
     const piso = c.minimo_decant_cop * (mililitros / c.ml_decant);
     return Math.max(redondearCOP(piso), redondearCOP(bruto));
@@ -601,7 +606,7 @@ window.PerfumesDB = (function () {
     if (typeof costoUsd !== "number" || volumen === null) return null;
 
     const c = config;
-    const costoRealCop = costoUsd * c.factor_importacion * c.trm;
+    const costoRealCop = costoUsd * c.trm + c.importacion_cop;
 
     const decant = precioDecantMl(id, c.ml_decant);
     const botella = redondearCOP(costoRealCop * (1 + c.margen_botella));

@@ -92,8 +92,10 @@
             <input type="number" id="par-trm" data-parametro="trm" min="1" step="1" />
           </div>
           <div class="filtro-campo">
-            <label for="par-importacion">Recargo importación %</label>
-            <input type="number" id="par-importacion" data-parametro="factor_importacion" data-formato="recargo" min="0" max="200" step="1" />
+            <!-- Valor fijo por frasco, no un porcentaje: traer un Creed y
+                 traer un Lattafa cuesta prácticamente lo mismo. -->
+            <label for="par-importacion">Importación por frasco (COP)</label>
+            <input type="number" id="par-importacion" data-parametro="importacion_cop" min="0" step="1000" />
           </div>
           <div class="filtro-campo">
             <label for="par-multiplicador">Multiplicador decant (veces)</label>
