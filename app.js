@@ -17,6 +17,34 @@
     return `https://wa.me/${WHATSAPP_NUMERO}?text=${texto}`;
   }
 
+  // El mismo número, en la forma que se lee. Se deriva de la constante de
+  // arriba a propósito: si el número cambia, se cambia en un solo sitio y
+  // no puede quedar un enlace apuntando a un lado y un texto a otro.
+  function numeroVisible() {
+    const n = WHATSAPP_NUMERO;
+    if (n.length === 12 && n.indexOf("57") === 0) {
+      return "+57 " + n.slice(2, 5) + " " + n.slice(5, 8) + " " + n.slice(8);
+    }
+    return "+" + n;
+  }
+
+  // Cierre de toda pantalla de compra: el botón y, debajo, el número a la
+  // vista. Sin precios en el test, este es el paso siguiente para el
+  // cliente, así que el número no puede estar escondido dentro de un
+  // enlace: hay quien prefiere copiarlo y escribir desde su propio
+  // WhatsApp, y hay quien lo abre desde un computador sin la app.
+  function bloqueContacto(mensaje, etiquetaBoton) {
+    const enlace = generarLinkWhatsApp(mensaje);
+    return `
+      <a href="${enlace}" target="_blank" rel="noopener" class="boton boton-primario detalle-compra-contacto">
+        💬 ${etiquetaBoton || "Contáctanos"}
+      </a>
+      <p class="contacto-numero">
+        WhatsApp <a href="${enlace}" target="_blank" rel="noopener">${numeroVisible()}</a>
+        <span class="contacto-nota">Te confirmamos precio y disponibilidad</span>
+      </p>`;
+  }
+
   /* ============ DEFINICIÓN DEL FLUJO DE PREGUNTAS ============ */
   // Cada pregunta tiene una "clave" (campo de respuesta) y opciones.
   // La pregunta 2 tiene subpreguntas condicionadas por su respuesta.
@@ -947,12 +975,8 @@
     const piezasSet = Math.min(3, candidatasSet.length);
     const hayQueOfrecerSet = conDecant && piezasSet >= 1;
 
-    const linkProbar = generarLinkWhatsApp(
-      `Hola, quiero pedir el decant de 5ml de ${perfume.nombre} 🧪`
-    );
-    const linkBotella = generarLinkWhatsApp(
-      `Hola, quiero pedir la botella completa de ${perfume.nombre} 🍾`
-    );
+    const mensajeProbar = `Hola, quiero pedir el decant de 5ml de ${perfume.nombre} 🧪`;
+    const mensajeBotella = `Hola, quiero pedir la botella completa de ${perfume.nombre} 🍾`;
 
     // El Set se describe según con cuántas fragancias se puede armar de
     // verdad, no según cuántas casillas tiene la pantalla.
@@ -1007,7 +1031,6 @@
 
     function renderDetalleCompra(etiquetaFormato) {
       const zonaDetalle = $("#zona-detalle-formato");
-      const link = etiquetaFormato === "5ML" ? linkProbar : linkBotella;
       zonaDetalle.innerHTML = `
         <div class="detalle-compra-card">
           <div class="detalle-compra-imagen-wrap">
@@ -1015,9 +1038,7 @@
             <img class="detalle-compra-imagen" id="detalle-compra-img" alt="Frasco de ${perfume.nombre}" />
           </div>
           <h3 class="detalle-compra-nombre">${perfume.nombre}</h3>
-          <a href="${link}" target="_blank" rel="noopener" class="boton boton-primario detalle-compra-contacto">
-            💬 Contáctanos
-          </a>
+          ${bloqueContacto(etiquetaFormato === "5ML" ? mensajeProbar : mensajeBotella)}
         </div>
       `;
       const img = $("#detalle-compra-img");
@@ -1163,9 +1184,7 @@
       const zonaContacto = $("#zona-contacto-set");
       zonaContacto.innerHTML =
         etiquetaPrecioSet(elegidas.map((perfume) => ({ id: perfume.id, ml: 5 }))) +
-        `<a href="${generarLinkWhatsApp(mensaje)}" target="_blank" rel="noopener" class="boton boton-primario detalle-compra-contacto" style="margin-top:22px;">
-          💬 Contáctanos para pedir tu Set Ocasión
-        </a>`;
+        bloqueContacto(mensaje, "Contáctanos para pedir tu Set Ocasión");
     }
   }
 
@@ -1245,9 +1264,7 @@
     const mensaje = `Hola, quiero pedir mi Set Ocasión de 15ml: ${detalle} 🎁`;
     $("#zona-contacto-set").innerHTML =
       etiquetaPrecioSet(piezas.map((pieza) => ({ id: pieza.perfume.id, ml: pieza.ml }))) +
-      `<a href="${generarLinkWhatsApp(mensaje)}" target="_blank" rel="noopener" class="boton boton-primario detalle-compra-contacto" style="margin-top:22px;">
-        💬 Contáctanos para pedir tu Set Ocasión
-      </a>`;
+      bloqueContacto(mensaje, "Contáctanos para pedir tu Set Ocasión");
   }
 
   function imgConFallbackSet(perfume, clase) {

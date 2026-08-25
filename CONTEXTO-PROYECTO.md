@@ -180,6 +180,22 @@ Esa sola línea devuelve los tres precios de las tarjetas de formato y el
 total del Set. El panel no cambia: ahí los precios se ven siempre, que es
 donde hacen falta para fijarlos.
 
+### El cierre es el contacto
+
+Como no hay precios, el paso siguiente del cliente es escribir. Las tres
+pantallas de compra (Probar, Botella y Set) terminan con el mismo bloque:
+el botón de WhatsApp y, debajo, **el número a la vista** —
+`+57 315 012 4948` — más una línea que dice que ahí se confirma precio y
+disponibilidad.
+
+El número se escribe una sola vez, en `WHATSAPP_NUMERO` (`app.js`), y la
+versión legible se deriva de ahí con `numeroVisible()`. Así no puede pasar
+que el enlace apunte a un número y el texto muestre otro.
+
+Va a la vista y no solo dentro del enlace porque hay quien prefiere
+copiarlo y escribir desde su propio WhatsApp, y hay quien abre el test en
+un computador sin la aplicación instalada.
+
 ## Disponible en decant
 
 No todo el catálogo se puede decantar: hay frascos que solo se consiguen
