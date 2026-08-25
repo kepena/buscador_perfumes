@@ -158,9 +158,27 @@ El margen se aplica sobre el costo **ya puesto en Colombia**, así que ese
 40% también cubre la plata que se puso en traerlo.
 
 > **Ojo:** el campo VENTA en dólares del panel **no** es el precio que ve el
-> cliente. El cliente ve la botella calculada arriba. VENTA solo decide en
-> qué rango de presupuesto cae la fragancia (Económico / Medio / Sin
-> límite) y sirve para los filtros del panel.
+> cliente. VENTA solo decide en qué rango de presupuesto cae la fragancia
+> (Económico / Medio / Sin límite) y sirve para los filtros del panel.
+
+### El test público no muestra precios
+
+Los precios calculados se ven **solo en el panel**. En el test, el cliente
+elige formato (Probar / Set / Botella) y el precio se lo damos por WhatsApp.
+
+Es deliberado, no un olvido: mientras los costos sean estimaciones, un
+número en pantalla es una promesa, y una promesa equivocada se paga en la
+conversación con el cliente.
+
+Para volver a mostrarlos cuando los costos estén verificados, en `app.js`:
+
+```js
+const MOSTRAR_PRECIOS_EN_TEST = false;   // ponlo en true
+```
+
+Esa sola línea devuelve los tres precios de las tarjetas de formato y el
+total del Set. El panel no cambia: ahí los precios se ven siempre, que es
+donde hacen falta para fijarlos.
 
 ## Disponible en decant
 

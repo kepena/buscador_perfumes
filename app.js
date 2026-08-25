@@ -888,7 +888,17 @@
   // Precio en pesos de cada formato. Si a una fragancia le falta el costo o
   // el volumen no se inventa un número: simplemente no se muestra precio y
   // el cliente pregunta por WhatsApp, como hacía antes.
+  // El test público no enseña precios mientras los costos sean estimaciones:
+  // un número en pantalla es una promesa, y una promesa equivocada se paga
+  // en la conversación de WhatsApp. El cliente elige formato aquí y el
+  // precio se lo damos nosotros.
+  //
+  // Cuando los costos estén verificados uno por uno, esto vuelve a true y
+  // reaparecen los tres precios, el del Set incluido. Nada más que cambiar.
+  const MOSTRAR_PRECIOS_EN_TEST = false;
+
   function etiquetaPrecio(valor) {
+    if (!MOSTRAR_PRECIOS_EN_TEST) return "";
     if (typeof valor !== "number" || valor <= 0) return "";
     return `<div class="formato-precio">${PerfumesDB.formatearCOP(valor)}</div>`;
   }
@@ -897,6 +907,7 @@
   // que aquí solo se puede anticipar el mínimo: los 15 ml salidos de esta
   // misma, con su descuento.
   function precioSetDesde(perfumeId, precios, cuantasPiezas) {
+    if (!MOSTRAR_PRECIOS_EN_TEST) return "";
     if (!precios) return "";
     const piezas = cuantasPiezas || 3;
     const ml = repartirMlSet(piezas);
@@ -1161,6 +1172,7 @@
   // Precio del set ya armado. Se calcula sobre las piezas reales, así que
   // vale igual para tres decants de 5ml que para uno de 10 y otro de 5.
   function etiquetaPrecioSet(piezas) {
+    if (!MOSTRAR_PRECIOS_EN_TEST) return "";
     let precio = null;
     try {
       precio = PerfumesDB.precioSet(piezas);
