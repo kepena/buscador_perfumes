@@ -8,3 +8,9 @@ id,nombre_app,nombre_jomashop,oz,ml,precio_usd,estado
 68,Lattafa Asad Bourbon,Men's Asad Bourbon EDP Spray,3.4,100,27.95,ok
 71,Lattafa Opulent Dubai,Unisex Opulent Dubai EDP Spray,3.4,100,24.99,ok
 122,Lattafa Bade'e Al Oud Honor & Glory,Unisex Bade'e Al Oud Honor & Glory EDP Spray,3.4,100,24.99,ok
+25,Armaf Club de Nuit Intense Man,Men's Club De Nuit Intense EDT Spray,3.6,105,26.99,ok
+26,Armaf Club de Nuit Untold,Unisex Club De Nuit Untold EDP Spray,3.6,105,37.25,ok
+70,Armaf Odyssey Mandarin Sky,Men's Odyssey Mandarin Sky EDP Spray,3.4,100,28.25,ok
+108,Armaf Club de Nuit Urban Man Elixir,Men's Club De Nuit Urban Elixir EDP Spray,3.55,105,36.95,ok
+124,Armaf Club de Nuit Blue Iconic,Men's Club De Nuit Blue Iconic EDP Spray,3.6,105,39.99,ok
+125,Armaf Club de Nuit Untold,Unisex Club De Nuit Untold EDP Spray,3.6,105,37.25,duplicado-de-26
