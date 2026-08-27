@@ -390,7 +390,7 @@ const PERFUMES = [
   {
     id: 24,
     activo: true,
-    nombre: "Lattafa Fakhar",
+    nombre: "Lattafa Art of Universe",
     tipo: "Árabe",
     aromaPrincipal: "Fresco",
     subAroma: "Menta / Té / Verde",
@@ -400,8 +400,8 @@ const PERFUMES = [
     estilo: "Versátil",
     potencia: "Normal",
     presupuesto: "Económico",
-    notas: "Manzana, jengibre, bergamota / Salvia, lavanda, enebro, geranio / Madera ambarada, haba tonka, cedro, vetiver",
-    imagen: "Lattafa%20Fakhar.avif"
+    notas: "Mandarina, jengibre, bergamota, menta / Pera, azahar / Almizcle, ámbar, cedro",
+    imagen: "Lattafa%20Art%20of%20Universe.avif"
   },
   {
     id: 25,
@@ -486,18 +486,18 @@ const PERFUMES = [
   {
     id: 30,
     activo: true,
-    nombre: "Afnan Supremacy Not Only Intense",
+    nombre: "Afnan Turathi Electric",
     tipo: "Árabe",
-    aromaPrincipal: "Madera",
-    subAroma: "Madera suave / Cedro",
-    notaEspecifica: "cedro-seco",
-    momento: "Citas",
-    clima: "Frío / Noche",
+    aromaPrincipal: "Cítrico",
+    subAroma: "Cítrico puro",
+    notaEspecifica: "citrico-flor-madera",
+    momento: "Diario",
+    clima: "Caliente / Sol",
     estilo: "Versátil",
-    potencia: "Modo Bestia",
+    potencia: "Normal",
     presupuesto: "Económico",
-    notas: "Grosella negra, bergamota, manzana / Musgo de encina, patchouli, lavanda / Ámbar gris, almizcle, azafrán",
-    imagen: "Afnan%20Supremacy%20Not%20Only%20Intense.avif"
+    notas: "Bergamota, toronja rosa, pera, mandarina / Manzana, cedro, azahar / Vainilla, ámbar, almizcle, ambroxan",
+    imagen: "Afnan%20Turathi%20Electric.avif"
   },
   {
     id: 31,
@@ -1400,18 +1400,18 @@ const PERFUMES = [
   {
     id: 88,
     activo: true,
-    nombre: "Lattafa Qaa'ed Intense",
+    nombre: "Lattafa The Kingdom",
     tipo: "Árabe",
     aromaPrincipal: "Cuero / Tabaco",
     subAroma: "Tabaco dulce",
-    notaEspecifica: "tabaco-cacao",
+    notaEspecifica: "tabaco-miel",
     momento: "Citas",
     clima: "Frío / Noche",
     estilo: "Versátil",
     potencia: "Modo Bestia",
     presupuesto: "Económico",
-    notas: "Tabaco, canela, miel blanca / Vainilla, cacao, mirra / Ámbar, labdanum, styrax",
-    imagen: "Qaa%27ed%20Intense%20Lattafa%20Perfumes%20for%20men.avif"
+    notas: "Lavanda, menta, salvia / Vainilla, tabaco, azahar / Haba tonka, benjuí, labdanum",
+    imagen: "Lattafa%20The%20Kingdom.avif"
   },
   {
     id: 89,

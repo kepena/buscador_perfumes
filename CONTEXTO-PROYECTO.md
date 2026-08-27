@@ -228,6 +228,9 @@ vende. Los cambios hechos hasta ahora:
 | 130 | Tom Ford Neroli Portofino Forte | Tom Ford Neroli Portofino |
 | 106 | Jean Paul Gaultier Le Beau | Jean Paul Gaultier Le Beau Le Parfum |
 | 115 | Xerjoff Uden | Xerjoff Erba Gold |
+| 24 | Lattafa Fakhar | Lattafa Art of Universe |
+| 30 | Afnan Supremacy Not Only Intense | Afnan Turathi Electric |
+| 88 | Lattafa Qaa'ed Intense | Lattafa The Kingdom |
 
 Al renombrar, la foto vieja muestra el frasco equivocado, así que se borró
 del repo. `imagen` apunta al archivo nuevo, que todavía no existe; hasta
@@ -235,9 +238,21 @@ que Kike suba la foto (o pegue una URL en el panel) sale `FALLBACK_IMG`.
 Las tres pantallas que muestran frasco ya tienen ese respaldo, así que no
 se ve un ícono roto.
 
-Pendientes de reemplazo, esperando que Kike diga por cuál:
-**24 Lattafa Fakhar**, **30 Afnan Supremacy Not Only Intense**,
-**88 Lattafa Qaa'ed Intense**.
+Las notas de los tres reemplazos se verificaron en Fragrantica al momento
+de meterlos, igual que el resto del catálogo. Sus filas viejas en
+`perfume_overrides` traían el costo del perfume anterior, así que hay que
+limpiarlas:
+
+```sql
+delete from public.perfume_overrides where id = 72;
+
+update public.perfume_overrides
+   set costo_usd = null, venta_usd = null, imagen_url = null, verificado = false
+ where id in (24, 30, 88);
+```
+
+El id 26 (Armaf Club de Nuit Untold, duplicado del 125) sigue desactivado
+y es el único cupo libre del catálogo.
 
 ## Disponible en decant
 
