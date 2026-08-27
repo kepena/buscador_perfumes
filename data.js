@@ -1494,23 +1494,7 @@ const PERFUMES = [
     notas: "Bergamota, lavanda / Miel, tabaco / Haba tonka, vainilla, sándalo",
     imagen: "Xerjoff%20Naxos.avif"
   },
-  {
-    id: 96,
-    activo: true,
-    nombre: "Amouage Interlude Woman",
-    tipo: "Lujo",
-    aromaPrincipal: "Madera",
-    subAroma: "Oud exótico",
-    notaEspecifica: "fuerte-resinoso",
-    momento: "Fiesta",
-    clima: "Frío / Noche",
-    estilo: "Formal",
-    potencia: "Modo Bestia",
-    presupuesto: "Sin límite",
-    notas: "Incienso, bergamota / Jazmín, clavo / Pachulí, oud, ámbar",
-    imagen: "Amouage%20Interlude%20Woman.avif"
-  },
-  {
+    {
     id: 97,
     activo: true,
     nombre: "Parfums de Marly Percival",

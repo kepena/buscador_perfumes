@@ -17,7 +17,7 @@ DNS: gestionado en **HostGator** (CNAME apuntando a kepena.github.io)
 |---|---|
 | `index.html` | Pantalla de inicio + test de preguntas + resultados + Set Ocasión |
 | `styles.css` | Todos los estilos (tema dorado/oscuro) |
-| `data.js` | Catálogo: array `PERFUMES` con 133 fragancias (132 activas) + `FALLBACK_IMG` |
+| `data.js` | Catálogo: array `PERFUMES` con 132 fragancias (131 activas) + `FALLBACK_IMG` |
 | `app.js` | Preguntas dinámicas, motor de scoring, resultados, Set Ocasión, WhatsApp |
 | `db.js` | **Capa de acceso a Supabase.** Precios, fotos y activaciones |
 | `catalogo.html` | Panel de administración (protegido con contraseña) |
@@ -268,6 +268,13 @@ delete from public.perfume_overrides where id in (4, 52, 132, 133);
 El id 118 se llamaba "Giorgio Armani Stronger With You Powerfully"; la
 línea Stronger With You es de **Emporio** Armani, así que se corrigió el
 nombre y el archivo de la foto.
+
+También salió del catálogo **96 Amouage Interlude Woman**, por decisión de
+Kike al costear la marca:
+
+```sql
+delete from public.perfume_overrides where id = 96;
+```
 
 ## Disponible en decant
 
@@ -524,7 +531,7 @@ Se usa en: portada, tarjeta "Probar", tarjeta "Botella", Set Ocasión.
 
 ## Historial de decisiones ya tomadas (para no repetir trabajo)
 
-- 133 entradas, 132 activas (1 duplicado desactivado a propósito:
+- 132 entradas, 131 activas (1 duplicado desactivado a propósito:
   id 26 "Armaf Club de Nuit Untold").
 - Las notas fueron verificadas una por una contra fuentes reales
   (Fragrantica) — no inventar notas nuevas sin verificar. **Esto aplica
