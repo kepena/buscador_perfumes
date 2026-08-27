@@ -163,6 +163,26 @@ El margen se aplica sobre el costo **ya puesto en Colombia**, así que ese
 > cliente. VENTA solo decide en qué rango de presupuesto cae la fragancia
 > (Económico / Medio / Sin límite) y sirve para los filtros del panel.
 
+### El nombre lleva la concentración
+
+Una misma fragancia sale en EDT, EDP, Parfum o Extrait, y son perfumes
+distintos: distinto olor, distinta duración y distinto precio. Un nombre
+como "Montblanc Legend" no dice cuál es, y eso hizo comprar la referencia
+equivocada más de una vez al costear el catálogo.
+
+Por eso **el nombre en `data.js` termina en la concentración** cuando la
+fragancia se vende en varias: *Montblanc Legend EDT*, *Ralph Lauren Polo
+Blue EDT*, *Giorgio Armani Code EDP*, *MFK Oud Satin Mood Extrait*. La
+concentración sale de la ficha real del proveedor, anotada en
+`precios-jomashop.csv` — no se adivina.
+
+No la llevan las marcas árabes (Lattafa, Armaf, Afnan, Al Haramain,
+Rasasi, Swiss Arabian, French Avenue): cada nombre suyo existe en una sola
+concentración, así que añadirla sería ruido.
+
+Al renombrar **no se toca el campo `imagen`**: es el mismo frasco, solo el
+nombre es más preciso. Cambiar la ruta habría dejado sesenta fotos rotas.
+
 ### Costo de lista, descuento por WhatsApp
 
 Los costos guardados son los de **lista** de Jomashop, no los del cupón.

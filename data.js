@@ -69,7 +69,7 @@ const PERFUMES = [
     {
     id: 5,
     activo: true,
-    nombre: "Versace Eros",
+    nombre: "Versace Eros EDP",
     tipo: "Diseñador",
     aromaPrincipal: "Dulce / Gourmand",
     subAroma: "Frutal jugoso",
@@ -85,7 +85,7 @@ const PERFUMES = [
   {
     id: 6,
     activo: true,
-    nombre: "Giorgio Armani Acqua di Giò",
+    nombre: "Giorgio Armani Acqua di Giò EDT",
     tipo: "Diseñador",
     aromaPrincipal: "Fresco",
     subAroma: "Marina / Salada",
@@ -149,7 +149,7 @@ const PERFUMES = [
   {
     id: 10,
     activo: true,
-    nombre: "Carolina Herrera 212 VIP Black",
+    nombre: "Carolina Herrera 212 VIP Black EDP",
     tipo: "Diseñador",
     aromaPrincipal: "Dulce / Gourmand",
     subAroma: "Vainilla / Caramelo",
@@ -165,7 +165,7 @@ const PERFUMES = [
   {
     id: 11,
     activo: true,
-    nombre: "Prada Candy",
+    nombre: "Prada Candy EDP",
     tipo: "Diseñador",
     aromaPrincipal: "Dulce / Gourmand",
     subAroma: "Vainilla / Caramelo",
@@ -181,7 +181,7 @@ const PERFUMES = [
   {
     id: 12,
     activo: true,
-    nombre: "Marc Jacobs Daisy",
+    nombre: "Marc Jacobs Daisy EDT",
     tipo: "Diseñador",
     aromaPrincipal: "Dulce / Gourmand",
     subAroma: "Frutal jugoso",
@@ -197,7 +197,7 @@ const PERFUMES = [
   {
     id: 13,
     activo: true,
-    nombre: "Lancôme La Vie Est Belle",
+    nombre: "Lancôme La Vie Est Belle EDP",
     tipo: "Diseñador",
     aromaPrincipal: "Dulce / Gourmand",
     subAroma: "Vainilla / Caramelo",
@@ -213,7 +213,7 @@ const PERFUMES = [
   {
     id: 14,
     activo: true,
-    nombre: "Yves Saint Laurent Opium",
+    nombre: "Yves Saint Laurent Opium EDP",
     tipo: "Diseñador",
     aromaPrincipal: "Cálido / Especiado",
     subAroma: "Miel / Canela",
@@ -229,7 +229,7 @@ const PERFUMES = [
   {
     id: 15,
     activo: true,
-    nombre: "Davidoff Cool Water",
+    nombre: "Davidoff Cool Water EDT",
     tipo: "Diseñador",
     aromaPrincipal: "Fresco",
     subAroma: "Menta / Té / Verde",
@@ -245,7 +245,7 @@ const PERFUMES = [
   {
     id: 16,
     activo: true,
-    nombre: "Hugo Boss Bottled",
+    nombre: "Hugo Boss Bottled EDT",
     tipo: "Diseñador",
     aromaPrincipal: "Dulce / Gourmand",
     subAroma: "Frutal jugoso",
@@ -261,7 +261,7 @@ const PERFUMES = [
   {
     id: 17,
     activo: true,
-    nombre: "Ralph Lauren Polo Blue",
+    nombre: "Ralph Lauren Polo Blue EDT",
     tipo: "Diseñador",
     aromaPrincipal: "Fresco",
     subAroma: "Marina / Salada",
@@ -277,7 +277,7 @@ const PERFUMES = [
   {
     id: 18,
     activo: true,
-    nombre: "Calvin Klein CK One",
+    nombre: "Calvin Klein CK One EDT",
     tipo: "Diseñador",
     aromaPrincipal: "Cítrico",
     subAroma: "Cítrico puro",
@@ -601,7 +601,7 @@ const PERFUMES = [
   {
     id: 38,
     activo: true,
-    nombre: "Tom Ford Tobacco Vanille",
+    nombre: "Tom Ford Tobacco Vanille EDP",
     tipo: "Lujo",
     aromaPrincipal: "Cuero / Tabaco",
     subAroma: "Tabaco dulce",
@@ -617,7 +617,7 @@ const PERFUMES = [
   {
     id: 39,
     activo: true,
-    nombre: "Tom Ford Oud Wood",
+    nombre: "Tom Ford Oud Wood EDP",
     tipo: "Lujo",
     aromaPrincipal: "Madera",
     subAroma: "Oud exótico",
@@ -633,7 +633,7 @@ const PERFUMES = [
   {
     id: 40,
     activo: true,
-    nombre: "Le Labo Santal 33",
+    nombre: "Le Labo Santal 33 EDP",
     tipo: "Lujo",
     aromaPrincipal: "Madera",
     subAroma: "Madera suave / Cedro",
@@ -649,7 +649,7 @@ const PERFUMES = [
   {
     id: 41,
     activo: true,
-    nombre: "Creed Aventus",
+    nombre: "Creed Aventus EDP",
     tipo: "Lujo",
     aromaPrincipal: "Madera",
     subAroma: "Madera suave / Cedro",
@@ -665,7 +665,7 @@ const PERFUMES = [
   {
     id: 42,
     activo: true,
-    nombre: "Parfums de Marly Layton",
+    nombre: "Parfums de Marly Layton EDP",
     tipo: "Lujo",
     aromaPrincipal: "Cálido / Especiado",
     subAroma: "Miel / Canela",
@@ -681,7 +681,7 @@ const PERFUMES = [
   {
     id: 43,
     activo: true,
-    nombre: "Xerjoff Alexandria II",
+    nombre: "Xerjoff Alexandria II EDP",
     tipo: "Lujo",
     aromaPrincipal: "Madera",
     subAroma: "Oud exótico",
@@ -697,7 +697,7 @@ const PERFUMES = [
   {
     id: 44,
     activo: true,
-    nombre: "Amouage Interlude Man",
+    nombre: "Amouage Interlude Man EDP",
     tipo: "Lujo",
     aromaPrincipal: "Cuero / Tabaco",
     subAroma: "Cuero elegante",
@@ -713,7 +713,7 @@ const PERFUMES = [
   {
     id: 45,
     activo: true,
-    nombre: "Acqua di Parma Colonia",
+    nombre: "Acqua di Parma Colonia Eau de Cologne",
     tipo: "Lujo",
     aromaPrincipal: "Fresco",
     subAroma: "Marina / Salada",
@@ -729,7 +729,7 @@ const PERFUMES = [
   {
     id: 46,
     activo: true,
-    nombre: "Escentric Molecules Molecule 01",
+    nombre: "Escentric Molecules Molecule 01 EDT",
     tipo: "Lujo",
     aromaPrincipal: "Limpio y Suave",
     subAroma: "Jabón fino",
@@ -745,7 +745,7 @@ const PERFUMES = [
   {
     id: 47,
     activo: true,
-    nombre: "Guerlain L'Homme Idéal",
+    nombre: "Guerlain L'Homme Idéal EDT",
     tipo: "Lujo",
     aromaPrincipal: "Dulce / Gourmand",
     subAroma: "Vainilla / Caramelo",
@@ -761,7 +761,7 @@ const PERFUMES = [
   {
     id: 48,
     activo: true,
-    nombre: "Montblanc Explorer",
+    nombre: "Montblanc Explorer EDP",
     tipo: "Lujo",
     aromaPrincipal: "Madera",
     subAroma: "Madera suave / Cedro",
@@ -793,7 +793,7 @@ const PERFUMES = [
   {
     id: 50,
     activo: true,
-    nombre: "Diptyque Eau Capitale",
+    nombre: "Diptyque Eau Capitale EDP",
     tipo: "Lujo",
     aromaPrincipal: "Madera",
     subAroma: "Madera suave / Cedro",
@@ -810,7 +810,7 @@ const PERFUMES = [
   {
     id: 51,
     activo: true,
-    nombre: "Giorgio Armani Code",
+    nombre: "Giorgio Armani Code EDP",
     tipo: "Diseñador",
     aromaPrincipal: "Cítrico",
     subAroma: "Cítrico puro",
@@ -826,7 +826,7 @@ const PERFUMES = [
     {
     id: 53,
     activo: true,
-    nombre: "Prada Luna Rossa Carbon",
+    nombre: "Prada Luna Rossa Carbon EDT",
     tipo: "Diseñador",
     aromaPrincipal: "Fresco",
     subAroma: "Menta / Té / Verde",
@@ -842,7 +842,7 @@ const PERFUMES = [
   {
     id: 54,
     activo: true,
-    nombre: "Versace Dylan Blue",
+    nombre: "Versace Dylan Blue EDT",
     tipo: "Diseñador",
     aromaPrincipal: "Fresco",
     subAroma: "Marina / Salada",
@@ -858,7 +858,7 @@ const PERFUMES = [
   {
     id: 55,
     activo: true,
-    nombre: "Montblanc Legend",
+    nombre: "Montblanc Legend EDT",
     tipo: "Diseñador",
     aromaPrincipal: "Madera",
     subAroma: "Madera suave / Cedro",
@@ -874,7 +874,7 @@ const PERFUMES = [
   {
     id: 56,
     activo: true,
-    nombre: "Azzaro The Most Wanted",
+    nombre: "Azzaro The Most Wanted EDP",
     tipo: "Diseñador",
     aromaPrincipal: "Cálido / Especiado",
     subAroma: "Ámbar / Pimienta",
@@ -890,7 +890,7 @@ const PERFUMES = [
   {
     id: 57,
     activo: true,
-    nombre: "Yves Saint Laurent La Nuit de l'Homme",
+    nombre: "Yves Saint Laurent La Nuit de l'Homme EDT",
     tipo: "Diseñador",
     aromaPrincipal: "Cálido / Especiado",
     subAroma: "Ámbar / Pimienta",
@@ -906,7 +906,7 @@ const PERFUMES = [
   {
     id: 58,
     activo: true,
-    nombre: "Dolce & Gabbana Light Blue",
+    nombre: "Dolce & Gabbana Light Blue EDT",
     tipo: "Diseñador",
     aromaPrincipal: "Cítrico",
     subAroma: "Cítrico puro",
@@ -922,7 +922,7 @@ const PERFUMES = [
   {
     id: 59,
     activo: true,
-    nombre: "Burberry Hero",
+    nombre: "Burberry Hero EDT",
     tipo: "Diseñador",
     aromaPrincipal: "Madera",
     subAroma: "Madera suave / Cedro",
@@ -938,7 +938,7 @@ const PERFUMES = [
   {
     id: 60,
     activo: true,
-    nombre: "Guerlain Habit Rouge",
+    nombre: "Guerlain Habit Rouge EDP",
     tipo: "Diseñador",
     aromaPrincipal: "Cuero / Tabaco",
     subAroma: "Cuero elegante",
@@ -954,7 +954,7 @@ const PERFUMES = [
   {
     id: 61,
     activo: true,
-    nombre: "Tom Ford Noir Extreme",
+    nombre: "Tom Ford Noir Extreme EDP",
     tipo: "Diseñador",
     aromaPrincipal: "Cálido / Especiado",
     subAroma: "Ámbar / Pimienta",
@@ -986,7 +986,7 @@ const PERFUMES = [
   {
     id: 63,
     activo: true,
-    nombre: "Jean Paul Gaultier Le Male",
+    nombre: "Jean Paul Gaultier Le Male EDT",
     tipo: "Diseñador",
     aromaPrincipal: "Cálido / Especiado",
     subAroma: "Miel / Canela",
@@ -1018,7 +1018,7 @@ const PERFUMES = [
   {
     id: 65,
     activo: true,
-    nombre: "Versace Eros Flame",
+    nombre: "Versace Eros Flame EDP",
     tipo: "Diseñador",
     aromaPrincipal: "Cálido / Especiado",
     subAroma: "Miel / Canela",
@@ -1162,7 +1162,7 @@ const PERFUMES = [
   {
     id: 75,
     activo: true,
-    nombre: "Parfums de Marly Herod",
+    nombre: "Parfums de Marly Herod EDP",
     tipo: "Lujo",
     aromaPrincipal: "Cálido / Especiado",
     subAroma: "Miel / Canela",
@@ -1178,7 +1178,7 @@ const PERFUMES = [
   {
     id: 76,
     activo: true,
-    nombre: "Xerjoff Erba Pura",
+    nombre: "Xerjoff Erba Pura EDP",
     tipo: "Lujo",
     aromaPrincipal: "Dulce / Gourmand",
     subAroma: "Frutal jugoso",
@@ -1194,7 +1194,7 @@ const PERFUMES = [
   {
     id: 77,
     activo: true,
-    nombre: "Amouage Reflection Man",
+    nombre: "Amouage Reflection Man EDP",
     tipo: "Lujo",
     aromaPrincipal: "Fresco",
     subAroma: "Menta / Té / Verde",
@@ -1210,7 +1210,7 @@ const PERFUMES = [
   {
     id: 78,
     activo: true,
-    nombre: "Initio Oud for Greatness",
+    nombre: "Initio Oud for Greatness EDP",
     tipo: "Lujo",
     aromaPrincipal: "Madera",
     subAroma: "Oud exótico",
@@ -1226,7 +1226,7 @@ const PERFUMES = [
   {
     id: 79,
     activo: true,
-    nombre: "Nishane Hacivat",
+    nombre: "Nishane Hacivat Extrait",
     tipo: "Lujo",
     aromaPrincipal: "Madera",
     subAroma: "Madera suave / Cedro",
@@ -1242,7 +1242,7 @@ const PERFUMES = [
   {
     id: 80,
     activo: true,
-    nombre: "Byredo Bal d'Afrique",
+    nombre: "Byredo Bal d'Afrique EDP",
     tipo: "Lujo",
     aromaPrincipal: "Fresco",
     subAroma: "Marina / Salada",
@@ -1402,7 +1402,7 @@ const PERFUMES = [
   {
     id: 90,
     activo: true,
-    nombre: "Nautica Voyage",
+    nombre: "Nautica Voyage EDT",
     tipo: "Diseñador",
     aromaPrincipal: "Fresco",
     subAroma: "Marina / Salada",
@@ -1417,7 +1417,7 @@ const PERFUMES = [
   {
     id: 91,
     activo: true,
-    nombre: "Kilian Angel's Share",
+    nombre: "Kilian Angel's Share EDP",
     tipo: "Lujo",
     aromaPrincipal: "Cálido / Especiado",
     subAroma: "Miel / Canela",
@@ -1449,7 +1449,7 @@ const PERFUMES = [
   {
     id: 93,
     activo: true,
-    nombre: "Mancera Cedrat Boise",
+    nombre: "Mancera Cedrat Boise EDP",
     tipo: "Lujo",
     aromaPrincipal: "Cítrico",
     subAroma: "Cítrico puro",
@@ -1481,7 +1481,7 @@ const PERFUMES = [
   {
     id: 95,
     activo: true,
-    nombre: "Xerjoff Naxos",
+    nombre: "Xerjoff Naxos EDP",
     tipo: "Lujo",
     aromaPrincipal: "Cuero / Tabaco",
     subAroma: "Tabaco dulce",
@@ -1497,7 +1497,7 @@ const PERFUMES = [
     {
     id: 97,
     activo: true,
-    nombre: "Parfums de Marly Percival",
+    nombre: "Parfums de Marly Percival EDP",
     tipo: "Lujo",
     aromaPrincipal: "Limpio y Suave",
     subAroma: "Jabón fino",
@@ -1513,7 +1513,7 @@ const PERFUMES = [
   {
     id: 99,
     activo: true,
-    nombre: "Bvlgari Man in Black",
+    nombre: "Bvlgari Man in Black EDP",
     tipo: "Lujo",
     aromaPrincipal: "Cuero / Tabaco",
     subAroma: "Cuero elegante",
@@ -1529,7 +1529,7 @@ const PERFUMES = [
   {
     id: 100,
     activo: true,
-    nombre: "Maison Francis Kurkdjian Grand Soir",
+    nombre: "Maison Francis Kurkdjian Grand Soir EDP",
     tipo: "Lujo",
     aromaPrincipal: "Cálido / Especiado",
     subAroma: "Ámbar / Pimienta",
@@ -1563,7 +1563,7 @@ const PERFUMES = [
   {
     id: 102,
     activo: true,
-    nombre: "Paco Rabanne 1 Million Lucky",
+    nombre: "Paco Rabanne 1 Million Lucky EDT",
     tipo: "Diseñador",
     aromaPrincipal: "Dulce / Gourmand",
     subAroma: "Frutal jugoso",
@@ -1612,7 +1612,7 @@ const PERFUMES = [
   {
     id: 105,
     activo: true,
-    nombre: "Jean Paul Gaultier Le Beau Paradise Garden",
+    nombre: "Jean Paul Gaultier Le Beau Paradise Garden EDP",
     tipo: "Diseñador",
     aromaPrincipal: "Dulce / Gourmand",
     subAroma: "Frutal jugoso",
@@ -1645,7 +1645,7 @@ const PERFUMES = [
   {
     id: 107,
     activo: true,
-    nombre: "Xerjoff Torino 21",
+    nombre: "Xerjoff Torino 21 EDP",
     tipo: "Lujo",
     aromaPrincipal: "Fresco",
     subAroma: "Menta / Té / Verde",
@@ -1694,7 +1694,7 @@ const PERFUMES = [
   {
     id: 112,
     activo: true,
-    nombre: "Emporio Armani Stronger With You Intensely",
+    nombre: "Emporio Armani Stronger With You Intensely EDP",
     tipo: "Diseñador",
     aromaPrincipal: "Cálido / Especiado",
     subAroma: "Miel / Canela",
@@ -1728,7 +1728,7 @@ const PERFUMES = [
   {
     id: 114,
     activo: true,
-    nombre: "Tom Ford Fucking Fabulous",
+    nombre: "Tom Ford Fucking Fabulous EDP",
     tipo: "Lujo",
     aromaPrincipal: "Cuero / Tabaco",
     subAroma: "Cuero elegante",
@@ -1745,7 +1745,7 @@ const PERFUMES = [
   {
     id: 115,
     activo: true,
-    nombre: "Xerjoff Erba Gold",
+    nombre: "Xerjoff Erba Gold EDP",
     tipo: "Lujo",
     aromaPrincipal: "Cítrico",
     subAroma: "Cítrico puro",
@@ -1762,7 +1762,7 @@ const PERFUMES = [
   {
     id: 116,
     activo: true,
-    nombre: "Xerjoff Accento",
+    nombre: "Xerjoff Accento EDP",
     tipo: "Lujo",
     aromaPrincipal: "Dulce / Gourmand",
     subAroma: "Frutal jugoso",
@@ -1796,7 +1796,7 @@ const PERFUMES = [
   {
     id: 118,
     activo: true,
-    nombre: "Emporio Armani Stronger With You Powerfully",
+    nombre: "Emporio Armani Stronger With You Powerfully EDP",
     tipo: "Diseñador",
     aromaPrincipal: "Dulce / Gourmand",
     subAroma: "Vainilla / Caramelo",
@@ -1948,7 +1948,7 @@ const PERFUMES = [
   {
     id: 128,
     activo: true,
-    nombre: "Tom Ford Tuscan Leather",
+    nombre: "Tom Ford Tuscan Leather EDP",
     tipo: "Lujo",
     aromaPrincipal: "Cuero / Tabaco",
     subAroma: "Cuero elegante",
@@ -1982,7 +1982,7 @@ const PERFUMES = [
   {
     id: 130,
     activo: true,
-    nombre: "Tom Ford Neroli Portofino",
+    nombre: "Tom Ford Neroli Portofino EDP",
     tipo: "Lujo",
     aromaPrincipal: "Cítrico",
     subAroma: "Cítrico verde / aromático",
@@ -2015,7 +2015,7 @@ const PERFUMES = [
       {
     id: 134,
     activo: true,
-    nombre: "Creed Green Irish Tweed",
+    nombre: "Creed Green Irish Tweed EDP",
     tipo: "Lujo",
     aromaPrincipal: "Fresco",
     subAroma: "Menta / Té / Verde",
@@ -2032,7 +2032,7 @@ const PERFUMES = [
   {
     id: 135,
     activo: true,
-    nombre: "Creed Silver Mountain Water",
+    nombre: "Creed Silver Mountain Water EDP",
     tipo: "Lujo",
     aromaPrincipal: "Cítrico",
     subAroma: "Cítrico verde / aromático",
@@ -2081,7 +2081,7 @@ const PERFUMES = [
   {
     id: 139,
     activo: true,
-    nombre: "Maison Francis Kurkdjian Oud Satin Mood",
+    nombre: "Maison Francis Kurkdjian Oud Satin Mood Extrait",
     tipo: "Lujo",
     aromaPrincipal: "Madera",
     subAroma: "Oud exótico",
@@ -2098,7 +2098,7 @@ const PERFUMES = [
   {
     id: 140,
     activo: true,
-    nombre: "Parfums de Marly Pegasus",
+    nombre: "Parfums de Marly Pegasus EDP",
     tipo: "Lujo",
     aromaPrincipal: "Dulce / Gourmand",
     subAroma: "Vainilla / Caramelo",
@@ -2115,7 +2115,7 @@ const PERFUMES = [
   {
     id: 141,
     activo: true,
-    nombre: "Parfums de Marly Althaïr",
+    nombre: "Parfums de Marly Althaïr EDP",
     tipo: "Lujo",
     aromaPrincipal: "Dulce / Gourmand",
     subAroma: "Vainilla / Caramelo",
