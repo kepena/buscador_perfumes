@@ -14,8 +14,8 @@ id,nombre_app,nombre_jomashop,oz,ml,precio_usd,estado,precio_con_cupon
 108,Armaf Club de Nuit Urban Man Elixir,Men's Club De Nuit Urban Elixir EDP Spray,3.55,105,36.95,ok,
 124,Armaf Club de Nuit Blue Iconic,Men's Club De Nuit Blue Iconic EDP Spray,3.6,105,39.99,ok,
 125,Armaf Club de Nuit Untold,Unisex Club De Nuit Untold EDP Spray,3.6,105,37.25,duplicado-de-26,
-38,Tom Ford Tobacco Vanille,Unisex Tobacco Vanille EDP Spray,1.7,50,279.05,ok,223.24
-39,Tom Ford Oud Wood,Unisex Oud Wood EDP Spray Private Blend,1.7,50,192.98,ok,154.38
+38,Tom Ford Tobacco Vanille,Unisex Tobacco Vanille EDP Spray,1.7,50,279.05,revisar-volumen-en-la-app,223.24
+39,Tom Ford Oud Wood,Unisex Oud Wood EDP Spray Private Blend,1.7,50,192.98,revisar-volumen-en-la-app,154.38
 61,Tom Ford Noir Extreme,Noir Extreme EDP Spray,3.4,100,148.69,ok,118.95
 73,Tom Ford Ombré Leather Parfum,Unisex Ombre Leather Parfum Spray,3.4,100,206.19,ok,164.95
 142,Al Haramain Détour Noir,Unisex Detour Noir EDP Spray,3.4,100,24.99,ok,
@@ -37,7 +37,7 @@ id,nombre_app,nombre_jomashop,oz,ml,precio_usd,estado,precio_con_cupon
 134,Creed Green Irish Tweed,Green Irish Tweed / Creed EDP Spray,3.3,100,329.95,ok,
 135,Creed Silver Mountain Water,Unisex Creed Silver Mountain Water EDP Spray,3.3,100,329.50,ok,
 2,Dior Sauvage EDP,Sauvage / Christian Dior EDP Spray,3.4,100,203.50,ok,142.45
-3,Dior Sauvage Elixir,Christian Dior Men's Sauvage Elixir Spray,2.0,60,235.56,ok,164.89
+3,Dior Sauvage Elixir,Christian Dior Men's Sauvage Elixir Spray,2.0,60,235.56,revisar-volumen-en-la-app,164.89
 42,Parfums de Marly Layton,Men's Layton EDP Spray,4.2,125,360.00,ok,
 75,Parfums de Marly Herod,Herod by Parfums de Marly for Men EDP Spray,4.2,125,360.00,ok,
 97,Parfums de Marly Percival,Men's Percival EDP Spray,4.2,125,360.00,ok,
@@ -46,13 +46,14 @@ id,nombre_app,nombre_jomashop,oz,ml,precio_usd,estado,precio_con_cupon
 7,Yves Saint Laurent Y EDP,Men's Y EDP Spray,3.3,100,124.99,ok,99.99
 136,Yves Saint Laurent Y Le Parfum,Men's Y Le Parfum 2025 Parfum,3.4,100,139.43,ok,111.54
 137,Yves Saint Laurent MYSLF L'Absolu,Men's MYSLF L'Absolu Parfum,3.3,100,184.05,ok,147.24
-126,Armaf Club de Nuit Precieux I,Men's Club De Nuit Precieux 1 Extrait de Parfum,1.85,55,46.99,volumen-registrado-105,
-114,Tom Ford Fucking Fabulous,Men's Private Blend Fucking Fabulous EDP Spray,3.4,100,424.36,volumen-registrado-50,339.49
-128,Tom Ford Tuscan Leather,Unisex Tuscan Leather EDP Spray,3.4,100,329.79,volumen-registrado-50,263.83
-129,Tom Ford Grey Vetiver Parfum,Grey Vetiver Parfum Spray,3.4,100,144.99,volumen-registrado-50,
-131,Tom Ford Black Orchid Parfum,Black Orchid Parfum Spray,3.4,100,175.75,volumen-registrado-50,140.60
-43,Xerjoff Alexandria II,Unisex Oud Stars Alexandria II EDP Spray,3.4,100,368.89,volumen-registrado-50,294.95
-117,Creed Aventus Absolu,Men's Absolu Aventus EDP Spray,3.4,100,471.90,volumen-registrado-75,419.99
-64,Dior Homme Intense,Christian Dior Men's Homme Intense EDP Spray,5.0,150,221.70,volumen-registrado-100,155.19
-35,Al Haramain L'Aventure,LAventure by Al Haramain for Men EDP Spray,6.76,200,36.99,volumen-registrado-100,
-31,Al Haramain Amber Oud Gold,Amber Oud Gold EDP Spray,3.4,100,44.99,producto-y-volumen-por-confirmar,
+126,Armaf Club de Nuit Precieux I,Men's Club De Nuit Precieux 1 Extrait de Parfum,1.85,55,46.99,ok-cambiar-app-a-55ml,
+114,Tom Ford Fucking Fabulous,Men's Private Blend Fucking Fabulous EDP Spray,3.4,100,424.36,ok,339.49
+128,Tom Ford Tuscan Leather,Unisex Tuscan Leather EDP Spray,3.4,100,329.79,ok,263.83
+129,Tom Ford Grey Vetiver Parfum,Grey Vetiver Parfum Spray,3.4,100,144.99,ok,
+131,Tom Ford Black Orchid Parfum,Black Orchid Parfum Spray,3.4,100,175.75,ok,140.60
+43,Xerjoff Alexandria II,Unisex Oud Stars Alexandria II EDP Spray,3.4,100,368.89,ok,294.95
+117,Creed Aventus Absolu,Men's Absolu Aventus EDP Spray,3.4,100,471.90,ok,419.99
+64,Dior Homme Intense,Men's Dior Homme Intense EDP Spray,3.4,100,187.06,ok,130.94
+35,Al Haramain L'Aventure,Men's L'Aventure EDP Spray,3.3,100,27.99,ok,
+31,Al Haramain Amber Oud Gold,Amber Oud Gold EDP Spray,3.4,100,44.99,ok,
+24,Lattafa Fakhar,Men's Fakhar EDP Spray,3.4,100,22.25,ok,
