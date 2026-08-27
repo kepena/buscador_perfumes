@@ -496,7 +496,7 @@ const PERFUMES = [
     estilo: "Versátil",
     potencia: "Normal",
     presupuesto: "Económico",
-    notas: "Bergamota, toronja rosa, pera, mandarina / Manzana, cedro, azahar / Vainilla, ámbar, almizcle, ambroxan",
+    notas: "Pera, mandarina, toronja rosa, bergamota / Azahar, manzana, cedro / Almizcle, ámbar, vainilla",
     imagen: "Afnan%20Turathi%20Electric.avif"
   },
   {

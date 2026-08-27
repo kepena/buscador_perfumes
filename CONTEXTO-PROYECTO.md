@@ -512,7 +512,16 @@ Se usa en: portada, tarjeta "Probar", tarjeta "Botella", Set Ocasión.
 - 137 entradas, 136 activas (1 duplicado desactivado a propósito:
   id 26 "Armaf Club de Nuit Untold").
 - Las notas fueron verificadas una por una contra fuentes reales
-  (Fragrantica) — no inventar notas nuevas sin verificar.
+  (Fragrantica) — no inventar notas nuevas sin verificar. **Esto aplica
+  igual a las fragancias que entren después**: ninguna referencia nueva o
+  de reemplazo entra al catálogo con notas de memoria.
+- Cómo verificar desde este entorno: `fragrantica.com`, `parfumo.com` y
+  las tiendas de las marcas están bloqueadas por el proxy de red, así que
+  `WebFetch` no sirve. La vía que sí funciona es `WebSearch`, y el criterio
+  es **dos fuentes independientes que coincidan** (p. ej. el resumen de la
+  ficha de Fragrantica más la web oficial de la marca o un minorista).
+  Cualquier nota que aparezca en una sola fuente se descarta: así se cayó
+  el "ambroxan" de la base de Turathi Electric.
 - `notaEspecifica` no existe para todas las subfamilias, solo las que
   tenían saturación de perfumes empatados.
 - Ya se resolvió un problema de perfumes que nunca aparecían por empates de
