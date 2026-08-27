@@ -66,22 +66,7 @@ const PERFUMES = [
     notas: "Nuez moscada, canela, cardamomo / Lavanda, coumarina / Regaliz, sándalo, ámbar, pachulí",
     imagen: "Dior%20Sauvage%20Elixir.avif"
   },
-  {
-    id: 4,
-    activo: true,
-    nombre: "Chanel Bleu de Chanel EDP",
-    tipo: "Diseñador",
-    aromaPrincipal: "Cítrico",
-    subAroma: "Cítrico verde / aromático",
-    momento: "Citas",
-    clima: "Templado",
-    estilo: "Formal",
-    potencia: "Normal",
-    presupuesto: "Medio",
-    notas: "Cítricos, menta / Jengibre, nuez moscada / Sándalo, incienso, cedro, labdanum",
-    imagen: "Chanel%20Bleu%20de%20Chanel%20EDP.avif"
-  },
-  {
+    {
     id: 5,
     activo: true,
     nombre: "Versace Eros",
@@ -838,22 +823,7 @@ const PERFUMES = [
     notas: "Limón, bergamota / Anís estrellado, flor de olivo / Cuero, haba tonka",
     imagen: "Giorgio%20Armani%20Code.avif"
   },
-  {
-    id: 52,
-    activo: true,
-    nombre: "Chanel Bleu de Chanel EDT",
-    tipo: "Diseñador",
-    aromaPrincipal: "Cítrico",
-    subAroma: "Cítrico verde / aromático",
-    momento: "Diario",
-    clima: "Templado",
-    estilo: "Formal",
-    potencia: "Normal",
-    presupuesto: "Medio",
-    notas: "Limón, menta, pomelo / Jengibre, nuez moscada / Incienso, cedro, sándalo",
-    imagen: "Chanel%20Bleu%20de%20Chanel%20EDT.avif"
-  },
-  {
+    {
     id: 53,
     activo: true,
     nombre: "Prada Luna Rossa Carbon",
@@ -1842,7 +1812,7 @@ const PERFUMES = [
   {
     id: 118,
     activo: true,
-    nombre: "Giorgio Armani Stronger With You Powerfully",
+    nombre: "Emporio Armani Stronger With You Powerfully",
     tipo: "Diseñador",
     aromaPrincipal: "Dulce / Gourmand",
     subAroma: "Vainilla / Caramelo",
@@ -1853,7 +1823,7 @@ const PERFUMES = [
     potencia: "Normal",
     presupuesto: "Medio",
     notas: "Cereza, mandarina / Especias, lavanda / Castaña, vainilla, madera ambarada",
-    imagen: "Giorgio%20Armani%20Stronger%20With%20You%20Powerfully.avif"
+    imagen: "Emporio%20Armani%20Stronger%20With%20You%20Powerfully.avif"
   }
 ,
   {
@@ -2058,41 +2028,7 @@ const PERFUMES = [
     imagen: "Tom%20Ford%20Black%20Orchid%20Parfum.avif"
   }
 ,
-  {
-    id: 132,
-    activo: true,
-    nombre: "Chanel Égoïste",
-    tipo: "Diseñador",
-    aromaPrincipal: "Madera",
-    subAroma: "Madera suave / Cedro",
-    notaEspecifica: "sandalo-floral",
-    momento: "Citas",
-    clima: "Frío / Noche",
-    estilo: "Formal",
-    potencia: "Normal",
-    presupuesto: "Medio",
-    notas: "Palo de rosa, cilantro, mandarina siciliana / Canela, rosa de Damasco, clavel / Sándalo, tabaco, vainilla, cuero, ámbar",
-    imagen: "Egoiste%20Chanel.avif"
-  }
-,
-  {
-    id: 133,
-    activo: true,
-    nombre: "Chanel Allure Homme Sport Eau Extrême",
-    tipo: "Diseñador",
-    aromaPrincipal: "Fresco",
-    subAroma: "Menta / Té / Verde",
-    notaEspecifica: "aromatico-herbal",
-    momento: "Diario",
-    clima: "Templado",
-    estilo: "Versátil",
-    potencia: "Normal",
-    presupuesto: "Medio",
-    notas: "Mandarina siciliana, menta, ciprés, salvia esclarea / Pimienta / Haba tonka, almizcle, aldehídos",
-    imagen: "Chanel%20Allure%20Homme%20Sport%20Eau%20Extr%C3%AAme.avif"
-  }
-,
-  {
+      {
     id: 134,
     activo: true,
     nombre: "Creed Green Irish Tweed",

@@ -17,7 +17,7 @@ DNS: gestionado en **HostGator** (CNAME apuntando a kepena.github.io)
 |---|---|
 | `index.html` | Pantalla de inicio + test de preguntas + resultados + Set Ocasión |
 | `styles.css` | Todos los estilos (tema dorado/oscuro) |
-| `data.js` | Catálogo: array `PERFUMES` con 137 fragancias (136 activas) + `FALLBACK_IMG` |
+| `data.js` | Catálogo: array `PERFUMES` con 133 fragancias (132 activas) + `FALLBACK_IMG` |
 | `app.js` | Preguntas dinámicas, motor de scoring, resultados, Set Ocasión, WhatsApp |
 | `db.js` | **Capa de acceso a Supabase.** Precios, fotos y activaciones |
 | `catalogo.html` | Panel de administración (protegido con contraseña) |
@@ -253,6 +253,21 @@ update public.perfume_overrides
 
 El id 26 (Armaf Club de Nuit Untold, duplicado del 125) sigue desactivado
 y es el único cupo libre del catálogo.
+
+## Chanel: fuera del catálogo
+
+Las cuatro de Chanel (ids 4 Bleu EDP, 52 Bleu EDT, 132 Égoïste y
+133 Allure Homme Sport Eau Extrême) se quitaron por decisión de Kike, por
+la misma razón que Louis Vuitton: no hay de dónde surtirlas. Sus fotos
+salieron del repo. Para limpiar la base:
+
+```sql
+delete from public.perfume_overrides where id in (4, 52, 132, 133);
+```
+
+El id 118 se llamaba "Giorgio Armani Stronger With You Powerfully"; la
+línea Stronger With You es de **Emporio** Armani, así que se corrigió el
+nombre y el archivo de la foto.
 
 ## Disponible en decant
 
@@ -509,7 +524,7 @@ Se usa en: portada, tarjeta "Probar", tarjeta "Botella", Set Ocasión.
 
 ## Historial de decisiones ya tomadas (para no repetir trabajo)
 
-- 137 entradas, 136 activas (1 duplicado desactivado a propósito:
+- 133 entradas, 132 activas (1 duplicado desactivado a propósito:
   id 26 "Armaf Club de Nuit Untold").
 - Las notas fueron verificadas una por una contra fuentes reales
   (Fragrantica) — no inventar notas nuevas sin verificar. **Esto aplica
