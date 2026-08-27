@@ -14,8 +14,8 @@ id,nombre_app,nombre_jomashop,oz,ml,precio_usd,estado,precio_con_cupon
 108,Armaf Club de Nuit Urban Man Elixir,Men's Club De Nuit Urban Elixir EDP Spray,3.55,105,36.95,ok,
 124,Armaf Club de Nuit Blue Iconic,Men's Club De Nuit Blue Iconic EDP Spray,3.6,105,39.99,ok,
 125,Armaf Club de Nuit Untold,Unisex Club De Nuit Untold EDP Spray,3.6,105,37.25,duplicado-de-26,
-38,Tom Ford Tobacco Vanille,Unisex Tobacco Vanille EDP Spray,1.7,50,279.05,revisar-volumen-en-la-app,223.24
-39,Tom Ford Oud Wood,Unisex Oud Wood EDP Spray Private Blend,1.7,50,192.98,revisar-volumen-en-la-app,154.38
+38,Tom Ford Tobacco Vanille,Unisex Tobacco Vanille EDP Spray,3.4,100,366.93,ok,293.54
+39,Tom Ford Oud Wood,Unisex Oud Wood EDP Spray Private Blend,3.4,100,297.05,ok,237.64
 61,Tom Ford Noir Extreme,Noir Extreme EDP Spray,3.4,100,148.69,ok,118.95
 73,Tom Ford Ombré Leather Parfum,Unisex Ombre Leather Parfum Spray,3.4,100,206.19,ok,164.95
 142,Al Haramain Détour Noir,Unisex Detour Noir EDP Spray,3.4,100,24.99,ok,
@@ -37,7 +37,7 @@ id,nombre_app,nombre_jomashop,oz,ml,precio_usd,estado,precio_con_cupon
 134,Creed Green Irish Tweed,Green Irish Tweed / Creed EDP Spray,3.3,100,329.95,ok,
 135,Creed Silver Mountain Water,Unisex Creed Silver Mountain Water EDP Spray,3.3,100,329.50,ok,
 2,Dior Sauvage EDP,Sauvage / Christian Dior EDP Spray,3.4,100,203.50,ok,142.45
-3,Dior Sauvage Elixir,Christian Dior Men's Sauvage Elixir Spray,2.0,60,235.56,revisar-volumen-en-la-app,164.89
+3,Dior Sauvage Elixir,Christian Dior Men's Sauvage Elixir Spray,3.4,100,311.77,ok,218.24
 42,Parfums de Marly Layton,Men's Layton EDP Spray,4.2,125,360.00,ok,
 75,Parfums de Marly Herod,Herod by Parfums de Marly for Men EDP Spray,4.2,125,360.00,ok,
 97,Parfums de Marly Percival,Men's Percival EDP Spray,4.2,125,360.00,ok,
