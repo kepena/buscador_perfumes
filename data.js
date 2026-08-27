@@ -1684,7 +1684,7 @@ const PERFUMES = [
     estilo: "Formal",
     potencia: "Modo Bestia",
     presupuesto: "Medio",
-    notas: "Bergamota / Madera de coco / Cedro, vainilla, haba tonka",
+    notas: "Piña, iris, ciprés, jengibre / Coco, notas amaderadas / Haba tonka, sándalo, ámbar, ámbar gris",
     imagen: "Jean%20Paul%20Gaultier%20Le%20Beau%20Le%20Parfum.avif"
   }
 ,
@@ -1795,13 +1795,13 @@ const PERFUMES = [
     tipo: "Lujo",
     aromaPrincipal: "Cítrico",
     subAroma: "Cítrico puro",
-    notaEspecifica: "citrico-flor-madera",
+    notaEspecifica: "citrico-amaderado-potente",
     momento: "Diario",
-    clima: "Caliente / Sol",
+    clima: "Templado",
     estilo: "Versátil",
     potencia: "Normal",
     presupuesto: "Sin límite",
-    notas: "Bergamota, limón, naranja / Miel, azahar, jazmín / Almizcle, vainilla, ámbar, cedro",
+    notas: "Limón de Amalfi, bergamota de Calabria, naranja de Brasil, jengibre / Manzana verde, melón, pera, clavo, cardamomo, canela / Almizcle, ámbar, vainilla de Madagascar, notas amaderadas",
     imagen: "Xerjoff%20Erba%20Gold.avif"
   }
 ,
@@ -2037,7 +2037,7 @@ const PERFUMES = [
     estilo: "Versátil",
     potencia: "Normal",
     presupuesto: "Sin límite",
-    notas: "Bergamota, limón, mandarina, lavanda, romero / Neroli, azahar, jazmín, pittosporum / Ámbar, angélica, ambreta",
+    notas: "Bergamota, mandarina, limón, naranja amarga, lavanda, romero, mirto / Azahar africano, neroli, jazmín, pitósporo / Ámbar, ambreta, angélica",
     imagen: "Tom%20Ford%20Neroli%20Portofino.avif"
   }
 ,
