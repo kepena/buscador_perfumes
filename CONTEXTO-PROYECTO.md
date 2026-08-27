@@ -28,6 +28,8 @@ DNS: gestionado en **HostGator** (CNAME apuntando a kepena.github.io)
 | `02-precios-decant.sql` | Columnas `volumen_ml`/`verificado` + tabla `configuracion` |
 | `03-decants.sql` | Columna `decant`: si esa fragancia se decanta o va solo en frasco |
 | `04-importacion-fija.sql` | Cambia la importación de porcentaje a valor fijo en pesos |
+| `05-costos-reales.sql` | Los 132 costos reales de Jomashop + el volumen real de cada frasco |
+| `precios-jomashop.csv` | La fuente de esos costos, fragancia por fragancia, con la ficha exacta |
 | `.github/workflows/mantener-supabase-activo.yml` | Cron que evita que Supabase se pause |
 
 ## Qué vive en `data.js` y qué vive en la base de datos
@@ -161,6 +163,19 @@ El margen se aplica sobre el costo **ya puesto en Colombia**, así que ese
 > cliente. VENTA solo decide en qué rango de presupuesto cae la fragancia
 > (Económico / Medio / Sin límite) y sirve para los filtros del panel.
 
+### Costo de lista, descuento por WhatsApp
+
+Los costos guardados son los de **lista** de Jomashop, no los del cupón.
+Los cupones (20% y 30%) aparecen y desaparecen, así que el costo de la app
+es el que siempre se puede conseguir; cuando el cupón alcanza a estar
+disponible, la rebaja se le pasa al cliente en la conversación.
+
+Por eso el bloque de contacto del test dice **"Pregunta si hay descuentos
+disponibles para ese perfume"** y el mensaje de WhatsApp ya viene con esa
+pregunta escrita. Los precios con cupón quedan anotados como comentario al
+final de `05-costos-reales.sql`, para saber hasta dónde se puede bajar sin
+perder margen.
+
 ### El test público no muestra precios
 
 Los precios calculados se ven **solo en el panel**. En el test, el cliente
@@ -230,6 +245,7 @@ vende. Los cambios hechos hasta ahora:
 | 115 | Xerjoff Uden | Xerjoff Erba Gold |
 | 37 | MFK Baccarat Rouge 540 (EDP) | MFK Baccarat Rouge 540 Extrait |
 | 10 | Carolina Herrera CH Men Prive | Carolina Herrera 212 VIP Black |
+| 92 | Roja Elysium (Pour Homme) | Roja Elysium Eau Intense |
 | 24 | Lattafa Fakhar | Lattafa Art of Universe |
 | 30 | Afnan Supremacy Not Only Intense | Afnan Turathi Electric |
 | 88 | Lattafa Qaa'ed Intense | Lattafa The Kingdom |
