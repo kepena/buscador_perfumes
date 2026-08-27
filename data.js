@@ -1158,22 +1158,6 @@ const PERFUMES = [
     imagen: "Lattafa%20Opulent%20Dubai.avif"
   },
   {
-    id: 72,
-    activo: true,
-    nombre: "Dior Sauvage Elixir Intense",
-    tipo: "Diseñador",
-    aromaPrincipal: "Cálido / Especiado",
-    subAroma: "Ámbar / Pimienta",
-    notaEspecifica: "especiado-fresco",
-    momento: "Fiesta",
-    clima: "Frío / Noche",
-    estilo: "Formal",
-    potencia: "Modo Bestia",
-    presupuesto: "Sin límite",
-    notas: "Nuez moscada, cardamomo, canela, toronja / Lavanda, coumarina / Regaliz, sándalo, ámbar, vetiver, patchouli",
-    imagen: "Dior%20Sauvage%20Elixir%20Intense.avif"
-  },
-  {
     id: 73,
     activo: true,
     nombre: "Tom Ford Ombré Leather Parfum",
@@ -1690,7 +1674,7 @@ const PERFUMES = [
   {
     id: 106,
     activo: true,
-    nombre: "Jean Paul Gaultier Le Beau",
+    nombre: "Jean Paul Gaultier Le Beau Le Parfum",
     tipo: "Diseñador",
     aromaPrincipal: "Madera",
     subAroma: "Madera suave / Cedro",
@@ -1698,10 +1682,10 @@ const PERFUMES = [
     momento: "Diario",
     clima: "Templado",
     estilo: "Formal",
-    potencia: "Normal",
+    potencia: "Modo Bestia",
     presupuesto: "Medio",
-    notas: "Bergamota, coco / Sándalo, haba tonka / Almizcle, madera de cachemira",
-    imagen: "Jean%20Paul%20Gaultier%20Le%20Beau.avif"
+    notas: "Bergamota / Madera de coco / Cedro, vainilla, haba tonka",
+    imagen: "Jean%20Paul%20Gaultier%20Le%20Beau%20Le%20Parfum.avif"
   }
 ,
   {
@@ -1807,18 +1791,18 @@ const PERFUMES = [
   {
     id: 115,
     activo: true,
-    nombre: "Xerjoff Uden",
+    nombre: "Xerjoff Erba Gold",
     tipo: "Lujo",
     aromaPrincipal: "Cítrico",
     subAroma: "Cítrico puro",
-    notaEspecifica: "citrico-amaderado-potente",
+    notaEspecifica: "citrico-flor-madera",
     momento: "Diario",
-    clima: "Templado",
+    clima: "Caliente / Sol",
     estilo: "Versátil",
     potencia: "Normal",
     presupuesto: "Sin límite",
-    notas: "Toronja, limón, ron / Rosa, sándalo, guaiac wood / Vainilla, café, almizcle, ámbar gris",
-    imagen: "Xerjoff%20Uden.avif"
+    notas: "Bergamota, limón, naranja / Miel, azahar, jazmín / Almizcle, vainilla, ámbar, cedro",
+    imagen: "Xerjoff%20Erba%20Gold.avif"
   }
 ,
   {
@@ -2044,7 +2028,7 @@ const PERFUMES = [
   {
     id: 130,
     activo: true,
-    nombre: "Tom Ford Neroli Portofino Forte",
+    nombre: "Tom Ford Neroli Portofino",
     tipo: "Lujo",
     aromaPrincipal: "Cítrico",
     subAroma: "Cítrico verde / aromático",
@@ -2053,8 +2037,8 @@ const PERFUMES = [
     estilo: "Versátil",
     potencia: "Normal",
     presupuesto: "Sin límite",
-    notas: "Neroli, azahar, bergamota, naranja sanguina / Musgo, madera, almizcle, lavanda, albahaca / Cuero, galbanum",
-    imagen: "Tom%20Ford%20Neroli%20Portofino%20Forte.avif"
+    notas: "Bergamota, limón, mandarina, lavanda, romero / Neroli, azahar, jazmín, pittosporum / Ámbar, angélica, ambreta",
+    imagen: "Tom%20Ford%20Neroli%20Portofino.avif"
   }
 ,
   {

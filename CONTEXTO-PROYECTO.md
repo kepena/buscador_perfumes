@@ -17,7 +17,7 @@ DNS: gestionado en **HostGator** (CNAME apuntando a kepena.github.io)
 |---|---|
 | `index.html` | Pantalla de inicio + test de preguntas + resultados + Set Ocasión |
 | `styles.css` | Todos los estilos (tema dorado/oscuro) |
-| `data.js` | Catálogo: array `PERFUMES` con 138 fragancias (137 activas) + `FALLBACK_IMG` |
+| `data.js` | Catálogo: array `PERFUMES` con 137 fragancias (136 activas) + `FALLBACK_IMG` |
 | `app.js` | Preguntas dinámicas, motor de scoring, resultados, Set Ocasión, WhatsApp |
 | `db.js` | **Capa de acceso a Supabase.** Precios, fotos y activaciones |
 | `catalogo.html` | Panel de administración (protegido con contraseña) |
@@ -215,6 +215,29 @@ delete from public.perfume_overrides where id in (98, 109, 110, 120, 138);
 ```
 
 Las fotos siguen en el repo por si entran reemplazos de esos mismos huecos.
+
+## Cambios de referencia al buscar costos reales
+
+Al ir contra el catálogo real de Jomashop aparecieron referencias que el
+negocio no puede surtir o que Kike prefiere cambiar por la versión que sí
+vende. Los cambios hechos hasta ahora:
+
+| id | Antes | Ahora |
+|----|-------|-------|
+| 72 | Dior Sauvage Elixir Intense | *eliminada* (no existe como producto aparte; la ficha es la Elixir, id 3) |
+| 130 | Tom Ford Neroli Portofino Forte | Tom Ford Neroli Portofino |
+| 106 | Jean Paul Gaultier Le Beau | Jean Paul Gaultier Le Beau Le Parfum |
+| 115 | Xerjoff Uden | Xerjoff Erba Gold |
+
+Al renombrar, la foto vieja muestra el frasco equivocado, así que se borró
+del repo. `imagen` apunta al archivo nuevo, que todavía no existe; hasta
+que Kike suba la foto (o pegue una URL en el panel) sale `FALLBACK_IMG`.
+Las tres pantallas que muestran frasco ya tienen ese respaldo, así que no
+se ve un ícono roto.
+
+Pendientes de reemplazo, esperando que Kike diga por cuál:
+**24 Lattafa Fakhar**, **30 Afnan Supremacy Not Only Intense**,
+**88 Lattafa Qaa'ed Intense**.
 
 ## Disponible en decant
 
@@ -471,7 +494,7 @@ Se usa en: portada, tarjeta "Probar", tarjeta "Botella", Set Ocasión.
 
 ## Historial de decisiones ya tomadas (para no repetir trabajo)
 
-- 138 entradas, 137 activas (1 duplicado desactivado a propósito:
+- 137 entradas, 136 activas (1 duplicado desactivado a propósito:
   id 26 "Armaf Club de Nuit Untold").
 - Las notas fueron verificadas una por una contra fuentes reales
   (Fragrantica) — no inventar notas nuevas sin verificar.
