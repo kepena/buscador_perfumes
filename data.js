@@ -1573,22 +1573,6 @@ const PERFUMES = [
     imagen: "Parfums%20de%20Marly%20Percival.avif"
   },
   {
-    id: 98,
-    activo: true,
-    nombre: "Louis Vuitton Ombre Nomade",
-    tipo: "Lujo",
-    aromaPrincipal: "Madera",
-    subAroma: "Oud exótico",
-    notaEspecifica: "fuerte-resinoso",
-    momento: "Fiesta",
-    clima: "Frío / Noche",
-    estilo: "Formal",
-    potencia: "Modo Bestia",
-    presupuesto: "Sin límite",
-    notas: "Oud, incienso / Cera de abejas, jazmín / Ámbar, resinas, madera",
-    imagen: "Louis%20Vuitton%20Ombre%20Nomade.avif"
-  },
-  {
     id: 99,
     activo: true,
     nombre: "Bvlgari Man in Black",
@@ -1754,38 +1738,6 @@ const PERFUMES = [
   }
 ,
   {
-    id: 109,
-    activo: true,
-    nombre: "Louis Vuitton L'Immensité",
-    tipo: "Lujo",
-    aromaPrincipal: "Cítrico",
-    subAroma: "Cítrico verde / aromático",
-    momento: "Diario",
-    clima: "Caliente / Sol",
-    estilo: "Versátil",
-    potencia: "Normal",
-    presupuesto: "Sin límite",
-    notas: "Toronja, jengibre, bergamota / Notas acuáticas, salvia, romero, geranio / Ambroxan, ámbar, labdanum",
-    imagen: "L%27Immensit%C3%A9.avif"
-  },
-  {
-    id: 110,
-    activo: true,
-    nombre: "Louis Vuitton Imagination",
-    tipo: "Lujo",
-    aromaPrincipal: "Cítrico",
-    subAroma: "Cítrico puro",
-    notaEspecifica: "citrico-lujo-complejo",
-    momento: "Diario",
-    clima: "Templado",
-    estilo: "Versátil",
-    potencia: "Normal",
-    presupuesto: "Sin límite",
-    notas: "Citrón, bergamota calabresa, naranja siciliana / Neroli, jengibre, canela / Té negro chino, ambroxan, guaiac wood, olíbano",
-    imagen: "Imagination%20Louis%20Vuitton%20for%20men.avif"
-  }
-,
-  {
     id: 111,
     activo: true,
     nombre: "French Avenue Vulcan Feu",
@@ -1935,23 +1887,6 @@ const PERFUMES = [
     presupuesto: "Medio",
     notas: "Notas marinas, mandarina verde / Mimosa, lavanda, ciprés / Patchouli, labdanum, notas minerales",
     imagen: "Giorgio%20Armani%20Acqua%20di%20Gi%C3%B2%20Profondo%20Parfum.avif"
-  }
-,
-  {
-    id: 120,
-    activo: true,
-    nombre: "Louis Vuitton Pacific Chill",
-    tipo: "Lujo",
-    aromaPrincipal: "Fresco",
-    subAroma: "Menta / Té / Verde",
-    notaEspecifica: "citrico-verde-suave",
-    momento: "Diario",
-    clima: "Caliente / Sol",
-    estilo: "Versátil",
-    potencia: "Suave",
-    presupuesto: "Sin límite",
-    notas: "Citrón, naranja, limón, menta, grosella negra / Albaricoque, albahaca, rosa de mayo / Higo, dátiles, ambrette",
-    imagen: "Louis%20Vuitton%20Pacific%20Chill.avif"
   }
 ,
   {
@@ -2237,23 +2172,6 @@ const PERFUMES = [
     presupuesto: "Medio",
     notas: "Jengibre, bergamota, cardamomo / Azahar de naranjo / Patchouli",
     imagen: "Yves%20Saint%20Laurent%20MYSLF%20L%27Absolu.avif"
-  }
-,
-  {
-    id: 138,
-    activo: true,
-    nombre: "Louis Vuitton Nouveau Monde",
-    tipo: "Lujo",
-    aromaPrincipal: "Madera",
-    subAroma: "Oud exótico",
-    notaEspecifica: "fuerte-resinoso",
-    momento: "Citas",
-    clima: "Frío / Noche",
-    estilo: "Formal",
-    potencia: "Modo Bestia",
-    presupuesto: "Sin límite",
-    notas: "Agarwood (oud), azafrán, grosella negra / Cuero, cacao, rosa, incienso / Patchouli, vainilla, caramelo, madera ambarada, haba tonka",
-    imagen: "Louis%20Vuitton%20Nouveau%20Monde.avif"
   }
 ,
   {

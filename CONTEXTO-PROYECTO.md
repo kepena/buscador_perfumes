@@ -17,7 +17,7 @@ DNS: gestionado en **HostGator** (CNAME apuntando a kepena.github.io)
 |---|---|
 | `index.html` | Pantalla de inicio + test de preguntas + resultados + Set Ocasión |
 | `styles.css` | Todos los estilos (tema dorado/oscuro) |
-| `data.js` | Catálogo: array `PERFUMES` con 143 fragancias (142 activas) + `FALLBACK_IMG` |
+| `data.js` | Catálogo: array `PERFUMES` con 138 fragancias (137 activas) + `FALLBACK_IMG` |
 | `app.js` | Preguntas dinámicas, motor de scoring, resultados, Set Ocasión, WhatsApp |
 | `db.js` | **Capa de acceso a Supabase.** Precios, fotos y activaciones |
 | `catalogo.html` | Panel de administración (protegido con contraseña) |
@@ -196,6 +196,26 @@ Va a la vista y no solo dentro del enlace porque hay quien prefiere
 copiarlo y escribir desde su propio WhatsApp, y hay quien abre el test en
 un computador sin la aplicación instalada.
 
+## Louis Vuitton: fuera del catálogo
+
+Las cinco fragancias de Louis Vuitton (Ombre Nomade, L'Immensité,
+Imagination, Pacific Chill y Nouveau Monde) se quitaron de `data.js`.
+
+LV vende solo en sus propias boutiques: no está en los distribuidores donde
+se surte el negocio, así que no hay forma de conseguirlas ni de costearlas.
+Un catálogo que recomienda algo que no se puede vender le hace perder el
+tiempo al cliente y a quien atiende el WhatsApp.
+
+Sus filas en `perfume_overrides` (ids 98, 109, 110, 120, 138) quedaron
+huérfanas en la base. No estorban — `db.js` solo lee las que existen en
+`data.js` — pero se pueden borrar con:
+
+```sql
+delete from public.perfume_overrides where id in (98, 109, 110, 120, 138);
+```
+
+Las fotos siguen en el repo por si entran reemplazos de esos mismos huecos.
+
 ## Disponible en decant
 
 No todo el catálogo se puede decantar: hay frascos que solo se consiguen
@@ -247,7 +267,7 @@ menos de $15.000, 15 ml no pueden venderse por menos de $45.000.
 
 ## Filtros del panel
 
-Con 143 fragancias hacen falta para encontrar una concreta. Todos se
+Con 138 fragancias hacen falta para encontrar una concreta. Todos se
 combinan entre sí:
 
 - Chips de tipo (Todos / Diseñador / Árabe / Lujo) y búsqueda por nombre.
@@ -451,7 +471,7 @@ Se usa en: portada, tarjeta "Probar", tarjeta "Botella", Set Ocasión.
 
 ## Historial de decisiones ya tomadas (para no repetir trabajo)
 
-- 143 entradas, 142 activas (1 duplicado desactivado a propósito:
+- 138 entradas, 137 activas (1 duplicado desactivado a propósito:
   id 26 "Armaf Club de Nuit Untold").
 - Las notas fueron verificadas una por una contra fuentes reales
   (Fragrantica) — no inventar notas nuevas sin verificar.
