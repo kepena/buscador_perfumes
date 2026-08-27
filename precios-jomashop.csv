@@ -43,3 +43,6 @@ id,nombre_app,nombre_jomashop,oz,ml,precio_usd,estado,precio_con_cupon
 97,Parfums de Marly Percival,Men's Percival EDP Spray,4.2,125,360.00,ok,
 140,Parfums de Marly Pegasus,Men's Pegasus EDP Spray,4.2,125,360.00,ok,
 141,Parfums de Marly Althaïr,Men's Althair EDP Spray,4.2,125,360.00,ok,
+7,Yves Saint Laurent Y EDP,Men's Y EDP Spray,3.3,100,124.99,ok,99.99
+136,Yves Saint Laurent Y Le Parfum,Men's Y Le Parfum 2025 Parfum,3.4,100,139.43,ok,111.54
+137,Yves Saint Laurent MYSLF L'Absolu,Men's MYSLF L'Absolu Parfum,3.3,100,184.05,ok,147.24
