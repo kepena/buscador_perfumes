@@ -108,3 +108,8 @@ id,nombre_app,nombre_jomashop,oz,ml,precio_usd,estado,precio_con_cupon
 12,Marc Jacobs Daisy,Daisy / Marc Jacobs EDT Spray,3.4,100,59.99,ok,
 13,Lancôme La Vie Est Belle,La Vie Est Belle / Lancome EDP Spray,3.4,100,99.99,ok,
 15,Davidoff Cool Water,Men's Cool Water EDT Spray (3414202000572),4.2,125,26.99,ok,
+16,Hugo Boss Bottled,Boss Bottled No.6 / Hugo Boss EDT Spray,3.3,100,48.95,ok,
+17,Ralph Lauren Polo Blue,Polo Blue / Ralph Lauren EDP Spray,4.2,125,74.99,ojo-la-ficha-es-el-edp-y-la-app-tiene-el-edt,
+18,Calvin Klein CK One,CK One by Calvin Klein EDT Spray,3.4,100,29.99,ok,
+45,Acqua di Parma Colonia,Men's Colonia Club EDC Spray (8028713150029),3.4,100,84.99,ojo-la-ficha-es-la-colonia-club-no-la-colonia,
+49,Cartier Pasha de Cartier Parfum,Men's Pasha De Cartier Parfum (3432240504197),3.4,100,88.99,ok,
