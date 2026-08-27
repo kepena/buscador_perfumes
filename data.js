@@ -149,18 +149,18 @@ const PERFUMES = [
   {
     id: 10,
     activo: true,
-    nombre: "Carolina Herrera CH Men Prive",
+    nombre: "Carolina Herrera 212 VIP Black",
     tipo: "Diseñador",
-    aromaPrincipal: "Cuero / Tabaco",
-    subAroma: "Cuero elegante",
-    notaEspecifica: "cuero-fresco",
-    momento: "Citas",
+    aromaPrincipal: "Dulce / Gourmand",
+    subAroma: "Vainilla / Caramelo",
+    notaEspecifica: "vainilla-especiada",
+    momento: "Fiesta",
     clima: "Frío / Noche",
-    estilo: "Formal",
-    potencia: "Normal",
+    estilo: "Versátil",
+    potencia: "Modo Bestia",
     presupuesto: "Medio",
-    notas: "Whiskey, toronja, pomelo / Cardamomo, lavanda, salvia, tomillo rojo / Cuero, haba tonka, benzoína, madera",
-    imagen: "Carolina%20Herrera%20CH%20Men%20Prive.avif"
+    notas: "Absenta, anís, hinojo / Lavanda / Vainilla negra, almizcle",
+    imagen: "Carolina%20Herrera%20212%20VIP%20Black.avif"
   },
   {
     id: 11,

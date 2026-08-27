@@ -229,6 +229,7 @@ vende. Los cambios hechos hasta ahora:
 | 106 | Jean Paul Gaultier Le Beau | Jean Paul Gaultier Le Beau Le Parfum |
 | 115 | Xerjoff Uden | Xerjoff Erba Gold |
 | 37 | MFK Baccarat Rouge 540 (EDP) | MFK Baccarat Rouge 540 Extrait |
+| 10 | Carolina Herrera CH Men Prive | Carolina Herrera 212 VIP Black |
 | 24 | Lattafa Fakhar | Lattafa Art of Universe |
 | 30 | Afnan Supremacy Not Only Intense | Afnan Turathi Electric |
 | 88 | Lattafa Qaa'ed Intense | Lattafa The Kingdom |
