@@ -585,7 +585,7 @@ const PERFUMES = [
   {
     id: 37,
     activo: true,
-    nombre: "Maison Francis Kurkdjian Baccarat Rouge 540",
+    nombre: "Maison Francis Kurkdjian Baccarat Rouge 540 Extrait",
     tipo: "Lujo",
     aromaPrincipal: "Cálido / Especiado",
     subAroma: "Ámbar / Pimienta",
@@ -593,10 +593,10 @@ const PERFUMES = [
     momento: "Citas",
     clima: "Frío / Noche",
     estilo: "Versátil",
-    potencia: "Normal",
+    potencia: "Modo Bestia",
     presupuesto: "Sin límite",
-    notas: "Azafrán, jazmín / Madera ambarada, ámbar gris, hedione / Resina de abeto, cedro, azúcar, ambroxan, musgo de encina",
-    imagen: "Maison%20Francis%20Kurkdjian%20Baccarat%20Rouge%20540.avif"
+    notas: "Almendra amarga, azafrán / Jazmín egipcio, cedro de Virginia / Ámbar gris, notas amaderadas, almizcle, ambroxan, cashmeran",
+    imagen: "Maison%20Francis%20Kurkdjian%20Baccarat%20Rouge%20540%20Extrait.avif"
   },
   {
     id: 38,
