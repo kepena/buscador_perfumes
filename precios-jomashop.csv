@@ -46,7 +46,7 @@ id,nombre_app,nombre_jomashop,oz,ml,precio_usd,estado,precio_con_cupon
 7,Yves Saint Laurent Y EDP,Men's Y EDP Spray,3.3,100,124.99,ok,99.99
 136,Yves Saint Laurent Y Le Parfum,Men's Y Le Parfum 2025 Parfum,3.4,100,139.43,ok,111.54
 137,Yves Saint Laurent MYSLF L'Absolu,Men's MYSLF L'Absolu Parfum,3.3,100,184.05,ok,147.24
-126,Armaf Club de Nuit Precieux I,Men's Club De Nuit Precieux 1 Extrait de Parfum,1.85,55,46.99,ok-cambiar-app-a-55ml,
+126,Armaf Club de Nuit Precieux I,Men's Club De Nuit Precieux 1 Extrait de Parfum,1.85,55,46.99,ok,
 114,Tom Ford Fucking Fabulous,Men's Private Blend Fucking Fabulous EDP Spray,3.4,100,424.36,ok,339.49
 128,Tom Ford Tuscan Leather,Unisex Tuscan Leather EDP Spray,3.4,100,329.79,ok,263.83
 129,Tom Ford Grey Vetiver Parfum,Grey Vetiver Parfum Spray,3.4,100,144.99,ok,
@@ -56,7 +56,6 @@ id,nombre_app,nombre_jomashop,oz,ml,precio_usd,estado,precio_con_cupon
 64,Dior Homme Intense,Men's Dior Homme Intense EDP Spray,3.4,100,187.06,ok,130.94
 35,Al Haramain L'Aventure,Men's L'Aventure EDP Spray,3.3,100,27.99,ok,
 31,Al Haramain Amber Oud Gold,Amber Oud Gold EDP Spray,3.4,100,44.99,ok,
-24,Lattafa Art of Universe,,,,,pendiente-captura-reemplazo-de-fakhar,
 23,Lattafa Raghba,Unisex Raghba EDP Spray,3.4,100,19.99,ok,
 33,Lattafa Ana Abiyedh,Unisex Ana Abiyedh EDP Spray,2.0,60,19.99,ok,
 34,Lattafa Qaa'ed,Unisex Qaaed EDP Spray,3.38,100,17.99,ok,
@@ -85,7 +84,7 @@ id,nombre_app,nombre_jomashop,oz,ml,precio_usd,estado,precio_con_cupon
 77,Amouage Reflection Man,Men's Reflection EDP Spray (701666410058),3.4,100,295.00,ok,
 37,Maison Francis Kurkdjian Baccarat Rouge 540 Extrait,Ladies Baccarat Rouge 540 Red Extrait De Parfum Spray,2.4,70,494.99,ok,
 100,Maison Francis Kurkdjian Grand Soir,Unisex Grand Soir EDP (3700559604212),2.4,70,264.99,ok,
-139,Maison Francis Kurkdjian Oud Satin Mood,Unisex Kurkdjian Oud EDP Spray,2.4,70,239.99,ojo-la-ficha-es-el-oud-no-el-oud-satin-mood,
+139,Maison Francis Kurkdjian Oud Satin Mood,Unisex Oud Satin Mood Extrait de Parfum (3700559605448),2.4,70,424.99,ok,
 62,Paco Rabanne 1 Million,1 Million Men's / Paco Rabanne,3.3,100,87.18,ok,69.74
 102,Paco Rabanne 1 Million Lucky,1 Million Lucky / Paco Rabanne EDT Spray,3.4,100,124.98,ok,99.98
 9,Paco Rabanne Invictus,dato de Kike,1.7,50,54.86,ok,
@@ -99,8 +98,8 @@ id,nombre_app,nombre_jomashop,oz,ml,precio_usd,estado,precio_con_cupon
 24,Lattafa Art of Universe,Unisex Art Of Universe EDP Spray (6290360592206),3.4,100,39.99,ok,
 88,Lattafa The Kingdom,Men's The Kingdom EDP Spray (6290360598345),3.4,100,23.99,ok,
 48,Montblanc Explorer,Men's Explorer EDP Spray (3386460101035),3.3,100,54.99,ok,
-55,Montblanc Legend,Men's Legend EDP Body Spray (3386460118125),3.4,100,42.50,ojo-la-ficha-dice-body-spray-no-el-frasco,
-53,Prada Luna Rossa Carbon,Men's Luna Rossa Carbon EDT Spray (8435137772704),5.1,150,114.99,ojo-frasco-de-150ml,
+55,Montblanc Legend,Legend / Mont Blanc EDT Spray,3.3,100,42.99,ok,
+53,Prada Luna Rossa Carbon,Men's Luna Rossa Carbon EDT Spray (8435137772704),5.1,150,114.99,ok,
 11,Prada Candy,Candy / Prada EDP Spray,2.7,80,97.99,ok,
 32,Swiss Arabian Shaghaf Oud,Unisex Shaghaf Oud EDP Spray (6295124024832),2.5,75,29.99,ok,
 85,Swiss Arabian Shaghaf Oud Elixir,Unisex Shaghaf Oud Elixir EDP Spray (6295124045608),2.5,75,39.99,ok,
@@ -109,11 +108,11 @@ id,nombre_app,nombre_jomashop,oz,ml,precio_usd,estado,precio_con_cupon
 13,Lancôme La Vie Est Belle,La Vie Est Belle / Lancome EDP Spray,3.4,100,99.99,ok,
 15,Davidoff Cool Water,Men's Cool Water EDT Spray (3414202000572),4.2,125,26.99,ok,
 16,Hugo Boss Bottled,Boss Bottled No.6 / Hugo Boss EDT Spray,3.3,100,48.95,ok,
-17,Ralph Lauren Polo Blue,Polo Blue / Ralph Lauren EDP Spray,4.2,125,74.99,ojo-la-ficha-es-el-edp-y-la-app-tiene-el-edt,
+17,Ralph Lauren Polo Blue,Polo Blue / Ralph Lauren EDT Spray,4.2,125,47.95,ok,
 18,Calvin Klein CK One,CK One by Calvin Klein EDT Spray,3.4,100,29.99,ok,
-45,Acqua di Parma Colonia,Men's Colonia Club EDC Spray (8028713150029),3.4,100,84.99,ojo-la-ficha-es-la-colonia-club-no-la-colonia,
+45,Acqua di Parma Colonia,Colonia / Acqua Di Parma Cologne Spray,3.4,100,89.99,ok,
 49,Cartier Pasha de Cartier Parfum,Men's Pasha De Cartier Parfum (3432240504197),3.4,100,88.99,ok,
-56,Azzaro The Most Wanted,The Most Wanted / Azzaro EDP Spray Intense,3.4,100,84.81,ojo-la-ficha-es-el-intense-y-la-app-tiene-el-edp,67.85
+56,Azzaro The Most Wanted,The Most Wanted / Azzaro EDP Spray,3.4,100,84.81,ok,67.85
 58,Dolce & Gabbana Light Blue,Light Blue / Dolce & Gabbana EDT Spray,3.3,100,49.95,ok,
 59,Burberry Hero,Men's Hero EDT Spray (3614229820799),3.3,100,87.18,ok,69.74
 90,Nautica Voyage,Men's Voyage EDT Spray (031655531908),3.4,100,19.99,ok,
@@ -126,8 +125,8 @@ id,nombre_app,nombre_jomashop,oz,ml,precio_usd,estado,precio_con_cupon
 79,Nishane Hacivat,Men's Hacivat Extrait de Parfum Spray (8681008055180),3.4,100,223.69,ok,178.95
 80,Byredo Bal d'Afrique,Bal D'Afrique Eau De Parfum Spray,3.4,100,259.99,ok,
 91,Kilian Angel's Share,Unisex Angel's Share EDP (3700550232971),3.4,100,299.99,ok,279.99
-92,Roja Parfums Elysium,Unisex Elysium Eau Intense EDP Spray (5056663800001),3.4,100,179.38,ojo-la-ficha-es-el-eau-intense-no-el-pour-homme,143.50
-93,Mancera Cedrat Boise,Unisex Intense Cedrat Boise EDP (3760265194032),4.0,120,132.84,ojo-la-ficha-es-el-intense-cedrat-boise,92.99
+92,Roja Parfums Elysium Eau Intense,Unisex Elysium Eau Intense EDP Spray (5056663800001),3.4,100,179.38,ok,143.50
+93,Mancera Cedrat Boise,Unisex Cedrat Boise EDP Spray,4.0,120,79.99,ok,
 94,Montale Intense Café,Intense Cafe / Montale EDP Spray,3.4,100,92.99,ok,65.09
 115,Xerjoff Erba Gold,Unisex V Erba Gold EDP Spray (8054320902522),3.4,100,232.44,ok,185.95
 130,Tom Ford Neroli Portofino,Neroli Portofino EDP Spray Private Blend,3.4,100,309.18,ok,247.34

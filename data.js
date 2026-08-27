@@ -1433,7 +1433,7 @@ const PERFUMES = [
   {
     id: 92,
     activo: true,
-    nombre: "Roja Parfums Elysium",
+    nombre: "Roja Parfums Elysium Eau Intense",
     tipo: "Lujo",
     aromaPrincipal: "Fresco",
     subAroma: "Menta / Té / Verde",
@@ -1443,8 +1443,8 @@ const PERFUMES = [
     estilo: "Formal",
     potencia: "Normal",
     presupuesto: "Sin límite",
-    notas: "Bergamota, limón / Salvia, geranio / Almizcle, vetiver, ámbar",
-    imagen: "Roja%20Parfums%20Elysium.avif"
+    notas: "Bergamota, toronja, lima, ruibarbo, lavanda, tomillo / Muguete, azahar, rosa de mayo, jazmín, manzana, grosella negra / Gálbano, pimienta negra, cypriol, vetiver, cedro, benjuí",
+    imagen: "Roja%20Parfums%20Elysium%20Eau%20Intense.avif"
   },
   {
     id: 93,

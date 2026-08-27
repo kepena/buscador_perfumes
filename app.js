@@ -41,7 +41,7 @@
       </a>
       <p class="contacto-numero">
         WhatsApp <a href="${enlace}" target="_blank" rel="noopener">${numeroVisible()}</a>
-        <span class="contacto-nota">Te confirmamos precio y disponibilidad</span>
+        <span class="contacto-nota">Pregunta si hay descuentos disponibles para ese perfume</span>
       </p>`;
   }
 
@@ -975,8 +975,11 @@
     const piezasSet = Math.min(3, candidatasSet.length);
     const hayQueOfrecerSet = conDecant && piezasSet >= 1;
 
-    const mensajeProbar = `Hola, quiero pedir el decant de 5ml de ${perfume.nombre} 🧪`;
-    const mensajeBotella = `Hola, quiero pedir la botella completa de ${perfume.nombre} 🍾`;
+    // El mensaje pregunta por descuentos a propósito: los cupones del
+    // proveedor van y vienen, así que el precio de lista es el que manda y
+    // la rebaja se da por aquí cuando alcanza a estar disponible.
+    const mensajeProbar = `Hola, quiero pedir el decant de 5ml de ${perfume.nombre} 🧪 ¿Hay algún descuento disponible para ese perfume?`;
+    const mensajeBotella = `Hola, quiero pedir la botella completa de ${perfume.nombre} 🍾 ¿Hay algún descuento disponible para ese perfume?`;
 
     // El Set se describe según con cuántas fragancias se puede armar de
     // verdad, no según cuántas casillas tiene la pantalla.
@@ -1180,7 +1183,7 @@
     if (completas) {
       const elegidas = CASILLAS_SET_OCASION.map((cfg) => estadoSetOcasion.porCasilla[cfg.id]);
       const nombres = elegidas.map((perfume) => perfume.nombre);
-      const mensaje = `Hola, quiero pedir mi Set Ocasión con estos 3 decants de 5ml: ${nombres.join(", ")} 🎁`;
+      const mensaje = `Hola, quiero pedir mi Set Ocasión con estos 3 decants de 5ml: ${nombres.join(", ")} 🎁 ¿Hay algún descuento disponible?`;
       const zonaContacto = $("#zona-contacto-set");
       zonaContacto.innerHTML =
         etiquetaPrecioSet(elegidas.map((perfume) => ({ id: perfume.id, ml: 5 }))) +
@@ -1261,7 +1264,7 @@
     });
 
     const detalle = piezas.map((pieza) => `${pieza.ml}ml de ${pieza.perfume.nombre}`).join(", ");
-    const mensaje = `Hola, quiero pedir mi Set Ocasión de 15ml: ${detalle} 🎁`;
+    const mensaje = `Hola, quiero pedir mi Set Ocasión de 15ml: ${detalle} 🎁 ¿Hay algún descuento disponible?`;
     $("#zona-contacto-set").innerHTML =
       etiquetaPrecioSet(piezas.map((pieza) => ({ id: pieza.perfume.id, ml: pieza.ml }))) +
       bloqueContacto(mensaje, "Contáctanos para pedir tu Set Ocasión");
