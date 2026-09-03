@@ -1,44 +1,38 @@
 // ============================================================
-// Protección simple por contraseña para catalogo.html
+// Puerta de acceso a catalogo.html
 //
-// IMPORTANTE: esto es una "cortina" para evitar que gente casual
-// entre por accidente o curiosidad, NO es seguridad real. Como el
-// sitio es estático (GitHub Pages, sin servidor propio), cualquier
-// persona con conocimientos técnicos podría ver el código fuente
-// en el navegador y encontrar la forma de saltarse esta protección.
-// No la uses para proteger información sensible de verdad.
+// QUIÉN VALIDA LA CONTRASEÑA
+//   Supabase, no el navegador. Lo que se teclea aquí se manda tal cual a
+//   /auth/v1/token. Si Supabase devuelve un token, se abre el panel; si no,
+//   no se abre. En este archivo NO hay contraseña ni hash de contraseña:
+//   no queda nada publicado contra lo que alguien pueda trabajar sin red.
 //
-// La contraseña se guarda como hash SHA-256, no en texto plano,
-// para que al menos no sea visible a simple vista en el código.
+//   Antes había un hash SHA-256 de la clave en este mismo archivo. Como el
+//   repositorio es público y la clave era un número de 8 dígitos, ese hash
+//   se rompía por fuerza bruta en segundos —y esa misma clave es la del
+//   usuario de Supabase, así que romperla daba permiso de escritura real
+//   sobre la base. Por eso se quitó.
 //
-// Desde la migración a base de datos, esta misma contraseña cumple
-// además una función REAL de seguridad: se canjea contra Supabase por
-// un permiso temporal de escritura. Sin ese permiso, la base de datos
-// rechaza cualquier intento de modificar precios, fotos o activaciones,
-// aunque alguien lea el código fuente del sitio. La contraseña en sí
-// nunca queda escrita en el código: la tecleas tú y se usa al vuelo.
+// QUÉ PROTEGE DE VERDAD
+//   La seguridad no está en esta pantalla: está en las políticas RLS de
+//   Supabase. Leer el catálogo es público; escribir exige un token de
+//   usuario autenticado. Aunque alguien se salte esta pantalla a la fuerza,
+//   la base rechaza cualquier cambio. Esta pantalla es la puerta; la
+//   cerradura está del lado del servidor.
+//
+// POR QUÉ NO HAY ENTRADA SIN RED
+//   Sin conexión no hay forma de comprobar una contraseña sin publicar algo
+//   con qué compararla, y publicar eso es justo el problema que se quitó.
+//   Sin red el panel no abre, y lo dice.
 // ============================================================
 
 (function () {
   "use strict";
 
-  // Hash SHA-256 de la contraseña del catálogo.
-  const HASH_CLAVE_CORRECTA =
-    "e978fcc5807ae67faec88882e1778d5c20a282c465062d7916e677e1101e9995";
-
-  const CLAVE_SESION = "perfumesPro_catalogoDesbloqueado";
   const CLAVE_INTENTOS = "perfumesPro_catalogoIntentos";
   const CLAVE_BLOQUEO_HASTA = "perfumesPro_catalogoBloqueoHasta";
   const MAX_INTENTOS = 5;
   const BLOQUEO_MS = 60000; // 1 minuto de espera tras agotar los intentos
-
-  async function calcularHash(texto) {
-    const datos = new TextEncoder().encode(texto);
-    const buffer = await crypto.subtle.digest("SHA-256", datos);
-    return Array.from(new Uint8Array(buffer))
-      .map((b) => b.toString(16).padStart(2, "0"))
-      .join("");
-  }
 
   function segundosRestantesDeBloqueo() {
     const hasta = Number(sessionStorage.getItem(CLAVE_BLOQUEO_HASTA) || 0);
@@ -55,6 +49,11 @@
     }
   }
 
+  function limpiarIntentos() {
+    sessionStorage.removeItem(CLAVE_INTENTOS);
+    sessionStorage.removeItem(CLAVE_BLOQUEO_HASTA);
+  }
+
   function mostrarContenido() {
     const pantallaAcceso = document.getElementById("pantalla-acceso");
     const contenido = document.getElementById("contenido-catalogo");
@@ -63,7 +62,6 @@
 
     // Estos textos no viven en el HTML estático a propósito, para que
     // no sean visibles con "Ver código fuente" antes de autenticarse.
-    // Se rellenan aquí, solo después de una contraseña correcta.
     const elEyebrow = document.getElementById("txt-eyebrow");
     const elTitulo = document.getElementById("txt-titulo");
     const elSub = document.getElementById("txt-sub");
@@ -76,28 +74,51 @@
     document.title = "Catálogo completo — Buscador de Perfumes Pro";
   }
 
-  function yaEstaDesbloqueado() {
-    return sessionStorage.getItem(CLAVE_SESION) === "1";
+  // Qué decirle a quien no pudo entrar. Un "contraseña incorrecta" cuando
+  // en realidad se cayó el internet manda a la persona a buscar el error
+  // donde no está.
+  function mensajeDeFallo(motivo) {
+    if (motivo === "sin-red") {
+      return "No hay conexión con la base de datos. Sin internet no se puede verificar la contraseña.";
+    }
+    if (motivo === "sin-confirmar") {
+      return "El usuario administrador existe en Supabase pero está sin confirmar. Confírmalo en Authentication → Users.";
+    }
+    if (motivo === "sin-configurar") {
+      return "La base de datos no está configurada en db.js, así que no hay contra qué verificar la contraseña.";
+    }
+    return "Contraseña incorrecta. Intenta de nuevo.";
   }
 
   document.addEventListener("DOMContentLoaded", () => {
-    // Si ya se desbloqueó antes en esta misma pestaña/sesión, saltamos
-    // directo al contenido sin pedir la contraseña otra vez.
-    if (yaEstaDesbloqueado()) {
+    // Al recargar, se entra directo SOLO si sigue viva la sesión de
+    // escritura de Supabase. Antes bastaba una marca en sessionStorage, que
+    // cualquiera podía escribir a mano desde la consola del navegador para
+    // ver el panel. Ahora la llave es el token, no una bandera.
+    if (typeof PerfumesDB !== "undefined" && PerfumesDB.sesionDeEscrituraActiva()) {
       mostrarContenido();
+      if (typeof window.PerfumesPanelEstado === "function") {
+        window.PerfumesPanelEstado({ ok: true });
+      }
       return;
     }
 
     const form = document.getElementById("form-acceso");
     const input = document.getElementById("input-clave-acceso");
     const mensajeError = document.getElementById("acceso-error");
+    const boton = form ? form.querySelector("button[type=submit]") : null;
 
     if (!form || !input) return;
 
-    const restanteInicial = segundosRestantesDeBloqueo();
-    if (restanteInicial > 0 && mensajeError) {
-      mensajeError.textContent = `Demasiados intentos. Espera ${restanteInicial} segundos.`;
+    function error(texto) {
+      if (!mensajeError) return;
+      mensajeError.textContent = texto;
       mensajeError.hidden = false;
+    }
+
+    const restanteInicial = segundosRestantesDeBloqueo();
+    if (restanteInicial > 0) {
+      error(`Demasiados intentos. Espera ${restanteInicial} segundos.`);
     }
 
     form.addEventListener("submit", async (evento) => {
@@ -105,47 +126,49 @@
 
       const restante = segundosRestantesDeBloqueo();
       if (restante > 0) {
-        if (mensajeError) {
-          mensajeError.textContent = `Demasiados intentos. Espera ${restante} segundos.`;
-          mensajeError.hidden = false;
-        }
+        error(`Demasiados intentos. Espera ${restante} segundos.`);
         return;
       }
 
-      const intento = input.value.trim();
-      if (!intento) return;
+      const intento = input.value;
+      if (!intento.trim()) return;
 
-      const hashIntento = await calcularHash(intento);
+      if (typeof PerfumesDB === "undefined" || !PerfumesDB.estaConfigurada()) {
+        error(mensajeDeFallo("sin-configurar"));
+        return;
+      }
 
-      if (hashIntento === HASH_CLAVE_CORRECTA) {
-        sessionStorage.setItem(CLAVE_SESION, "1");
-        sessionStorage.removeItem(CLAVE_INTENTOS);
-        sessionStorage.removeItem(CLAVE_BLOQUEO_HASTA);
+      // Ir hasta Supabase toma un momento; sin este aviso parece que el
+      // botón no hizo nada y la gente lo pulsa varias veces.
+      if (boton) {
+        boton.disabled = true;
+        boton.textContent = "Verificando…";
+      }
+      if (mensajeError) mensajeError.hidden = true;
 
-        // Canjeamos la contraseña recién tecleada por un token de
-        // escritura de la base de datos. Solo con ese token se pueden
-        // guardar cambios; sin él el panel queda en modo lectura.
-        let resultado = { ok: true, motivo: null };
-        if (typeof PerfumesDB !== "undefined" && PerfumesDB.estaConfigurada()) {
-          resultado = await PerfumesDB.iniciarSesion(intento);
-        }
+      const resultado = await PerfumesDB.iniciarSesion(intento);
 
-        mostrarContenido();
+      if (boton) {
+        boton.disabled = false;
+        boton.textContent = "Entrar";
+      }
 
-        // El panel decide qué mostrar según el motivo exacto del rechazo:
-        // no es lo mismo que falte crear el usuario administrador, que exista
-        // sin confirmar, o que simplemente no haya red.
-        if (typeof window.PerfumesPanelEstado === "function") {
-          window.PerfumesPanelEstado(resultado);
-        }
-      } else {
-        registrarIntentoFallido();
-        if (mensajeError) {
-          mensajeError.textContent = "Contraseña incorrecta. Intenta de nuevo.";
-          mensajeError.hidden = false;
-        }
+      if (!resultado.ok) {
+        // Solo cuenta como intento fallido si la contraseña estuvo mal. Que
+        // se caiga el internet no debería dejar a nadie fuera un minuto.
+        if (resultado.motivo !== "sin-red") registrarIntentoFallido();
+        error(mensajeDeFallo(resultado.motivo));
         input.value = "";
         input.focus();
+        return;
+      }
+
+      limpiarIntentos();
+      input.value = "";
+      mostrarContenido();
+
+      if (typeof window.PerfumesPanelEstado === "function") {
+        window.PerfumesPanelEstado(resultado);
       }
     });
   });

@@ -81,12 +81,6 @@ window.PerfumesDB = (function () {
   // sin explicación, porque el recuadro verde de "conectado" se pintó al
   // entrar y ya no vuelve a comprobarse.
   const CLAVE_REFRESCO = "perfumesPro_refrescoEscritura";
-  // La define auth-catalogo.js. Aquí se limpia cuando la sesión muere, para
-  // que recargar vuelva a pedir la contraseña. Sin eso, recargar te devuelve
-  // al panel "desbloqueado" pero sin permiso de escritura: todo falla igual
-  // y no hay forma de arreglarlo desde la pantalla.
-  const CLAVE_DESBLOQUEADO = "perfumesPro_catalogoDesbloqueado";
-
   // Claves de localStorage originales. Se mantienen como respaldo para
   // que el sitio funcione si la BD no está configurada todavía, y para
   // poder migrar a la nube lo que ya tengas guardado en este navegador.
@@ -180,13 +174,13 @@ window.PerfumesDB = (function () {
   }
 
   // Se llama cuando la base rechaza una escritura por permiso y el refresco
-  // tampoco funciona. Borra las tres llaves a la vez: dejar el "desbloqueado"
-  // sin el token es justo el estado que deja el panel abierto pero inútil.
+  // tampoco funciona. Borrar el token es lo que cierra la puerta: desde que
+  // la pantalla de acceso mira el token en vez de una bandera aparte,
+  // recargar sin token vuelve a pedir la contraseña.
   function cerrarSesionDeEscritura() {
     try {
       sessionStorage.removeItem(CLAVE_TOKEN);
       sessionStorage.removeItem(CLAVE_REFRESCO);
-      sessionStorage.removeItem(CLAVE_DESBLOQUEADO);
     } catch (e) { /* nada que limpiar */ }
     if (typeof window !== "undefined" && typeof window.PerfumesPanelEstado === "function") {
       window.PerfumesPanelEstado({ ok: false, motivo: "sesion-vencida" });

@@ -23,7 +23,7 @@ DNS: gestionado en **HostGator** (CNAME apuntando a kepena.github.io)
 | `catalogo.html` | Panel de administración (protegido con contraseña) |
 | `catalogo.css` | Estilos del panel |
 | `catalogo.js` | Lógica del panel: costo, venta, fotos, activar/desactivar |
-| `auth-catalogo.js` | Contraseña del panel (`94458370`, hasheada con SHA-256) |
+| `auth-catalogo.js` | Puerta del panel. **No guarda la contraseña ni su hash**: la valida Supabase |
 | `01-costo-y-venta.sql` | Prepara la base: columnas `costo_usd`/`venta_usd` + precios sugeridos |
 | `02-precios-decant.sql` | Columnas `volumen_ml`/`verificado` + tabla `configuracion` |
 | `03-decants.sql` | Columna `decant`: si esa fragancia se decanta o va solo en frasco |
@@ -446,11 +446,44 @@ ejecutar.
 
 - **Lectura pública** (`anon`): la necesita el test para los visitantes.
 - **Escritura solo `authenticated`**: el panel canjea la contraseña que
-  Kike teclea por un token temporal contra Supabase Auth. La contraseña no
-  está en el código (solo su hash SHA-256), así que quien lea el código
-  fuente no puede escribir en la base de datos.
+  Kike teclea por un token temporal contra Supabase Auth. **Ahí está la
+  cerradura de verdad.** Aunque alguien se salte la pantalla de acceso a la
+  fuerza, sin token la base rechaza cualquier cambio.
 - Usuario administrador: `admin@buscadorperfumes.kaiketek.com`, con la
   misma contraseña del panel, y **confirmado** (Auto Confirm User).
+
+#### El hash que había en el código era un agujero, no una protección
+
+`auth-catalogo.js` guardaba el SHA-256 de la contraseña para validarla sin
+red. Parecía prudente —el texto plano no estaba a la vista— pero el
+repositorio es público y la contraseña era un número de 8 dígitos: son 10⁸
+combinaciones, que un computador cualquiera prueba en segundos contra ese
+hash. Y como **esa misma contraseña es la del usuario de Supabase**,
+romperla no daba acceso a una pantalla: daba permiso de escritura sobre la
+base de datos.
+
+Ahora **no se valida nada en el navegador**. Lo tecleado se manda tal cual a
+`/auth/v1/token`; si Supabase devuelve token, se abre el panel. En el
+código no queda nada contra lo que trabajar sin red.
+
+Consecuencias, a propósito:
+
+- **Sin internet el panel no abre.** Comprobar una contraseña estando
+  desconectado exige publicar algo con qué compararla, que es justo el
+  problema que se quitó. La pantalla lo dice en vez de fingir un error de
+  contraseña.
+- **Recargar solo entra si el token sigue vivo.** Antes bastaba una marca
+  en `sessionStorage` (`perfumesPro_catalogoDesbloqueado`), que cualquiera
+  escribía desde la consola del navegador para ver el panel. Esa marca ya
+  no existe: la llave es el token.
+- El bloqueo tras 5 intentos sigue, pero **no cuenta los fallos de red**:
+  que se caiga el internet no debería dejar a nadie fuera un minuto.
+
+> **Pendiente de Kike:** la contraseña vieja estuvo publicada como hash
+> rompible en un repositorio público, así que hay que darla por conocida.
+> Cámbiala en Supabase (**Authentication → Users →** el usuario admin **→
+> Reset password**) por una larga y aleatoria. No hay que tocar código: ya
+> no vive ahí.
 
 ### La sesión de escritura vence a la hora
 
@@ -471,12 +504,11 @@ Cómo funciona ahora:
 - `db.js` guarda también el **token de refresco**. Si una escritura recibe
   401 o 403, renueva la sesión y **repite la escritura una vez**. En el
   caso normal no te enteras de nada.
-- Si el refresco tampoco funciona, se borran las tres llaves de sesión a la
-  vez — token, refresco y el flag de "desbloqueado" de `auth-catalogo.js` —
-  y sale un recuadro que dice qué pasó, con un botón para volver a entrar.
-  Borrar el flag es lo que hace que recargar vuelva a pedir la contraseña:
-  dejarlo puesto sin token es el estado que dejaba el panel abierto pero
-  incapaz de guardar nada.
+- Si el refresco tampoco funciona, se borran token y refresco, y sale un
+  recuadro que dice qué pasó, con un botón para volver a entrar. Borrar el
+  token es lo que hace que recargar vuelva a pedir la contraseña: desde que
+  la pantalla de acceso mira el token en vez de una bandera aparte, no queda
+  forma de acabar con el panel abierto pero incapaz de guardar nada.
 - **El chequeo de columnas va sin token**, porque la lectura es pública. Así
   un token vencido no puede volver a disfrazarse de columna que falta.
 
@@ -598,7 +630,8 @@ Se usa en: portada, tarjeta "Probar", tarjeta "Botella", Set Ocasión.
   Set Ocasión y contacto WhatsApp ya funcionan y están probados.
 - **No meter precios en `data.js`.** Van en la base de datos.
 - El diseño visual (paleta dorada/oscura, Fraunces/Manrope) no cambia.
-- `catalogo.html` sigue protegido con la misma contraseña simple.
+- **La contraseña del panel no vuelve al código**, ni en texto plano ni
+  hasheada. La valida Supabase y solo Supabase.
 - El panel separa el **estado de la conexión** (recuadro fijo arriba) del
   **resultado de la última acción** (nota gris). No volver a mezclarlos:
   cuando compartían el mismo párrafo, el diagnóstico real desaparecía al
