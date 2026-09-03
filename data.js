@@ -2161,6 +2161,22 @@ const PERFUMES = [
     presupuesto: "Económico",
     notas: "Bergamota, lavanda, romero / Notas marinas, geranio, salvia / Musgo, vetiver, ámbar, cedro",
     imagen: "Al%20Haramain%20Amber%20Oud%20Carbon%20Edition.avif"
+  },
+  {
+    id: 144,
+    activo: true,
+    nombre: "Paco Rabanne Invictus Victory Elixir",
+    tipo: "Diseñador",
+    aromaPrincipal: "Cálido / Especiado",
+    subAroma: "Ámbar / Pimienta",
+    notaEspecifica: "especiado-intenso",
+    momento: "Fiesta",
+    clima: "Frío / Noche",
+    estilo: "Versátil",
+    potencia: "Modo Bestia",
+    presupuesto: "Medio",
+    notas: "Pimienta negra, bergamota, cardamomo / Incienso, lavanda, vainilla / Haba tonka, patchouli, almizcle",
+    imagen: "Paco%20Rabanne%20Invictus%20Victory%20Elixir.avif"
   }
 ];
 

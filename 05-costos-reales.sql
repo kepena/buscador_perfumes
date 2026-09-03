@@ -7,12 +7,12 @@
 --    recogidos uno por uno contra la ficha de cada producto, y de paso
 --    corrige el volumen del frasco de cada fragancia.
 --
---    Son 132 fragancias: todo el catálogo.
+--    Son 133 fragancias: todo el catálogo.
 --
 --  POR QUE IMPORTA EL VOLUMEN
 --    El precio del decant se calcula como (costo / volumen) × mililitros.
 --    Si una fragancia de 125 ml está registrada como de 100, el decant
---    sale un 25% más caro de lo que debería. 36 de las 132 NO son de
+--    sale un 25% más caro de lo que debería. 36 de las 133 NO son de
 --    100 ml: los Parfums de Marly y los Jean Paul Gaultier vienen en 125,
 --    los Armaf Club de Nuit en 105, los Maison Francis Kurkdjian en 70, y
 --    hay frascos desde 50 hasta 150 ml.
@@ -170,7 +170,8 @@ insert into public.perfume_overrides as o (id, costo_usd, volumen_ml, verificado
   (140, 360.00, 125, true),         -- Parfums de Marly Pegasus EDP
   (141, 360.00, 125, true),         -- Parfums de Marly Althaïr EDP
   (142, 24.99, 100, true),          -- Al Haramain Détour Noir
-  (143, 49.99, 100, true)           -- Al Haramain Amber Oud Carbon Edition
+  (143, 49.99, 100, true),          -- Al Haramain Amber Oud Carbon Edition
+  (144, 116.24, 100, true)          -- Paco Rabanne Invictus Victory Elixir
 on conflict (id) do update
    set costo_usd  = excluded.costo_usd,
        volumen_ml = excluded.volumen_ml,
@@ -183,7 +184,7 @@ delete from public.perfume_overrides
  where id in (98, 109, 110, 120, 138, 4, 52, 132, 133, 96, 72);
 
 -- ---------- 3) Comprobación ----------
--- Debe decir 132 verificadas.
+-- Debe decir 133 verificadas.
 select count(*)      as verificadas,
        min(costo_usd) as costo_minimo,
        max(costo_usd) as costo_maximo
@@ -194,8 +195,8 @@ select count(*)      as verificadas,
 --  REFERENCIA: precios con cupón
 --
 --  No se guardan en la base. Quedan anotados para que sepas hasta
---  dónde le puedes bajar a un cliente sin perder margen. Son 50
---  de las 132; el resto no tenía cupón.
+--  dónde le puedes bajar a un cliente sin perder margen. Son 51
+--  de las 133; el resto no tenía cupón.
 -- ============================================================
 --
 --    1  Dior Sauvage EDT                                  173.20 -> 121.24
@@ -248,3 +249,4 @@ select count(*)      as verificadas,
 --  131  Tom Ford Black Orchid Parfum                      175.75 -> 140.60
 --  136  Yves Saint Laurent Y Le Parfum                    139.43 -> 111.54
 --  137  Yves Saint Laurent MYSLF L'Absolu                 184.05 -> 147.24
+--  144  Paco Rabanne Invictus Victory Elixir              116.24 -> 92.99
