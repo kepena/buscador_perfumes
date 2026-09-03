@@ -241,11 +241,23 @@
   // Determina la categoría de presupuesto a partir del precio de venta,
   // usando los cortes configurados aquí mismo, para que el filtro del test
   // siga siendo coherente después de cualquier ajuste.
-  function categoriaParaPrecio(precio) {
+  // Misma cuenta que hace el test en app.js: el rango se decide por el
+  // precio de venta CALCULADO (pesos), no por el venta_usd tecleado a mano.
+  // Si el panel usara un número y el test otro, la etiqueta de esta fila
+  // diría una cosa y el visitante vería otra.
+  function categoriaParaPrecio(precioCop) {
     const r = PerfumesDB.rangos();
-    if (precio <= r.maxEconomico) return "Económico";
-    if (precio <= r.maxMedio) return "Medio";
+    const trm = PerfumesDB.parametros().trm || 1;
+    if (precioCop <= r.maxEconomico * trm) return "Económico";
+    if (precioCop <= r.maxMedio * trm) return "Medio";
     return "Sin límite";
+  }
+
+  // El precio que de verdad se le cobra al cliente por la botella, salido
+  // del costo y los parámetros. Es lo que el test usa para filtrar.
+  function precioDeVentaCop(perfume) {
+    const p = PerfumesDB.preciosDe(perfume.id);
+    return p && typeof p.botellaCop === "number" ? p.botellaCop : null;
   }
 
   function imagenActual(perfume, overridesImg) {
@@ -487,7 +499,7 @@
         inputCosto.value = costo === null ? "" : formatearPrecio(costo);
         inputVenta.value = venta === null ? "" : formatearPrecio(venta);
         fila.classList.toggle("sin-precio", venta === null);
-        actualizarEtiquetasPrecio(spanMargen, spanCategoria, costo, venta);
+        actualizarEtiquetasPrecio(spanMargen, spanCategoria, costo, venta, precioDeVentaCop(perfume));
 
         const vol = PerfumesDB.volumenDe(perfume.id);
         inputVolumen.value = vol === null ? "" : vol;
@@ -662,17 +674,18 @@
   // Muestra el margen de utilidad: cuánto se le está ganando a esa
   // fragancia respecto a lo que cuesta. Es la cifra que importa de un
   // vistazo, más que el precio suelto.
-  function actualizarEtiquetasPrecio(spanMargen, spanCategoria, costo, venta) {
+  function actualizarEtiquetasPrecio(spanMargen, spanCategoria, costo, venta, ventaCop) {
     spanMargen.classList.remove("cambiado", "fila-margen-negativo");
+
+    // El rango sale del precio calculado; el margen sigue comparando los dos
+    // números en dólares, que es como Kike los piensa.
+    spanCategoria.textContent = ventaCop === null ? "—" : categoriaParaPrecio(ventaCop);
 
     if (venta === null) {
       spanMargen.textContent = "Sin precio de venta";
       spanMargen.classList.add("fila-margen-negativo");
-      spanCategoria.textContent = "—";
       return;
     }
-
-    spanCategoria.textContent = categoriaParaPrecio(venta);
 
     if (costo === null || costo <= 0) {
       spanMargen.textContent = "Sin costo";

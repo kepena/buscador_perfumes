@@ -116,11 +116,17 @@ precio y hay que configurárselo en el panel antes de que se ofrezca.
 
 ### Rangos de presupuesto
 
-Se calculan sobre la **VENTA** y **se configuran desde el panel**, no en el
-código. Los cortes viven en la base de datos, en una fila reservada con
-`id 0` de la misma tabla (`costo_usd` = tope de Económico, `venta_usd` =
-tope de Medio). No existe ninguna fragancia con id 0, así que no choca con
-nada y evita crear una tabla aparte para dos números.
+Se calculan sobre el **precio de venta calculado** y **se configuran desde
+el panel**, no en el código. Los cortes viven en la base de datos, en una
+fila reservada con `id 0` de la misma tabla (`costo_usd` = tope de
+Económico, `venta_usd` = tope de Medio). No existe ninguna fragancia con
+id 0, así que no choca con nada y evita crear una tabla aparte para dos
+números.
+
+Los cortes están en dólares y el precio calculado en pesos, así que la
+comparación pasa los **cortes** por la TRM, no el precio. Es a propósito:
+los cortes son dos números escritos a mano; los precios son 133 calculados.
+Convertir los dos deja los 133 intactos.
 
 Si nunca se han configurado, se usan los valores por defecto de
 `RANGOS_PRECIO` en `data.js`: Económico ≤ $45 · Medio ≤ $110.
@@ -160,9 +166,22 @@ Ejemplo con TRM 4.000, importación $30.000 y margen 40%:
 El margen se aplica sobre el costo **ya puesto en Colombia**, así que ese
 40% también cubre la plata que se puso en traerlo.
 
-> **Ojo:** el campo VENTA en dólares del panel **no** es el precio que ve el
-> cliente. VENTA solo decide en qué rango de presupuesto cae la fragancia
-> (Económico / Medio / Sin límite) y sirve para los filtros del panel.
+### El precio de venta se calcula, no se teclea
+
+El test ya no lee ningún precio escrito a mano. Lo que llega al visitante
+sale del **COSTO del catálogo pasado por los parámetros de precio**: TRM,
+importación, margen y volumen. Cambiar la TRM o el margen mueve el catálogo
+entero de una vez.
+
+Antes, `precioVigente()` leía `venta_usd`, un número aparte que había que
+escribir fragancia por fragancia. Convivían dos precios: el que el panel
+calculaba y mostraba, y el que de verdad decidía qué veía el visitante y en
+qué rango de presupuesto caía. Bastaba mover la TRM para que quedaran
+diciendo cosas distintas, sin que nada avisara.
+
+`venta_usd` sigue existiendo en la base y en el panel, pero ya solo sirve
+para ver el **margen** contra el costo, los dos en dólares, que es como se
+piensa la compra. No decide nada de cara al cliente.
 
 ### El nombre lleva la concentración
 

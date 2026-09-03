@@ -327,18 +327,25 @@
     return PerfumesDB.overrides();
   }
 
-  // El precio que ve el visitante es el de VENTA. El costo es interno del
-  // panel y nunca sale de ahí.
-  function leerOverridesPrecio() {
-    return overridesEnMemoria().ventas;
-  }
-
-  // Devuelve el precio de venta, o null si esa fragancia todavía no tiene
-  // uno configurado en el panel. Sin precio no se puede vender, así que esa
-  // fragancia no se ofrece como resultado.
-  function precioVigente(perfume, overrides) {
-    const guardado = overrides[perfume.id];
-    return typeof guardado === "number" && !Number.isNaN(guardado) ? guardado : null;
+  // EL PRECIO DE VENTA SE CALCULA, NO SE TECLEA.
+  //
+  // Sale del COSTO del catálogo pasado por los parámetros de precio:
+  //
+  //   costo puesto aquí = (costo_usd × TRM) + importación_cop
+  //   botella           = costo puesto aquí × (1 + margen_botella)
+  //
+  // Antes esto leía `venta_usd`, un número aparte que había que escribir a
+  // mano fragancia por fragancia. Eran dos precios conviviendo: el que el
+  // panel calculaba y el que decidía de verdad qué veía el visitante. Bastaba
+  // cambiar la TRM o el margen para que quedaran diciendo cosas distintas.
+  // Ahora hay uno solo, y cambiar un parámetro mueve el catálogo entero.
+  //
+  // Devuelve pesos colombianos, o null si a esa fragancia le falta el costo
+  // o el volumen. Sin eso no hay precio, y sin precio no se ofrece.
+  function precioVigente(perfume) {
+    if (typeof PerfumesDB === "undefined") return null;
+    const p = PerfumesDB.preciosDe(perfume.id);
+    return p && typeof p.botellaCop === "number" ? p.botellaCop : null;
   }
 
   // Si la base de datos no respondió, ninguna fragancia tiene precio y el
@@ -351,13 +358,22 @@
 
   // Los cortes de presupuesto se configuran desde el panel y viven en la
   // base de datos. Si nunca se tocaron, se usan los de data.js.
-  function categoriaParaPrecio(precio) {
+  //
+  // Los cortes están en dólares y el precio de venta ya viene en pesos, así
+  // que se comparan pasando los cortes por la TRM. Se hace en esa dirección
+  // a propósito: los cortes son dos números que Kike escribe, el precio son
+  // 133 que se calculan. Convertir los dos números deja los 133 intactos.
+  function categoriaParaPrecio(precioCop) {
     const r =
       typeof PerfumesDB !== "undefined"
         ? PerfumesDB.rangos()
         : { maxEconomico: RANGOS_PRECIO["Económico"].max, maxMedio: RANGOS_PRECIO.Medio.max };
-    if (precio <= r.maxEconomico) return "Económico";
-    if (precio <= r.maxMedio) return "Medio";
+    const trm =
+      typeof PerfumesDB !== "undefined" && PerfumesDB.parametros().trm
+        ? PerfumesDB.parametros().trm
+        : 1;
+    if (precioCop <= r.maxEconomico * trm) return "Económico";
+    if (precioCop <= r.maxMedio * trm) return "Medio";
     return "Sin límite";
   }
 
@@ -407,12 +423,11 @@
   // que se puedan decantar, así que aquí se recogen todas las candidatas.
   function perfumesConDecant() {
     const overridesActivo = leerOverridesActivo();
-    const overridesPrecio = leerOverridesPrecio();
     return PERFUMES.filter(
       (p) =>
         estaActivo(p, overridesActivo) &&
         hayDecantDe(p) &&
-        (precioVigente(p, overridesPrecio) !== null || !hayPreciosDisponibles())
+        (precioVigente(p) !== null || !hayPreciosDisponibles())
     );
   }
 
@@ -764,7 +779,6 @@
 
   function obtenerTop4() {
     const r = estado.respuestas;
-    const overrides = leerOverridesPrecio();
     const overridesImg = leerOverridesImagen();
     const overridesActivo = leerOverridesActivo();
 
@@ -776,7 +790,7 @@
     //    filtramos por presupuesto usando esa categoría dinámica.
     const conPrecioVigente = soloActivos
       .map((p) => {
-        const precio = precioVigente(p, overrides);
+        const precio = precioVigente(p);
         // Sin precio no hay categoría; se deja pasar el filtro de presupuesto
         // en vez de descartarla, para no vaciar los resultados.
         return { perfume: p, precio, categoria: precio === null ? r.presupuesto : categoriaParaPrecio(precio) };
@@ -1142,7 +1156,7 @@
     let empatados = [];
     PERFUMES.forEach((p) => {
       if (!estaActivo(p, leerOverridesActivo())) return;
-      if (precioVigente(p, leerOverridesPrecio()) === null && hayPreciosDisponibles()) return;
+      if (precioVigente(p) === null && hayPreciosDisponibles()) return;
       // El Set son decants: una fragancia que solo se vende sellada no
       // puede entrar en él por muy bien que encaje con las respuestas.
       if (!hayDecantDe(p)) return;
@@ -1358,13 +1372,12 @@
 
   function renderListaVersatilesSet(cfg) {
     const overridesActivo = leerOverridesActivo();
-    const overridesPrecio = leerOverridesPrecio();
     const todos = PERFUMES.filter(
       (p) =>
         estaActivo(p, overridesActivo) &&
         p.clima === "Templado" &&
         hayDecantDe(p) &&
-        (precioVigente(p, overridesPrecio) !== null || !hayPreciosDisponibles())
+        (precioVigente(p) !== null || !hayPreciosDisponibles())
     );
     const filtro = estadoSetOcasion.filtroTipoLibre;
     const candidatos = filtro === "Todos" ? todos : todos.filter((p) => p.tipo === filtro);
