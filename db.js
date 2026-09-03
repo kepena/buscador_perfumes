@@ -37,10 +37,20 @@ window.PerfumesDB = (function () {
   const SUPABASE_URL = "https://evqifaeeamvrttuildkz.supabase.co";
   const SUPABASE_KEY = "sb_publishable_5J5kSaPEfLh29jaEe7QBuQ_hRRPbiFD";
 
-  // Correo fijo del único usuario administrador. No es un buzón real:
-  // Supabase solo lo usa como identificador. La contraseña es la misma
-  // que ya protege catalogo.html, y la tecleas tú — no está en el código.
-  const EMAIL_ADMIN = "admin@buscadorperfumes.kaiketek.com";
+  // Correo del usuario administrador. La pantalla de acceso solo pide la
+  // contraseña, así que el correo va aquí fijo. La contraseña no: la
+  // tecleas tú y la valida Supabase.
+  //
+  // Tiene que ser un buzón REAL. Antes era admin@buscadorperfumes.kaiketek.com,
+  // una dirección inventada que Supabase aceptaba porque el usuario se creó
+  // con Auto Confirm. Funcionaba para entrar, pero dejaba a Kike sin salida:
+  // "Reset password" manda un correo a un buzón que no existe, así que
+  // olvidar la contraseña significaba entrar a Supabase a borrar el usuario.
+  //
+  // Este correo tiene que aparecer TAMBIÉN en las políticas de escritura de
+  // la base (ver 06-escritura-restringida.sql). Cambiarlo solo aquí deja el
+  // panel entrando pero sin poder guardar nada.
+  const EMAIL_ADMIN = "jeronimo.pena.chaves@gmail.com";
 
   const TABLA = "perfume_overrides";
 

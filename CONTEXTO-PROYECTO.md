@@ -28,6 +28,7 @@ DNS: gestionado en **HostGator** (CNAME apuntando a kepena.github.io)
 | `02-precios-decant.sql` | Columnas `volumen_ml`/`verificado` + tabla `configuracion` |
 | `03-decants.sql` | Columna `decant`: si esa fragancia se decanta o va solo en frasco |
 | `04-importacion-fija.sql` | Cambia la importación de porcentaje a valor fijo en pesos |
+| `06-escritura-restringida.sql` | Limita la escritura a una lista de correos, no a "cualquiera autenticado" |
 | `05-costos-reales.sql` | Los 132 costos reales de Jomashop + el volumen real de cada frasco |
 | `precios-jomashop.csv` | La fuente de esos costos, fragancia por fragancia, con la ficha exacta |
 | `.github/workflows/mantener-supabase-activo.yml` | Cron que evita que Supabase se pause |
@@ -449,8 +450,31 @@ ejecutar.
   Kike teclea por un token temporal contra Supabase Auth. **Ahí está la
   cerradura de verdad.** Aunque alguien se salte la pantalla de acceso a la
   fuerza, sin token la base rechaza cualquier cambio.
-- Usuario administrador: `admin@buscadorperfumes.kaiketek.com`, con la
-  misma contraseña del panel, y **confirmado** (Auto Confirm User).
+- Usuario administrador: `jeronimo.pena.chaves@gmail.com`, **confirmado**
+  (Auto Confirm User). Antes era `admin@buscadorperfumes.kaiketek.com`, una
+  dirección inventada: servía para entrar, pero "Reset password" mandaba el
+  correo a un buzón inexistente, así que olvidar la contraseña obligaba a
+  entrar a Supabase a borrar el usuario. Con un buzón real hay recuperación.
+
+> Ese correo vive en **tres sitios y los tres tienen que coincidir**:
+> el usuario en Supabase, `EMAIL_ADMIN` en `db.js`, y la lista de
+> `06-escritura-restringida.sql`. Cambiarlo en uno solo deja el panel
+> entrando pero sin poder guardar, o sin poder entrar.
+
+#### Escribir no es "estar autenticado"
+
+Las políticas decían `for all to authenticated using (true)`. En Supabase
+`authenticated` es **cualquiera con un token válido**, no el administrador
+—y la clave anónima está en `db.js`, a la vista. Con los registros por
+correo habilitados (venían así por defecto) cualquiera podía llamar al
+endpoint público `/auth/v1/signup`, crearse una cuenta y escribir en la
+base. La app nunca tuvo pantalla de registro; daba igual, el endpoint de
+Supabase responde aunque el sitio no lo use.
+
+Se cerró en dos capas: los registros están apagados en **Authentication →
+Providers → Email**, y `06-escritura-restringida.sql` amarra la escritura a
+una lista de correos. La casilla se puede desmarcar sin querer; la política
+vive en la base.
 
 #### El hash que había en el código era un agujero, no una protección
 

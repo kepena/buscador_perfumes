@@ -154,11 +154,14 @@
     "<li>Entra a tu proyecto en <strong>supabase.com</strong></li>" +
     "<li>Menú izquierdo → <strong>Authentication</strong> → <strong>Users</strong></li>" +
     "<li>Botón <strong>Add user</strong> → <strong>Create new user</strong></li>" +
-    "<li>Email: <code>admin@buscadorperfumes.kaiketek.com</code> (exacto)</li>" +
-    "<li>Password: la misma contraseña con la que entraste aquí</li>" +
+    "<li>Email: <code>jeronimo.pena.chaves@gmail.com</code> (exacto)</li>" +
+    "<li>Password: la que quieras usar para entrar aquí</li>" +
     "<li>Marca la casilla <strong>Auto Confirm User</strong></li>" +
     "<li>Vuelve aquí y recarga la página</li>" +
-    "</ol>";
+    "</ol>" +
+    "<p>Si cambias ese correo, hay que cambiarlo en dos sitios más o el panel " +
+    "entra pero no guarda: <code>EMAIL_ADMIN</code> en <code>db.js</code> y la " +
+    "lista de <code>06-escritura-restringida.sql</code>.</p>";
 
   // auth-catalogo.js llama a esto después de validar la contraseña.
   window.PerfumesPanelEstado = function (resultado) {
