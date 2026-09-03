@@ -17,7 +17,7 @@ DNS: gestionado en **HostGator** (CNAME apuntando a kepena.github.io)
 |---|---|
 | `index.html` | Pantalla de inicio + test de preguntas + resultados + Set Ocasión |
 | `styles.css` | Todos los estilos (tema dorado/oscuro) |
-| `data.js` | Catálogo: array `PERFUMES` con 132 fragancias (131 activas) + `FALLBACK_IMG` |
+| `data.js` | Catálogo: array `PERFUMES` con 133 fragancias (132 activas) + `FALLBACK_IMG` |
 | `app.js` | Preguntas dinámicas, motor de scoring, resultados, Set Ocasión, WhatsApp |
 | `db.js` | **Capa de acceso a Supabase.** Precios, fotos y activaciones |
 | `catalogo.html` | Panel de administración (protegido con contraseña) |
@@ -28,8 +28,8 @@ DNS: gestionado en **HostGator** (CNAME apuntando a kepena.github.io)
 | `02-precios-decant.sql` | Columnas `volumen_ml`/`verificado` + tabla `configuracion` |
 | `03-decants.sql` | Columna `decant`: si esa fragancia se decanta o va solo en frasco |
 | `04-importacion-fija.sql` | Cambia la importación de porcentaje a valor fijo en pesos |
+| `05-costos-reales.sql` | Los 133 costos reales de Jomashop + el volumen real de cada frasco |
 | `06-escritura-restringida.sql` | Limita la escritura a una lista de correos, no a "cualquiera autenticado" |
-| `05-costos-reales.sql` | Los 132 costos reales de Jomashop + el volumen real de cada frasco |
 | `precios-jomashop.csv` | La fuente de esos costos, fragancia por fragancia, con la ficha exacta |
 | `.github/workflows/mantener-supabase-activo.yml` | Cron que evita que Supabase se pause |
 
@@ -666,7 +666,7 @@ Se usa en: portada, tarjeta "Probar", tarjeta "Botella", Set Ocasión.
 
 ## Historial de decisiones ya tomadas (para no repetir trabajo)
 
-- 132 entradas, 131 activas (1 duplicado desactivado a propósito:
+- 133 entradas, 132 activas (1 duplicado desactivado a propósito:
   id 26 "Armaf Club de Nuit Untold").
 - Las notas fueron verificadas una por una contra fuentes reales
   (Fragrantica) — no inventar notas nuevas sin verificar. **Esto aplica
