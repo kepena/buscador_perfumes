@@ -951,14 +951,16 @@
   // Precio en pesos de cada formato. Si a una fragancia le falta el costo o
   // el volumen no se inventa un número: simplemente no se muestra precio y
   // el cliente pregunta por WhatsApp, como hacía antes.
-  // El test público no enseña precios mientras los costos sean estimaciones:
-  // un número en pantalla es una promesa, y una promesa equivocada se paga
-  // en la conversación de WhatsApp. El cliente elige formato aquí y el
-  // precio se lo damos nosotros.
+  // Estuvo apagado mientras los costos eran estimaciones mías: un número en
+  // pantalla es una promesa, y una promesa equivocada se paga en la
+  // conversación de WhatsApp. Ya no lo son — los 133 se recogieron uno por
+  // uno de la ficha real del proveedor — así que los precios vuelven.
   //
-  // Cuando los costos estén verificados uno por uno, esto vuelve a true y
-  // reaparecen los tres precios, el del Set incluido. Nada más que cambiar.
-  const MOSTRAR_PRECIOS_EN_TEST = false;
+  // Lo que se muestra sale del COSTO del catálogo pasado por los parámetros
+  // de precio. Si a una fragancia le falta el costo o el volumen, no se
+  // inventa un número: esa opción sale sin precio y el cliente pregunta por
+  // WhatsApp, como antes.
+  const MOSTRAR_PRECIOS_EN_TEST = true;
 
   function etiquetaPrecio(valor) {
     if (!MOSTRAR_PRECIOS_EN_TEST) return "";

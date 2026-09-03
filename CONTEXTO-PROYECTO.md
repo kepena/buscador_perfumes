@@ -135,10 +135,6 @@ Al editarlos, el panel muestra cuántas fragancias quedarían en cada rango
 **antes** de guardar, y rechaza un corte de "Medio" menor que el de
 "Económico".
 
-> **Pendiente:** el test público todavía no muestra el precio en números,
-> solo la categoría. Cuando se trabajen los precios de las 3 opciones
-> (Probar / Set Ocasión / Botella) hay que revisitarlo.
-
 ## Cómo se calcula el precio de la botella
 
 ```
@@ -216,28 +212,26 @@ pregunta escrita. Los precios con cupón quedan anotados como comentario al
 final de `05-costos-reales.sql`, para saber hasta dónde se puede bajar sin
 perder margen.
 
-### El test público no muestra precios
+### El test sí muestra precios
 
-Los precios calculados se ven **solo en el panel**. En el test, el cliente
-elige formato (Probar / Set / Botella) y el precio se lo damos por WhatsApp.
+El cliente elige formato (Probar / Set / Botella) y **ve el precio de cada
+uno**, en pesos. Sale del mismo sitio que el del panel: el COSTO del
+catálogo pasado por los parámetros. Panel y test dicen el mismo número
+porque hacen la misma cuenta, no porque alguien los sincronice.
 
-Es deliberado, no un olvido: mientras los costos sean estimaciones, un
-número en pantalla es una promesa, y una promesa equivocada se paga en la
-conversación con el cliente.
+Estuvo apagado un tiempo, con `MOSTRAR_PRECIOS_EN_TEST = false`, mientras
+los costos eran estimaciones: un número en pantalla es una promesa, y una
+promesa equivocada se paga en la conversación de WhatsApp. Dejó de aplicar
+cuando los 133 costos se recogieron uno por uno de la ficha del proveedor.
 
-Para volver a mostrarlos cuando los costos estén verificados, en `app.js`:
-
-```js
-const MOSTRAR_PRECIOS_EN_TEST = false;   // ponlo en true
-```
-
-Esa sola línea devuelve los tres precios de las tarjetas de formato y el
-total del Set. El panel no cambia: ahí los precios se ven siempre, que es
-donde hacen falta para fijarlos.
+Si a una fragancia le falta el costo o el volumen **no se inventa un
+número**: esa opción sale sin precio y el cliente pregunta. Vale para el
+Probar, la Botella y el Set.
 
 ### El cierre es el contacto
 
-Como no hay precios, el paso siguiente del cliente es escribir. Las tres
+Ver el precio no cierra la venta: el paso siguiente sigue siendo escribir.
+Las tres
 pantallas de compra (Probar, Botella y Set) terminan con el mismo bloque:
 el botón de WhatsApp y, debajo, **el número a la vista** —
 `+57 315 012 4948` — más una línea que dice que ahí se confirma precio y
