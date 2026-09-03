@@ -1406,6 +1406,7 @@ const PERFUMES = [
     tipo: "Diseñador",
     aromaPrincipal: "Fresco",
     subAroma: "Marina / Salada",
+    notaEspecifica: "marino-suave",
     momento: "Diario",
     clima: "Caliente / Sol",
     estilo: "Joven",

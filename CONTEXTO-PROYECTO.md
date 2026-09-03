@@ -532,8 +532,48 @@ se rompe por culpa de la base de datos.**
 9. Presupuesto
 
 El motor de scoring en `app.js` (`calcularScore`) suma puntos por cada
-coincidencia (aroma=25, subAroma=15, notaEspecifica=15, tipo=15, momento=12,
-clima=10, estilo=5, presupuesto=3 — máximo teórico 100). Muestra un Top 4.
+coincidencia: aroma=25, subAroma=15, notaEspecifica=15, tipo=15, momento=12,
+clima=10, **potencia=8**, estilo=5, presupuesto=3. Muestra un Top 4.
+
+El **% de Match no es el puntaje crudo**: es el puntaje sobre el máximo que
+ese camino permite (108 con pregunta 2.6, 93 sin ella). Antes se mostraba
+el crudo, y una coincidencia perfecta en un camino corto se veía como
+"85% Match", que se lee como un match mediocre cuando en realidad era total.
+
+### Dos defectos que se corrigieron aquí
+
+**La potencia no puntuaba.** El paso 6 preguntaba qué tan fuerte lo quería
+el cliente, se guardaba la respuesta, se usaba para el Set Ocasión… y no
+entraba en el puntaje del Top 4. Elegir "Modo Bestia" o "Suave" devolvía
+exactamente las mismas cuatro tarjetas. Ahora pesa 8, por encima del estilo:
+"que se note a metros" o "algo discreto para la oficina" es una condición de
+uso, no un matiz.
+
+**Veintisiete perfumes no podían ganar los +15 de la nota específica.** La
+pregunta 2.6 ofrecía dos opciones por subfamilia, pero varios perfumes
+tenían una `notaEspecifica` que no era ninguna de las dos, así que esos
+puntos les quedaban fuera de alcance y competían 15 puntos abajo de sus
+rivales directos. No eran invisibles, pero casi: la Diptyque Eau Capitale
+salía en 12 de 10.800 combinaciones (0,11%).
+
+Se arregló **agregando a cada pregunta la opción que faltaba** —
+sándalo cremoso, sándalo con flores, ámbar resinoso, aromático herbal,
+cítrico potente, frutal con flores, frutal con vainilla, especiado intenso—
+y poniéndole `notaEspecifica` a la Nautica Voyage, que no tenía. Hoy las
+once subfamilias con pregunta 2.6 cubren a todos sus perfumes.
+
+**Cómo comprobarlo:**
+
+```bash
+node herramientas/cobertura-del-test.js         # recorre las 45.360 combinaciones
+node herramientas/notas-especificas-huerfanas.js # perfumes que no pueden ganar los +15
+```
+
+El primero cuenta cuántas veces sale cada perfume en el Top 4; el segundo
+cruza cada subfamilia con lo que su pregunta 2.6 ofrece de verdad. Vale la
+pena correrlos cada vez que se toquen las preguntas o entren fragancias
+nuevas: lo que hay que mirar es que **ninguno quede en cero** y que la cola
+no baje del ~0,5%.
 
 ## Flujo de resultados → Set Ocasión
 

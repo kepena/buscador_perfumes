@@ -146,7 +146,9 @@
       titulo: "Ya casi, una última precisión sobre esa madera \u2192",
       opciones: [
         { valor: "cedro-citrico", emoji: "🍍", titulo: "Cítrico-amaderado", desc: "Con piña o bergamota en la apertura" },
-        { valor: "cedro-seco", emoji: "🌲", titulo: "Amaderado seco puro", desc: "Sin cítrico dominante, más clásico" }
+        { valor: "cedro-seco", emoji: "🌲", titulo: "Amaderado seco puro", desc: "Sin cítrico dominante, más clásico" },
+        { valor: "sandalo-limpio", emoji: "🥥", titulo: "Sándalo cremoso", desc: "Madera suave y lechosa, con coco o almizcle" },
+        { valor: "sandalo-floral", emoji: "🌺", titulo: "Sándalo con flores", desc: "Sándalo envuelto en notas florales" }
       ]
     },
     "Oud exótico": {
@@ -163,7 +165,9 @@
       titulo: "Ya casi, una última precisión sobre ese dulzor \u2192",
       opciones: [
         { valor: "frutal-tropical", emoji: "🍍", titulo: "Piña / tropical", desc: "Piña, mango y frutas tropicales dulces" },
-        { valor: "frutal-citrico", emoji: "🍏", titulo: "Manzana / cítrico dulce", desc: "Manzana, cítricos y toques acaramelados" }
+        { valor: "frutal-citrico", emoji: "🍏", titulo: "Manzana / cítrico dulce", desc: "Manzana, cítricos y toques acaramelados" },
+        { valor: "floral-dulce", emoji: "🌷", titulo: "Frutal con flores", desc: "La fruta abre y las flores mandan después" },
+        { valor: "vainilla-pura", emoji: "🍦", titulo: "Frutal con vainilla", desc: "Fruta sobre un fondo cremoso de vainilla" }
       ]
     },
     "Vainilla / Caramelo": {
@@ -171,7 +175,8 @@
       titulo: "Ya casi, una última precisión sobre ese dulzor \u2192",
       opciones: [
         { valor: "vainilla-especiada", emoji: "🌶️", titulo: "Vainilla con especias", desc: "Canela, cacao o cardamomo junto a la vainilla" },
-        { valor: "vainilla-pura", emoji: "🍦", titulo: "Vainilla pura / almizclada", desc: "Vainilla suave, sin especias marcadas" }
+        { valor: "vainilla-pura", emoji: "🍦", titulo: "Vainilla pura / almizclada", desc: "Vainilla suave, sin especias marcadas" },
+        { valor: "floral-dulce", emoji: "🌷", titulo: "Vainilla con flores", desc: "Dulzor floral, más femenino y luminoso" }
       ]
     },
     // ===== CÁLIDO / ESPECIADO =====
@@ -180,7 +185,9 @@
       titulo: "Ya casi, una última precisión sobre ese calor \u2192",
       opciones: [
         { valor: "cafe-datiles", emoji: "☕", titulo: "Café / dátiles", desc: "Perfil árabe, con café o dátiles" },
-        { valor: "canela-clasica", emoji: "🍂", titulo: "Canela clásica", desc: "Canela como protagonista, sin café" }
+        { valor: "canela-clasica", emoji: "🍂", titulo: "Canela clásica", desc: "Canela como protagonista, sin café" },
+        { valor: "especiado-intenso", emoji: "🌶️", titulo: "Especiado intenso", desc: "Especias densas y potentes, sin dulzor de café" },
+        { valor: "ambar-resina", emoji: "🟠", titulo: "Ámbar resinoso", desc: "Miel y ámbar sobre resinas cálidas" }
       ]
     },
     "Ámbar / Pimienta": {
@@ -188,7 +195,8 @@
       titulo: "Ya casi, una última precisión sobre ese calor \u2192",
       opciones: [
         { valor: "especiado-fresco", emoji: "🍊", titulo: "Especiado fresco", desc: "Con toronja o bergamota en la apertura" },
-        { valor: "especiado-intenso", emoji: "🌶️", titulo: "Especiado intenso", desc: "Más denso y envolvente" }
+        { valor: "especiado-intenso", emoji: "🌶️", titulo: "Especiado intenso", desc: "Más denso y envolvente" },
+        { valor: "ambar-resina", emoji: "🟠", titulo: "Ámbar resinoso", desc: "El ámbar manda: dulce, cálido y pegado a la piel" }
       ]
     },
     // ===== FRESCO =====
@@ -205,7 +213,8 @@
       titulo: "Ya casi, una última precisión sobre ese frescor \u2192",
       opciones: [
         { valor: "menta-dominante", emoji: "🌿", titulo: "Menta dominante", desc: "Menta helada muy presente" },
-        { valor: "citrico-verde-suave", emoji: "🍋", titulo: "Cítrico verde suave", desc: "Verde y cítrico, sin tanta menta" }
+        { valor: "citrico-verde-suave", emoji: "🍋", titulo: "Cítrico verde suave", desc: "Verde y cítrico, sin tanta menta" },
+        { valor: "aromatico-herbal", emoji: "🌾", titulo: "Aromático herbal", desc: "Lavanda, romero y hierbas: el clásico de barbería" }
       ]
     },
     // ===== CÍTRICO =====
@@ -214,7 +223,8 @@
       titulo: "Ya casi, una última precisión sobre ese cítrico \u2192",
       opciones: [
         { valor: "citrico-simple", emoji: "🍋", titulo: "Cítrico fresco simple", desc: "Directo, poca complejidad de fondo" },
-        { valor: "citrico-flor-madera", emoji: "🌸", titulo: "Cítrico con flor y madera", desc: "Con más cuerpo floral o amaderado" }
+        { valor: "citrico-flor-madera", emoji: "🌸", titulo: "Cítrico con flor y madera", desc: "Con más cuerpo floral o amaderado" },
+        { valor: "citrico-amaderado-potente", emoji: "💪", titulo: "Cítrico potente", desc: "Cítrico de mucha proyección, sobre maderas fuertes" }
       ]
     },
     // ===== CUERO / TABACO =====
@@ -736,13 +746,20 @@
     // Clima (Paso 4): +10
     if (perfume.clima === r.clima) score += 10;
 
+    // Potencia / proyección (Paso 6): +8
+    // Estuvo mucho tiempo sin puntuar: la pregunta se hacía, se guardaba la
+    // respuesta y no cambiaba ni una de las cuatro recomendaciones. Pesa más
+    // que el estilo porque "quiero que se note a metros" o "algo discreto
+    // para la oficina" es una condición de uso, no una preferencia de matiz.
+    if (perfume.potencia === r.potencia) score += 8;
+
     // Estilo/Edad (Paso 5): +5
     if (perfume.estilo === r.estilo) score += 5;
 
     // Presupuesto exacto (Paso 7): +3 (o si eligió "Sin límite")
     if (r.presupuesto === "Sin límite" || categoriaPerfume === r.presupuesto) score += 3;
 
-    return score; // máximo teórico: 100 (o 85 si el camino no tuvo Paso 2.6)
+    return score; // máximo teórico: 108 (o 93 si el camino no tuvo Paso 2.6)
   }
 
   function obtenerTop4() {
@@ -783,9 +800,13 @@
     // 3. Tomamos los 4 mejores DENTRO del presupuesto vigente.
     const top4 = puntuados.slice(0, 4);
 
-    // El % de Match mostrado es el score REAL calculado arriba, sin piso
-    // artificial. El precio y la imagen vienen de la base de datos, no de
-    // data.js.
+    // El % de Match es el score sobre el MÁXIMO QUE ESE CAMINO PERMITE, no
+    // sobre 100 fijo. Antes se mostraba el score crudo, y como los caminos
+    // sin pregunta 2.6 solo llegaban a 85, una coincidencia perfecta se veía
+    // como "85% Match". Sigue sin haber piso artificial: lo que sube es la
+    // escala, no el resultado. El precio y la imagen vienen de la base de
+    // datos, no de data.js.
+    const maxPosible = 25 + 15 + (r.notaEspecifica ? 15 : 0) + 15 + 12 + 10 + 8 + 5 + 3;
     return top4.map((item) => ({
       ...item.perfume,
       precioVenta: item.precio,
@@ -794,7 +815,7 @@
       // cuanto el precio cambie desde el panel.
       categoriaVigente: item.categoria,
       imagen: imagenVigente(item.perfume, overridesImg),
-      matchPct: Math.min(100, item.score)
+      matchPct: Math.round((item.score / maxPosible) * 100)
     }));
   }
 
