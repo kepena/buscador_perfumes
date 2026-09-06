@@ -11,6 +11,35 @@ DNS: gestionado en **HostGator** (CNAME apuntando a kepena.github.io)
 > Este archivo vive dentro del repo a propósito. Antes existía solo en el
 > computador de Kike y se perdía entre sesiones de trabajo.
 
+## Pendientes ahora mismo (leer esto primero al retomar)
+
+Lo que quedó abierto al cerrar la sesión del 6 de septiembre de 2026:
+
+1. **Kike tiene que correr `05-costos-reales.sql` en Supabase.** Es lo más
+   importante. Hasta que no lo corra, los 133 costos reales de Jomashop no
+   están en la base y el test sigue mostrando precios viejos. Después de
+   correrlo toca ir al panel, darle *Restablecer precios originales* y
+   aplicar el aumento por porcentaje que quiera, porque los valores de
+   venta que hay guardados quedaron desfasados contra los costos nuevos.
+2. **Faltan 10 fotos por subir** (referencias nuevas o renombradas). Los
+   nombres exactos de archivo que espera el catálogo:
+   `Carolina Herrera 212 VIP Black.avif`, `Lattafa Art of Universe.avif`,
+   `Afnan Turathi Electric.avif`,
+   `Maison Francis Kurkdjian Baccarat Rouge 540 Extrait.avif`,
+   `Lattafa The Kingdom.avif`, `Jean Paul Gaultier Le Beau Le Parfum.avif`,
+   `Xerjoff Erba Gold.avif`, `Tom Ford Neroli Portofino.avif`,
+   `Roja Parfums Elysium Eau Intense.avif`,
+   `Paco Rabanne Invictus Victory Elixir.avif`.
+3. **Borrar el usuario admin viejo de Supabase** (`adminbuscadorperfumes`,
+   que nunca existió como correo real) ahora que las escrituras ya
+   funcionan con `jeronimo.pena.chaves@gmail.com`.
+4. **Confirmar la concentración de dos fragancias**: id 9 Invictus e
+   id 62 1 Million. Las fichas que llegaron no la decían, así que sus
+   nombres quedaron sin EDT/EDP.
+5. **Lo siguiente que se va a construir**: la pantalla de pago y la tabla
+   de stock. Kike ya dijo que sí. Ver la sección "Venta en Estados Unidos"
+   más abajo — ahí está toda la lógica decidida.
+
 ## Archivos del proyecto (todos en la raíz del repo)
 
 | Archivo | Qué hace |
@@ -661,6 +690,133 @@ Constante `WHATSAPP_NUMERO` al inicio de `app.js` (`573150124948`).
 `generarLinkWhatsApp(mensaje)` arma el link `wa.me` con mensaje pre-escrito.
 Se usa en: portada, tarjeta "Probar", tarjeta "Botella", Set Ocasión.
 
+## Venta en Estados Unidos (decidido, todavía sin construir)
+
+Toda esta sección son decisiones ya tomadas en conversación con Kike. No
+hay código escrito todavía. Sirve para no volver a discutir lo mismo.
+
+### El modelo
+
+- Se vende **en Estados Unidos**, no en Colombia.
+- **Dropshipping**: Kike no tiene inventario. El cliente compra en la app,
+  Kike compra en el proveedor y el proveedor despacha.
+- **Sin decants por ahora.** Solo frasco completo. El motor de decants
+  sigue en el código y funciona, simplemente no se ofrece.
+- Nunca se puede vender lo que no se puede conseguir: la tabla de stock
+  tiene que saber qué hay disponible antes de aceptar el pedido.
+- Kike vive en Colombia. **El producto nunca pasa por Colombia**: se
+  compra en EE.UU. y se despacha dentro de EE.UU. (esto se aclaró porque
+  se había entendido al revés y cambiaba el cálculo por completo).
+
+### El proveedor: Jomashop
+
+Es de donde salen los 133 costos de `precios-jomashop.csv`. Es **grey
+market**: producto original, pero no distribuidor autorizado. Por eso está
+barato y por eso **no se puede decir "distribuidor autorizado"** en la web.
+
+- **No tiene programa mayorista ni B2B.** Se verificó. Solo venden al
+  consumidor final, así que no hay cuenta de dropshipping ni envío en
+  blanco que pedirles.
+- **Sí tiene casilla "Send gift receipt" en el checkout.** Kike la
+  encontró y mandó captura. Es el comprobante sin precios que se usa en el
+  comercio de EE.UU., así que resuelve el problema grave: que el cliente
+  vea que el frasco costó $87 cuando pagó $120. Falta confirmarlo con un
+  pedido real, porque la etiqueta es indicio, no prueba.
+- **La otra casilla, "Send e-gift message (via email)", va desmarcada.**
+  Le manda un correo al destinatario con el nombre de Jomashop.
+- **Lo que no arregla**: la caja por fuera y el remitente de la etiqueta
+  siguen siendo de Jomashop. Kike decidió convivir con eso — "Jomashop" a
+  secas, sin logo, no le dice nada a nadie.
+
+### Las 5 opciones que se evaluaron para el branding de la caja
+
+1. Prep center en EE.UU. que reempaca ($0.40–1.50/unidad + reenvío).
+2. Reenvío casero en casa de un familiar. **Descartada por Kike**: implica
+   volver a despachar cada pedido a mano.
+3. Micro-stock de las más recomendadas. **Descartada por ahora** (Kike
+   creía que había que traerlo a Colombia; aunque el stock puede quedarse
+   en EE.UU., no la escogió).
+4. **Decirlo de frente en la web. ← ESTA ES LA ELEGIDA.** Costo cero.
+5. Migrar a un mayorista con blind shipping. **Es el plan a futuro.**
+
+### El texto que va en la web (aprobado por Kike)
+
+Va como **insignia de confianza al lado del botón de pago**, junto a "Pago
+seguro" y "Envío con rastreo". **No** como párrafo de aclaración: Kike
+rechazó una primera versión más larga porque explicar cosas que el cliente
+no preguntó ("sin factura ni precios adentro", "puede llegar en la caja
+del distribuidor") genera sospecha en vez de quitarla.
+
+> **100% originales**
+> Trabajamos con distribuidores en Estados Unidos. Cada perfume llega
+> sellado de fábrica.
+
+En inglés:
+
+> **100% authentic**
+> We work with U.S. distributors. Every fragrance ships factory-sealed.
+
+Y la garantía, que es lo que de verdad cierra la venta:
+
+> **Garantía de autenticidad.** Si tu perfume no es original, te devolvemos
+> el 100% de tu dinero.
+
+**No poner la palabra "autorizados"** mientras el proveedor sea Jomashop.
+
+### Mayoristas con blind shipping (el plan a futuro)
+
+*Blind shipping* = el proveedor despacha con **el remitente de Kike** en la
+etiqueta. Cuatro candidatos encontrados por búsqueda web (no se pudo entrar
+a sus sitios desde este entorno, así que hay que confirmar todo con ellos):
+
+| Proveedor | Lo que dicen |
+|---|---|
+| FragranceX | +8.500 fragancias, despachan sin marca propia. El más grande |
+| Nandansons / Scentsworld | "Nuestro nombre no aparece en la caja". Distribuidor desde 1979, Nueva Jersey, 200 marcas |
+| Perfume Box | Blind shipping, despacho en 24-48h. Más pequeño |
+| United Perfumes | Pedido mínimo $500 — no sirve para arrancar |
+
+Atajo posible: **FragranceNet vía Wholesale2B**, que aparentemente no
+exige licencia comercial ni certificado de reventa (Wholesale2B cobra
+suscripción mensual).
+
+Las tres cosas que deciden si sirven, y que solo Kike puede averiguar
+escribiéndoles: **el precio** (un mayorista puede ser más caro que el grey
+market y ahí no compensa), **si le venden a alguien fuera de EE.UU.** (casi
+todos piden EIN o certificado de reventa) y **que confirmen por escrito que
+son originales**. La prueba concreta: pedirles cotización de las 5 más
+recomendadas y compararla contra Jomashop.
+
+### La lógica de dos velocidades (para cuando se construya)
+
+La tabla de stock sabe qué hay en mano y qué no, y la pantalla de pago le
+muestra al cliente el plazo real:
+
+- Lo que está en stock → "envío en 2 días".
+- Lo que hay que pedir al proveedor → "envío en 7-10 días".
+
+### Datos de cobertura del catálogo
+
+Sale de `herramientas/cobertura-del-test.js`, que simula las ~45.000
+combinaciones de respuestas posibles y cuenta cuántas veces aparece cada
+fragancia en el Top 4. Sirve para decidir qué comprar si algún día se
+tiene stock:
+
+| Compras | Inversión (costo Jomashop) | Cubre |
+|---|---|---|
+| 10 frascos | $325 | 18% de lo que el test recomienda |
+| 15 frascos | $510 | 26% |
+| 20 frascos | $652 | 34% |
+| 30 frascos | $969 | 46% |
+
+Las 5 más recomendadas: **Cool Water, Khamrah Dukhan, Amber Oud Tobacco,
+The Kingdom, Club de Nuit Intense**.
+
+### Sobre los pagos
+
+Ya se investigó y Kike quedó conforme: las comisiones de Stripe/PayPal no
+son un problema para este negocio. No hace falta volver sobre eso.
+
 ## Restricciones a respetar
 
 - **No romper el test principal**: árbol de preguntas, motor de scoring,
@@ -676,6 +832,13 @@ Se usa en: portada, tarjeta "Probar", tarjeta "Botella", Set Ocasión.
 - Los mensajes de error van en rojo (`.error`). Heredar el gris terciario
   sobre el fondo oscuro los vuelve ilegibles, y un error que no se lee es
   lo mismo que no mostrarlo.
+- **No escribir "distribuidor autorizado"** en ningún texto de cara al
+  cliente mientras el proveedor sea Jomashop, que es grey market. Original
+  sí, autorizado no.
+- **El texto de confianza no explica lo que nadie preguntó.** Corto y en
+  positivo, como insignia junto al botón de pago. Una versión larga que
+  aclaraba de dónde viene la caja y que no trae precios adentro se
+  descartó por eso mismo: levantaba la sospecha que pretendía evitar.
 
 ## Historial de decisiones ya tomadas (para no repetir trabajo)
 
@@ -692,6 +855,11 @@ Se usa en: portada, tarjeta "Probar", tarjeta "Botella", Set Ocasión.
   ficha de Fragrantica más la web oficial de la marca o un minorista).
   Cualquier nota que aparezca en una sola fuente se descarta: así se cayó
   el "ambroxan" de la base de Turathi Electric.
+- El proxy también bloquea `jomashop.com`, `help.jomashop.com`,
+  `trustpilot.com` y las webs de los mayoristas. Para investigar cualquier
+  cosa del proveedor solo sirve `WebSearch`, y lo que no se pueda
+  confirmar así hay que decírselo a Kike como lo que es: indicio, no
+  prueba. Él sí puede abrir esas páginas y mandar capturas.
 - `notaEspecifica` no existe para todas las subfamilias, solo las que
   tenían saturación de perfumes empatados.
 - Ya se resolvió un problema de perfumes que nunca aparecían por empates de
