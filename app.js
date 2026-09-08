@@ -33,16 +33,60 @@
   // cliente, así que el número no puede estar escondido dentro de un
   // enlace: hay quien prefiere copiarlo y escribir desde su propio
   // WhatsApp, y hay quien lo abre desde un computador sin la app.
-  function bloqueContacto(mensaje, etiquetaBoton) {
+  // notaTexto y claseBoton son opcionales: los usa la pantalla de Botella
+  // cuando el pago con Stripe ya está activo, donde WhatsApp deja de
+  // cerrar la venta y pasa a ser el botón secundario de "tengo dudas".
+  function bloqueContacto(mensaje, etiquetaBoton, notaTexto, claseBoton) {
     const enlace = generarLinkWhatsApp(mensaje);
     return `
-      <a href="${enlace}" target="_blank" rel="noopener" class="boton boton-primario detalle-compra-contacto">
+      <a href="${enlace}" target="_blank" rel="noopener" class="boton ${claseBoton || "boton-primario"} detalle-compra-contacto">
         💬 ${etiquetaBoton || "Contáctanos"}
       </a>
       <p class="contacto-numero">
         WhatsApp <a href="${enlace}" target="_blank" rel="noopener">${numeroVisible()}</a>
-        <span class="contacto-nota">Pregunta si hay descuentos disponibles para ese perfume</span>
+        <span class="contacto-nota">${notaTexto || "Pregunta si hay descuentos disponibles para ese perfume"}</span>
       </p>`;
+  }
+
+  // Bloque de compra de "Botella completa": con pagos activos y stock
+  // disponible, ofrece "Agregar al carrito" como acción principal y deja
+  // WhatsApp como canal de dudas. Sin pagos activos (o sin costo/stock
+  // cargado), se comporta exactamente igual que siempre: WhatsApp cierra
+  // la venta.
+  function bloqueCompraBotella(perfume, mensajeBotella) {
+    if (!pagosHabilitados()) {
+      return bloqueContacto(mensajeBotella);
+    }
+
+    let estadoStock = "bajo_pedido";
+    let precioUsd = null;
+    try {
+      estadoStock = PerfumesDB.estadoStockDe(perfume.id);
+      precioUsd = PerfumesDB.precioBotellaUsd(perfume.id);
+    } catch (e) {
+      console.warn("No se pudo leer stock/precio USD de " + perfume.nombre + ":", e);
+    }
+
+    if (estadoStock === "agotado" || precioUsd === null) {
+      return `
+        <p class="formatos-nota-solo-botella">Agotado por ahora.</p>
+        ${bloqueContacto(mensajeBotella)}
+      `;
+    }
+
+    const plazoTexto = estadoStock === "en_stock"
+      ? "📦 Envío en 2 días"
+      : "📦 Envío en 7-10 días (se pide al proveedor)";
+    const textoBoton = "🛍️ Agregar al carrito — " + Carrito.formatearUsd(precioUsd);
+
+    return `
+      <button type="button" id="btn-agregar-carrito" class="boton boton-primario detalle-compra-contacto"
+              data-precio="${precioUsd}" data-texto-original="${textoBoton}">
+        ${textoBoton}
+      </button>
+      <p class="formato-precio-nota" style="text-align:center;">${plazoTexto}</p>
+      ${bloqueContacto(mensajeBotella, "¿Dudas antes de comprar? Escríbenos", "Te respondemos por WhatsApp", "boton-fantasma")}
+    `;
   }
 
   /* ============ DEFINICIÓN DEL FLUJO DE PREGUNTAS ============ */
@@ -463,6 +507,7 @@
   const pantallaTest = $("#pantalla-test");
   const pantallaResultados = $("#pantalla-resultados");
   const pantallaSetOcasion = $("#pantalla-set-ocasion");
+  const pantallaConfirmacion = $("#pantalla-confirmacion");
 
   const btnEmpezar = $("#btn-empezar");
   const btnAtras = $("#btn-atras");
@@ -478,6 +523,25 @@
   const zonaFormatos = $("#zona-formatos-formato");
   const contenidoSetOcasion = $("#contenido-set-ocasion");
 
+  // ---- Carrito ----
+  const btnCarritoFlotante = $("#btn-carrito-flotante");
+  const carritoContador = $("#carrito-contador");
+  const modalCarrito = $("#modal-carrito");
+  const carritoListaItems = $("#carrito-lista-items");
+  const carritoVacioTexto = $("#carrito-vacio-texto");
+  const carritoTotalLinea = $("#carrito-total-linea");
+  const carritoTotalValor = $("#carrito-total-valor");
+  const carritoPlazoEnvio = $("#carrito-plazo-envio");
+  const carritoError = $("#carrito-error");
+  const btnCarritoPagar = $("#btn-carrito-pagar");
+  const btnCarritoCerrar = $("#btn-carrito-cerrar");
+  const modalEnvio = $("#modal-envio");
+  const formEnvio = $("#form-envio");
+  const errorEnvio = $("#error-envio");
+  const btnEnvioContinuar = $("#btn-envio-continuar");
+  const btnEnvioVolver = $("#btn-envio-volver");
+  const contenidoConfirmacion = $("#contenido-confirmacion");
+
   // El total de pasos visuales ya no es fijo: depende de si el camino
   // actual tiene subpregunta 2.5 (8 pasos) y/o 2.6 (9 pasos), o ninguna
   // de las dos todavía (7, mientras se responde la pregunta 2).
@@ -490,7 +554,7 @@
   /* ============ NAVEGACIÓN ============ */
 
   function irAPantalla(pantalla) {
-    [pantallaInicio, pantallaTest, pantallaResultados, pantallaSetOcasion].forEach((p) =>
+    [pantallaInicio, pantallaTest, pantallaResultados, pantallaSetOcasion, pantallaConfirmacion].forEach((p) =>
       p.classList.remove("activa")
     );
     pantalla.classList.add("activa");
@@ -501,6 +565,288 @@
       pantalla.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 0);
   }
+
+  /* ============ CARRITO Y CHECKOUT ============ */
+  // Todo esto queda invisible mientras configuracion.pagos_habilitados
+  // esté apagado (0, el valor por defecto): el sitio se comporta
+  // exactamente igual que antes de esta feature hasta que Kike confirme
+  // que Stripe está listo y lo encienda desde catalogo.html.
+
+  function pagosHabilitados() {
+    try {
+      return Number(PerfumesDB.parametros().pagos_habilitados) === 1;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function actualizarIconoCarrito() {
+    if (!btnCarritoFlotante) return;
+    btnCarritoFlotante.hidden = !pagosHabilitados();
+    const n = Carrito.contarItems();
+    if (carritoContador) {
+      carritoContador.hidden = n === 0;
+      carritoContador.textContent = String(n);
+    }
+  }
+
+  function calcularPlazoEnvioCarrito(items) {
+    const todosEnStock = items.every((item) => {
+      try { return PerfumesDB.estadoStockDe(item.id) === "en_stock"; } catch (e) { return false; }
+    });
+    return todosEnStock ? "Envío estimado: 2 días" : "Envío estimado: 7-10 días (se pide al proveedor)";
+  }
+
+  function renderCarritoModal() {
+    const items = Carrito.obtenerItems();
+    carritoError.hidden = true;
+
+    if (items.length === 0) {
+      carritoListaItems.innerHTML = "";
+      carritoVacioTexto.hidden = false;
+      carritoTotalLinea.hidden = true;
+      carritoPlazoEnvio.textContent = "";
+      btnCarritoPagar.disabled = true;
+      return;
+    }
+
+    carritoVacioTexto.hidden = true;
+    carritoTotalLinea.hidden = false;
+    btnCarritoPagar.disabled = false;
+
+    carritoListaItems.innerHTML = items.map((item) => `
+      <div class="carrito-item" data-id="${item.id}">
+        <img class="carrito-item-imagen" src="${item.imagen || ""}" alt="">
+        <div>
+          <p class="carrito-item-nombre">${item.nombre}</p>
+          <p class="carrito-item-precio">${Carrito.formatearUsd(item.precioUsd)} c/u</p>
+          <button type="button" class="carrito-item-quitar" data-accion="quitar">Quitar</button>
+        </div>
+        <div class="carrito-item-acciones">
+          <button type="button" class="carrito-item-cantidad-btn" data-accion="restar" aria-label="Quitar una unidad">−</button>
+          <span class="carrito-item-cantidad-valor">${item.cantidad}</span>
+          <button type="button" class="carrito-item-cantidad-btn" data-accion="sumar" aria-label="Agregar una unidad">+</button>
+        </div>
+      </div>
+    `).join("");
+
+    carritoTotalValor.textContent = Carrito.formatearUsd(Carrito.total());
+    carritoPlazoEnvio.textContent = calcularPlazoEnvioCarrito(items);
+  }
+
+  if (carritoListaItems) {
+    carritoListaItems.addEventListener("click", (evento) => {
+      const boton = evento.target.closest("[data-accion]");
+      if (!boton) return;
+      const fila = boton.closest(".carrito-item");
+      const id = fila ? Number(fila.dataset.id) : null;
+      if (id === null || Number.isNaN(id)) return;
+      const item = Carrito.obtenerItems().find((i) => Number(i.id) === id);
+      if (!item) return;
+
+      if (boton.dataset.accion === "sumar") Carrito.cambiarCantidad(id, item.cantidad + 1);
+      else if (boton.dataset.accion === "restar") Carrito.cambiarCantidad(id, item.cantidad - 1);
+      else if (boton.dataset.accion === "quitar") Carrito.quitar(id);
+
+      actualizarIconoCarrito();
+      renderCarritoModal();
+    });
+  }
+
+  function abrirCarrito() {
+    modalEnvio.hidden = true;
+    renderCarritoModal();
+    modalCarrito.hidden = false;
+    document.body.classList.add("modal-abierto");
+  }
+  function cerrarCarrito() {
+    modalCarrito.hidden = true;
+    document.body.classList.remove("modal-abierto");
+  }
+
+  if (btnCarritoFlotante) btnCarritoFlotante.addEventListener("click", abrirCarrito);
+  if (btnCarritoCerrar) btnCarritoCerrar.addEventListener("click", cerrarCarrito);
+  if (modalCarrito) {
+    modalCarrito.addEventListener("click", (evento) => {
+      if (evento.target === modalCarrito) cerrarCarrito();
+    });
+  }
+
+  function abrirEnvio() {
+    modalCarrito.hidden = true;
+    errorEnvio.hidden = true;
+    btnEnvioContinuar.disabled = false;
+    btnEnvioContinuar.textContent = "Continuar al pago";
+    modalEnvio.hidden = false;
+    document.body.classList.add("modal-abierto");
+  }
+  function cerrarEnvioYVolverAlCarrito() {
+    modalEnvio.hidden = true;
+    abrirCarrito();
+  }
+
+  if (btnCarritoPagar) btnCarritoPagar.addEventListener("click", abrirEnvio);
+  if (btnEnvioVolver) btnEnvioVolver.addEventListener("click", cerrarEnvioYVolverAlCarrito);
+  if (modalEnvio) {
+    modalEnvio.addEventListener("click", (evento) => {
+      if (evento.target === modalEnvio) cerrarEnvioYVolverAlCarrito();
+    });
+  }
+  document.addEventListener("keydown", (evento) => {
+    if (evento.key !== "Escape") return;
+    if (modalEnvio && !modalEnvio.hidden) cerrarEnvioYVolverAlCarrito();
+    else if (modalCarrito && !modalCarrito.hidden) cerrarCarrito();
+  });
+
+  if (formEnvio) {
+    formEnvio.addEventListener("submit", (evento) => {
+      evento.preventDefault();
+      errorEnvio.hidden = true;
+
+      const datos = new FormData(formEnvio);
+      const envio = {
+        nombre: String(datos.get("nombre") || "").trim(),
+        email: String(datos.get("email") || "").trim(),
+        direccion: String(datos.get("direccion") || "").trim(),
+        ciudad: String(datos.get("ciudad") || "").trim(),
+        estado: String(datos.get("estado") || "").trim(),
+        codigoPostal: String(datos.get("codigoPostal") || "").trim()
+      };
+
+      const zipValido = /^\d{5}(-\d{4})?$/.test(envio.codigoPostal);
+      const emailValido = /^\S+@\S+\.\S+$/.test(envio.email);
+      const faltanCampos = Object.keys(envio).some((k) => envio[k] === "");
+
+      if (faltanCampos || !zipValido || !emailValido) {
+        errorEnvio.textContent = !zipValido
+          ? "El código postal debe tener el formato de EE.UU. (ej. 90210 o 90210-1234)."
+          : !emailValido
+            ? "Escribe un email válido."
+            : "Completa todos los campos de envío.";
+        errorEnvio.hidden = false;
+        return;
+      }
+
+      btnEnvioContinuar.disabled = true;
+      btnEnvioContinuar.textContent = "Procesando...";
+
+      const items = Carrito.obtenerItems().map((i) => ({ id: i.id, nombre: i.nombre, cantidad: i.cantidad }));
+
+      PerfumesDB.crearCheckout(items, envio)
+        .then((respuesta) => {
+          const rechazados = Array.isArray(respuesta.rechazados) ? respuesta.rechazados : [];
+          rechazados.forEach((r) => Carrito.quitar(r.id));
+          actualizarIconoCarrito();
+
+          if (!respuesta.url) {
+            errorEnvio.textContent = rechazados.length
+              ? "Una o más fragancias ya no están disponibles y se quitaron de tu carrito. Revísalo e intenta de nuevo."
+              : "No se pudo procesar tu pedido. Intenta de nuevo o escríbenos por WhatsApp.";
+            errorEnvio.hidden = false;
+            btnEnvioContinuar.disabled = false;
+            btnEnvioContinuar.textContent = "Continuar al pago";
+            cerrarEnvioYVolverAlCarrito();
+            return;
+          }
+
+          window.location.href = respuesta.url;
+        })
+        .catch((e) => {
+          console.warn("No se pudo iniciar el pago:", e);
+          errorEnvio.textContent = "No se pudo conectar con el pago en este momento. Intenta de nuevo en un minuto.";
+          errorEnvio.hidden = false;
+          btnEnvioContinuar.disabled = false;
+          btnEnvioContinuar.textContent = "Continuar al pago";
+        });
+    });
+  }
+
+  /* ---- Pantalla de confirmación tras volver de Stripe ---- */
+
+  function renderConfirmacionExito(data) {
+    const filas = (data.items || []).map((i) => `
+      <div class="confirmacion-item-linea">
+        <span>${i.nombre} × ${i.cantidad}</span>
+        <span>${Carrito.formatearUsd(i.precioUnitarioUsd * i.cantidad)}</span>
+      </div>
+    `).join("");
+    const plazo = data.plazoEnvioDias === "2" ? "2 días" : "7-10 días";
+
+    contenidoConfirmacion.innerHTML = `
+      <div class="confirmacion-icono">✅</div>
+      <h2 class="confirmacion-titulo">¡Pedido confirmado!</h2>
+      <p class="confirmacion-sub">Te escribiremos para coordinar el envío. Plazo estimado: ${plazo}.</p>
+      <div class="confirmacion-resumen">
+        ${filas}
+        <div class="confirmacion-total-linea">
+          <span>Total pagado</span>
+          <span>${Carrito.formatearUsd(data.totalUsd)}</span>
+        </div>
+      </div>
+      ${data.conflictoStock
+        ? `<p class="error">Una de las fragancias de tu pedido se agotó justo cuando pagaste. Tu pago quedó confirmado igual — te contactaremos para coordinar el plazo real de envío.</p>`
+        : ""}
+    `;
+  }
+
+  function renderConfirmacionPendiente() {
+    contenidoConfirmacion.innerHTML = `
+      <div class="confirmacion-icono">⏳</div>
+      <h2 class="confirmacion-titulo">Seguimos confirmando tu pago</h2>
+      <p class="confirmacion-sub">
+        Puede tardar un poco más de lo normal. Si ya pagaste, tu pedido queda registrado igual —
+        escríbenos por WhatsApp con tu correo si quieres confirmarlo ahora mismo.
+      </p>
+    `;
+  }
+
+  function renderConfirmacionError() {
+    contenidoConfirmacion.innerHTML = `
+      <div class="confirmacion-icono">⚠️</div>
+      <h2 class="confirmacion-titulo">No encontramos ese pedido</h2>
+      <p class="confirmacion-sub">Si acabas de pagar, escríbenos por WhatsApp con tu correo para confirmarlo a mano.</p>
+    `;
+  }
+
+  function iniciarConfirmacionSiAplica() {
+    if (!contenidoConfirmacion) return;
+    const parametros = new URLSearchParams(window.location.search);
+    const ordenId = parametros.get("orden_id");
+    if (!ordenId) return;
+
+    contenidoConfirmacion.innerHTML = `
+      <div class="confirmacion-icono">⏳</div>
+      <h2 class="confirmacion-titulo">Confirmando tu pago...</h2>
+      <p class="confirmacion-sub">Esto puede tardar unos segundos.</p>
+    `;
+    irAPantalla(pantallaConfirmacion);
+
+    const MAX_INTENTOS = 10;
+    let intentos = 0;
+
+    function consultar() {
+      intentos++;
+      PerfumesDB.estadoOrden(ordenId)
+        .then((data) => {
+          if (!data || !data.encontrada) { renderConfirmacionError(); return; }
+          if (data.estadoPago === "pagado") {
+            Carrito.vaciar();
+            actualizarIconoCarrito();
+            renderConfirmacionExito(data);
+            return;
+          }
+          if (intentos < MAX_INTENTOS) setTimeout(consultar, 3000);
+          else renderConfirmacionPendiente();
+        })
+        .catch(() => {
+          if (intentos < MAX_INTENTOS) setTimeout(consultar, 3000);
+          else renderConfirmacionError();
+        });
+    }
+    consultar();
+  }
+
+  window.addEventListener("carrito:cambio", actualizarIconoCarrito);
 
   function iniciarTest() {
     estado.pasoActual = 0;
@@ -1078,7 +1424,7 @@
             <img class="detalle-compra-imagen" id="detalle-compra-img" alt="Frasco de ${perfume.nombre}" />
           </div>
           <h3 class="detalle-compra-nombre">${perfume.nombre}</h3>
-          ${bloqueContacto(etiquetaFormato === "5ML" ? mensajeProbar : mensajeBotella)}
+          ${etiquetaFormato === "5ML" ? bloqueContacto(mensajeProbar) : bloqueCompraBotella(perfume, mensajeBotella)}
         </div>
       `;
       const img = $("#detalle-compra-img");
@@ -1087,6 +1433,25 @@
         img.removeEventListener("error", manejarError);
         img.src = FALLBACK_IMG;
       });
+
+      const botonAgregarCarrito = $("#btn-agregar-carrito");
+      if (botonAgregarCarrito) {
+        botonAgregarCarrito.addEventListener("click", () => {
+          Carrito.agregar({
+            id: perfume.id,
+            nombre: perfume.nombre,
+            precioUsd: Number(botonAgregarCarrito.dataset.precio),
+            imagen: perfume.imagen
+          });
+          actualizarIconoCarrito();
+          botonAgregarCarrito.textContent = "✓ Agregado al carrito";
+          botonAgregarCarrito.disabled = true;
+          setTimeout(() => {
+            botonAgregarCarrito.textContent = botonAgregarCarrito.dataset.textoOriginal;
+            botonAgregarCarrito.disabled = false;
+          }, 1600);
+        });
+      }
       setTimeout(() => {
         if (zonaDetalle && typeof zonaDetalle.scrollIntoView === "function") {
           zonaDetalle.scrollIntoView({ behavior: "smooth", block: "nearest" });
@@ -1608,10 +1973,20 @@
   // nada: mientras el visitante lee la portada y responde las preguntas,
   // los datos van llegando en segundo plano. Para cuando se calcula el
   // Top 4 ya están en memoria, así que el test no se siente más lento.
+  //
+  // pagos_habilitados vive en esos mismos parámetros, así que el ícono del
+  // carrito espera a esta misma carga para decidir si se muestra.
   if (typeof PerfumesDB !== "undefined") {
-    PerfumesDB.cargarOverrides();
+    PerfumesDB.cargarOverrides().then(actualizarIconoCarrito);
   }
 
-  // Al cargar, aseguramos que la pantalla de inicio esté activa
-  irAPantalla(pantallaInicio);
+  // Si venimos de vuelta de Stripe (?orden_id=...), la pantalla de
+  // confirmación manda sobre la de inicio — sin este chequeo, la línea de
+  // abajo la taparía apenas termina de cargar.
+  if (new URLSearchParams(window.location.search).has("orden_id")) {
+    iniciarConfirmacionSiAplica();
+  } else {
+    // Al cargar, aseguramos que la pantalla de inicio esté activa
+    irAPantalla(pantallaInicio);
+  }
 })();

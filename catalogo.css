@@ -122,6 +122,22 @@
   margin: 16px 0 0;
 }
 
+/* Interruptor general del carrito/checkout con Stripe. Vive junto al
+   resto de ajustes globales porque, igual que ellos, afecta a los 143
+   perfumes de una sola vez. */
+.panel-pagos {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--borde-suave);
+}
+.panel-pagos-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+.panel-pagos .panel-nota { margin-top: 8px; }
+
 /* Estado de la conexion con la base de datos. Se distingue a simple vista
    del resto de textos del panel porque comunica si los cambios se estan
    guardando de verdad o no. */
@@ -1102,6 +1118,47 @@
 .fila-decant span { white-space: nowrap; }
 .fila-decant input { accent-color: var(--dorado); cursor: pointer; flex-shrink: 0; }
 .fila-decant.tiene-decant { color: var(--dorado-suave); }
+
+/* Stock de "Botella completa" para el carrito. */
+.fila-stock {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+.fila-stock-select {
+  font-family: var(--fuente-ui);
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--texto-secundario);
+  background: var(--negro-panel-2);
+  border: 1px solid var(--borde);
+  border-radius: 6px;
+  padding: 4px 6px;
+  cursor: pointer;
+}
+.fila-stock-select:focus { outline: none; border-color: var(--dorado); }
+.fila-stock-cantidad {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--texto-terciario);
+  white-space: nowrap;
+}
+.fila-stock-cantidad[hidden] { display: none; }
+.fila-stock-cantidad input {
+  width: 52px;
+  font-family: var(--fuente-ui);
+  font-size: 11.5px;
+  color: var(--texto-principal);
+  background: var(--negro-panel-2);
+  border: 1px solid var(--borde);
+  border-radius: 6px;
+  padding: 3px 5px;
+}
 
 /* Solo frasco completo: se marca la tarjeta entera para poder barrer el
    catálogo de un vistazo y ver cuáles no se decantan. */

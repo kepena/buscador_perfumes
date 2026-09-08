@@ -964,6 +964,51 @@ window.PerfumesDB = (function () {
       });
   }
 
+  /* ============ CARRITO / CHECKOUT (Edge Functions) ============ */
+  // app.js nunca calcula ni confía en un precio para cobrar: le manda el
+  // carrito (ids y cantidades) a estas dos funciones y ellas hablan con
+  // Supabase. Así todo el conocimiento de URLs y llaves de Supabase queda
+  // en un solo archivo, igual que el resto de este módulo.
+
+  function crearCheckout(items, envio) {
+    if (!configurada) {
+      return Promise.reject(new Error("Base de datos no configurada"));
+    }
+    return conTimeout(
+      fetch(SUPABASE_URL + "/functions/v1/crear-checkout", {
+        method: "POST",
+        headers: cabecerasPublicas_conJson(),
+        body: JSON.stringify({ items: items, envio: envio })
+      }).then((r) => {
+        if (!r.ok) {
+          return r.json().catch(() => ({})).then((cuerpo) => {
+            throw new Error("HTTP " + r.status + " " + (cuerpo && cuerpo.error || ""));
+          });
+        }
+        return r.json();
+      }),
+      TIMEOUT_MS
+    );
+  }
+
+  function estadoOrden(ordenId) {
+    if (!configurada) {
+      return Promise.reject(new Error("Base de datos no configurada"));
+    }
+    return conTimeout(
+      fetch(SUPABASE_URL + "/functions/v1/estado-orden", {
+        method: "POST",
+        headers: cabecerasPublicas_conJson(),
+        body: JSON.stringify({ ordenId: ordenId })
+      }).then((r) => r.json()),
+      TIMEOUT_MS
+    );
+  }
+
+  function cabecerasPublicas_conJson() {
+    return Object.assign({ "Content-Type": "application/json" }, cabecerasPublicas());
+  }
+
   /* ============ FOTOS ============ */
   // El archivo va a Supabase Storage (no a la base de datos). En la tabla
   // solo guardamos su URL pública, que pesa unos pocos bytes. Así el test
@@ -1140,6 +1185,8 @@ window.PerfumesDB = (function () {
     estadoStockDe: estadoStockDe,
     cantidadStockDe: cantidadStockDe,
     precioBotellaUsd: precioBotellaUsd,
+    crearCheckout: crearCheckout,
+    estadoOrden: estadoOrden,
     huboFalloDeCarga: function () { return cargaFallida; },
     formatearCOP: formatearCOP,
     guardarCampo: guardarCampo,

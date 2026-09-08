@@ -129,6 +129,16 @@
     "<li>Vuelve aquí y recarga la página</li>" +
     "</ol>";
 
+  const INSTRUCCIONES_SQL_STOCK =
+    "<ol>" +
+    "<li>Entra a tu proyecto en <strong>supabase.com</strong></li>" +
+    "<li>Menú izquierdo → <strong>SQL Editor</strong> → <strong>New query</strong></li>" +
+    "<li>Pega y ejecuta el archivo <code>07-stock.sql</code> <strong>completo</strong>. " +
+    "Está en la raíz del repo, al lado de este panel.</li>" +
+    "<li>Debe terminar mostrando <code>filas 143 · en_stock 0 · bajo_pedido 143 · agotado 0</code></li>" +
+    "<li>Vuelve aquí y recarga la página</li>" +
+    "</ol>";
+
   const INSTRUCCIONES_SQL =
     "<ol>" +
     "<li>Entra a tu proyecto en <strong>supabase.com</strong></li>" +
@@ -344,8 +354,10 @@
   const selectsCaracteristica = $$("[data-campo-perfume]");
   const filtroVerificado = $("#filtro-verificado");
   const filtroDecant = $("#filtro-decant");
+  const filtroStock = $("#filtro-stock");
   const inputsParametro = $$("[data-parametro]");
   const btnGuardarParametros = $("#btn-guardar-parametros");
+  const togglePagosHabilitados = $("#toggle-pagos-habilitados");
   const ejemploPrecios = $("#ejemplo-precios");
   const chipsFiltro = $$(".filtro-chip");
   const botonesVista = $$(".filtro-vista-btn");
@@ -626,6 +638,60 @@
           });
       });
 
+      // Stock de "Botella completa" para el carrito: en_stock (2 días),
+      // bajo_pedido (7-10 días, se pide al proveedor) o agotado (no se
+      // puede comprar). Solo importa la cantidad cuando está en_stock.
+      const selectStock = nodo.querySelector('[data-campo="stock-input"]');
+      const grupoStockCantidad = nodo.querySelector('[data-campo="stock-cantidad-grupo"]');
+      const inputStockCantidad = nodo.querySelector('[data-campo="stock-cantidad-input"]');
+
+      function pintarStock() {
+        const estadoStock = PerfumesDB.estadoStockDe(perfume.id);
+        selectStock.value = estadoStock;
+        grupoStockCantidad.hidden = estadoStock !== "en_stock";
+        inputStockCantidad.value = PerfumesDB.cantidadStockDe(perfume.id);
+      }
+      pintarStock();
+
+      selectStock.addEventListener("change", () => {
+        const nuevo = selectStock.value;
+        selectStock.disabled = true;
+        PerfumesDB.guardarCampo(perfume.id, "estado_stock", nuevo)
+          .then(() => {
+            limpiarError(spanErrorFila);
+            spanErrorFila.textContent = "";
+          })
+          .catch((e) => {
+            console.warn("No se pudo guardar el estado de stock:", e);
+            errorEn(spanErrorFila, mensajeDeError(e));
+            errorEn(panelNota, mensajeDeError(e));
+          })
+          .then(() => {
+            sincronizarMapasLocales();
+            pintarStock();
+            selectStock.disabled = false;
+          });
+      });
+
+      inputStockCantidad.addEventListener("change", () => {
+        const valor = parseInt(inputStockCantidad.value, 10);
+        if (Number.isNaN(valor) || valor < 0) {
+          pintarStock(); // valor inválido: dejamos lo que había
+          return;
+        }
+        inputStockCantidad.disabled = true;
+        PerfumesDB.guardarCampo(perfume.id, "cantidad_stock", valor)
+          .catch((e) => {
+            console.warn("No se pudo guardar la cantidad de stock:", e);
+            errorEn(panelNota, mensajeDeError(e));
+          })
+          .then(() => {
+            sincronizarMapasLocales();
+            pintarStock();
+            inputStockCantidad.disabled = false;
+          });
+      });
+
       // Toggle activar / desactivar: un perfume desactivado nunca aparece
       // como resultado del test, pero sigue visible aquí (atenuado) para
       // poder reactivarlo cuando quieras.
@@ -862,6 +928,9 @@
       if (formato === "sin" && conDecant) return false;
     }
 
+    const stock = filtroStock.value;
+    if (stock !== "todos" && PerfumesDB.estadoStockDe(perfume.id) !== stock) return false;
+
     for (let i = 0; i < selectsCaracteristica.length; i++) {
       const select = selectsCaracteristica[i];
       if (select.value && perfume[select.dataset.campoPerfume] !== select.value) return false;
@@ -890,7 +959,7 @@
   }
 
   function controlesDeFiltro() {
-    return [filtroEstado, filtroVerificado, filtroDecant, filtroPrecioMin, filtroPrecioMax, filtroMargenMin, filtroMargenMax]
+    return [filtroEstado, filtroVerificado, filtroDecant, filtroStock, filtroPrecioMin, filtroPrecioMax, filtroMargenMin, filtroMargenMax]
       .concat(selectsCaracteristica);
   }
 
@@ -923,6 +992,7 @@
     filtroEstado.value = "todos";
     filtroVerificado.value = "todos";
     filtroDecant.value = "todos";
+    filtroStock.value = "todos";
     [filtroPrecioMin, filtroPrecioMax, filtroMargenMin, filtroMargenMax].forEach((i) => {
       i.value = "";
     });
@@ -967,6 +1037,7 @@
     inputsParametro.forEach((input) => {
       input.value = aPantalla(par[input.dataset.parametro], input.dataset.formato);
     });
+    if (togglePagosHabilitados) togglePagosHabilitados.checked = Number(par.pagos_habilitados) === 1;
     actualizarEjemploPrecios();
   }
 
@@ -1043,6 +1114,25 @@
   }
 
   btnGuardarParametros.addEventListener("click", guardarParametros);
+
+  // Interruptor general del carrito/checkout: se guarda al instante, sin
+  // esperar al botón de "Guardar parámetros" — es un encendido/apagado,
+  // no un número que se pueda dejar a medio escribir.
+  if (togglePagosHabilitados) {
+    togglePagosHabilitados.addEventListener("change", () => {
+      const nuevo = togglePagosHabilitados.checked ? 1 : 0;
+      togglePagosHabilitados.disabled = true;
+      PerfumesDB.guardarParametro("pagos_habilitados", nuevo)
+        .catch((e) => {
+          console.warn("No se pudo guardar el interruptor de pagos:", e);
+          togglePagosHabilitados.checked = !togglePagosHabilitados.checked;
+          errorEn(panelNota, mensajeDeError(e));
+        })
+        .then(() => {
+          togglePagosHabilitados.disabled = false;
+        });
+    });
+  }
 
   /* ============ RANGOS DE PRESUPUESTO ============ */
   // Definen en qué categoría cae cada fragancia según su precio de VENTA.
@@ -1257,6 +1347,18 @@
           "cuáles se venden solo en frasco completo</strong> (la casilla se revierte al tocarla). " +
           "Mientras tanto el test ofrece decant de todas, como hasta ahora." +
           INSTRUCCIONES_SQL_DECANT);
+        return;
+      }
+
+      // Falta solo la columna de stock: el carrito/checkout todavía no se
+      // puede construir sobre esta fragancia, pero nada más se ve afectado.
+      if (grupos.length === 1 && grupos[0] === "stock") {
+        mostrarEstado("aviso",
+          "<strong>⚠ Falta la columna de stock</strong>" +
+          "La tabla no tiene <code>estado_stock</code> ni <code>cantidad_stock</code>, así que " +
+          "<strong>no puedes marcar el stock de cada fragancia</strong> (el selector se revierte al tocarlo). " +
+          "El resto del panel y del test funcionan igual." +
+          INSTRUCCIONES_SQL_STOCK);
         return;
       }
 

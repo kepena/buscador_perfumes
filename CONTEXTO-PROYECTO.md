@@ -36,23 +36,37 @@ Lo que quedó abierto al cerrar la sesión del 6 de septiembre de 2026:
 4. **Confirmar la concentración de dos fragancias**: id 9 Invictus e
    id 62 1 Million. Las fichas que llegaron no la decían, así que sus
    nombres quedaron sin EDT/EDP.
-5. **Lo siguiente que se va a construir**: la pantalla de pago y la tabla
-   de stock. Kike ya dijo que sí. Ver la sección "Venta en Estados Unidos"
-   más abajo — ahí está toda la lógica decidida.
+5. **El carrito de compras y el checkout con Stripe ya están construidos,
+   pero apagados.** Ver la sección "Venta en Estados Unidos" más abajo.
+   Falta que Kike haga, fuera de código:
+   - Correr `07-stock.sql` y `08-ordenes.sql` en Supabase (mismo lugar de
+     siempre: SQL Editor).
+   - Migrar su cuenta de PayPal de personal a Business.
+   - Crear la cuenta de Stripe, activar PayPal como método de pago ahí, y
+     desplegar las tres Edge Functions (`supabase/functions/README.md`
+     tiene el paso a paso completo).
+   - Recién ahí, prender el interruptor **"Carrito y pago con Stripe
+     activados"** en `catalogo.html`. Mientras esté apagado (por defecto),
+     el sitio se ve y se comporta exactamente igual que hoy — nada de esto
+     es visible para un visitante todavía.
 
 ## Archivos del proyecto (todos en la raíz del repo)
 
 | Archivo | Qué hace |
 |---|---|
-| `index.html` | Pantalla de inicio + test de preguntas + resultados + Set Ocasión |
-| `styles.css` | Todos los estilos (tema dorado/oscuro) |
+| `index.html` | Pantalla de inicio + test de preguntas + resultados + Set Ocasión + carrito |
+| `styles.css` | Todos los estilos (tema dorado/oscuro), incluido el carrito |
 | `data.js` | Catálogo: array `PERFUMES` con 133 fragancias (132 activas) + `FALLBACK_IMG` |
-| `app.js` | Preguntas dinámicas, motor de scoring, resultados, Set Ocasión, WhatsApp |
-| `db.js` | **Capa de acceso a Supabase.** Precios, fotos y activaciones |
+| `app.js` | Preguntas dinámicas, motor de scoring, resultados, Set Ocasión, WhatsApp, carrito/checkout/confirmación |
+| `db.js` | **Capa de acceso a Supabase** (y a sus Edge Functions). Precios, fotos, activaciones, stock, crear-checkout/estado-orden |
+| `carrito.js` | Estado del carrito de compras en `localStorage` (precio de exhibición, no el que se cobra) |
 | `catalogo.html` | Panel de administración (protegido con contraseña) |
 | `catalogo.css` | Estilos del panel |
-| `catalogo.js` | Lógica del panel: costo, venta, fotos, activar/desactivar |
+| `catalogo.js` | Lógica del panel: costo, venta, fotos, activar/desactivar, stock, interruptor de pagos |
 | `auth-catalogo.js` | Puerta del panel. **No guarda la contraseña ni su hash**: la valida Supabase |
+| `07-stock.sql` | Columnas `estado_stock`/`cantidad_stock` en `perfume_overrides` |
+| `08-ordenes.sql` | Tablas `ordenes`/`orden_items` + bandera `pagos_habilitados` |
+| `supabase/functions/` | Edge Functions: `crear-checkout`, `webhook-stripe`, `estado-orden` (ver su `README.md` para desplegarlas) |
 | `01-costo-y-venta.sql` | Prepara la base: columnas `costo_usd`/`venta_usd` + precios sugeridos |
 | `02-precios-decant.sql` | Columnas `volumen_ml`/`verificado` + tabla `configuracion` |
 | `03-decants.sql` | Columna `decant`: si esa fragancia se decanta o va solo en frasco |
@@ -690,10 +704,15 @@ Constante `WHATSAPP_NUMERO` al inicio de `app.js` (`573150124948`).
 `generarLinkWhatsApp(mensaje)` arma el link `wa.me` con mensaje pre-escrito.
 Se usa en: portada, tarjeta "Probar", tarjeta "Botella", Set Ocasión.
 
-## Venta en Estados Unidos (decidido, todavía sin construir)
+## Venta en Estados Unidos (carrito y checkout ya construidos, apagados)
 
-Toda esta sección son decisiones ya tomadas en conversación con Kike. No
-hay código escrito todavía. Sirve para no volver a discutir lo mismo.
+Toda esta sección arrancó como decisiones tomadas en conversación con Kike,
+sin código. El carrito de compras y el checkout con Stripe ya se
+construyeron (ver "Lo que ya está construido" más abajo), pero quedan
+**apagados** (`configuracion.pagos_habilitados = 0`) hasta que Kike termine
+los prerrequisitos que no son de código. El resto de esta sección sigue
+siendo la referencia de las decisiones de negocio para no volver a
+discutirlas.
 
 ### El modelo
 
@@ -787,13 +806,67 @@ todos piden EIN o certificado de reventa) y **que confirmen por escrito que
 son originales**. La prueba concreta: pedirles cotización de las 5 más
 recomendadas y compararla contra Jomashop.
 
-### La lógica de dos velocidades (para cuando se construya)
+### La lógica de dos velocidades
 
-La tabla de stock sabe qué hay en mano y qué no, y la pantalla de pago le
-muestra al cliente el plazo real:
+La tabla de stock (`estado_stock`/`cantidad_stock` en `perfume_overrides`,
+`07-stock.sql`) sabe qué hay en mano y qué no, y el carrito le muestra al
+cliente el plazo real:
 
 - Lo que está en stock → "envío en 2 días".
-- Lo que hay que pedir al proveedor → "envío en 7-10 días".
+- Lo que hay que pedir al proveedor (bajo pedido) → "envío en 7-10 días".
+- Agotado → no se puede agregar al carrito.
+
+### Lo que ya está construido (carrito y checkout)
+
+Spec: `docs/specs/2026-09-08-carrito-checkout-stripe.md` · Plan:
+`docs/plans/2026-09-08-carrito-checkout-stripe.md`. Ahí está el detalle
+completo; el resumen:
+
+- **Carrito multi-producto** (`carrito.js`, en `localStorage`), solo para
+  "Botella completa" — Probar y Set Ocasión siguen cerrando por WhatsApp,
+  sin decants en el modelo de EE.UU.
+- **El precio que cobra Stripe es en USD, calculado directo del costo**:
+  `costo_usd × (1 + margen_botella)`, **sin TRM ni "importación a
+  Colombia"** — esa fórmula (la de `preciosDe()`/`botellaCop` en `db.js`)
+  sigue existiendo solo para las pantallas de Probar/Set, que se piensan en
+  pesos. Son dos cálculos independientes a propósito.
+- **Checkout hospedado por Stripe** (tarjeta + PayPal en la misma sesión),
+  creado por la Edge Function `crear-checkout`, que recalcula el precio y
+  valida el stock contra la base de datos — nunca confía en lo que manda
+  el navegador.
+- **`webhook-stripe`** confirma el pago del lado del servidor y descuenta
+  `cantidad_stock`; si dos personas compran la última unidad casi a la vez,
+  el segundo pago se confirma igual y la orden queda marcada
+  `conflicto_stock = true` para que Kike lo resuelva a mano (no se cancela
+  un pago ya cobrado).
+- **`estado-orden`** es lo único que lee la pantalla de confirmación del
+  cliente — nunca la tabla `ordenes` completa, para no exponer nombre,
+  dirección ni email por una URL con el `orden_id`.
+- **Interruptor `pagos_habilitados`** (`configuracion`, editable desde
+  `catalogo.html`): en `0` el sitio es idéntico a como era antes de esta
+  feature — sin ícono de carrito, sin botón de agregar. Kike lo enciende
+  cuando los prerrequisitos de abajo estén listos.
+- El botón de WhatsApp en la pantalla de Botella **cambia de rol solo
+  cuando `pagos_habilitados = 1`**: pasa de cerrar la venta a "¿Dudas antes
+  de comprar? Escríbenos", quedando como canal secundario junto al botón
+  de agregar al carrito.
+
+**Prerrequisitos antes de encender el interruptor** (ninguno es código):
+
+1. Correr `07-stock.sql` y `08-ordenes.sql` en Supabase.
+2. Migrar la cuenta de PayPal de Kike de personal a Business (la personal
+   no tiene protección al vendedor y viola los términos de PayPal para uso
+   comercial).
+3. Crear la cuenta de Stripe, activar PayPal como método de pago ahí, y
+   desplegar las tres Edge Functions y conectar el webhook — instrucciones
+   completas en `supabase/functions/README.md`.
+
+**Simplificación conocida**: el panel (`catalogo.html`) no muestra todavía
+un aviso automático cuando una orden queda con `conflicto_stock = true`;
+por ahora esa fila se revisa entrando a la tabla `ordenes` desde el SQL
+Editor de Supabase (la migración deja una política de lectura para el
+correo admin). Automatizar ese aviso dentro del panel es una mejora
+pendiente, no algo que bloquee usar el checkout.
 
 ### Datos de cobertura del catálogo
 
@@ -817,6 +890,12 @@ The Kingdom, Club de Nuit Intense**.
 Ya se investigó y Kike quedó conforme: las comisiones de Stripe/PayPal no
 son un problema para este negocio. No hace falta volver sobre eso.
 
+La plataforma elegida para el checkout es **Stripe Checkout hospedado**,
+con tarjeta y PayPal en la misma sesión de pago (así no hace falta integrar
+el SDK de PayPal aparte). Un checkout embebido a la medida (con el diseño
+100% propio en vez de la página de Stripe) quedó como mejora futura, fuera
+del alcance de la primera versión. Ver "Lo que ya está construido" arriba.
+
 ## Restricciones a respetar
 
 - **No romper el test principal**: árbol de preguntas, motor de scoring,
@@ -839,6 +918,19 @@ son un problema para este negocio. No hace falta volver sobre eso.
   positivo, como insignia junto al botón de pago. Una versión larga que
   aclaraba de dónde viene la caja y que no trae precios adentro se
   descartó por eso mismo: levantaba la sospecha que pretendía evitar.
+- **Las llaves secretas de Stripe (`STRIPE_SECRET_KEY`,
+  `STRIPE_WEBHOOK_SECRET`) nunca van en el código ni en este repo.** Se
+  cargan como secretos de las Edge Functions (`supabase secrets set`). La
+  `publishable key` de Stripe sí es pública por diseño, igual que la
+  `anon key` de Supabase en `db.js`.
+- **`pagos_habilitados` empieza y se queda en `0`** hasta que Kike lo
+  encienda a propósito desde `catalogo.html`. Ninguna tarea de código
+  debería cambiar ese valor por defecto.
+- **El total que se le cobra al cliente nunca sale del navegador.** Lo
+  recalcula siempre `crear-checkout` contra `perfume_overrides` y
+  `configuracion`. Si algún día se toca esa Edge Function, esta regla no
+  se negocia — es la que evita que alguien pague lo que quiera abriendo la
+  consola.
 
 ## Historial de decisiones ya tomadas (para no repetir trabajo)
 

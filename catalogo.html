@@ -160,6 +160,23 @@
       <div class="panel-estado" id="aviso-bucket" hidden></div>
       <div class="panel-estado aviso" id="aviso-sin-verificar" hidden></div>
       <p class="panel-nota" id="panel-nota">El porcentaje se aplica sobre el precio de venta actual de cada fragancia.</p>
+
+      <!-- Interruptor general del carrito/checkout con Stripe. Apagado
+           por defecto: el sitio no muestra carrito hasta que actives esto
+           a propósito, una vez las llaves de Stripe estén cargadas (ver
+           supabase/functions/README.md). -->
+      <div class="panel-pagos">
+        <label class="fila-toggle-activo panel-pagos-toggle">
+          <input type="checkbox" class="fila-toggle-input" id="toggle-pagos-habilitados" />
+          <span class="fila-toggle-slider"></span>
+          <span class="fila-toggle-texto">Carrito y pago con Stripe activados</span>
+        </label>
+        <p class="panel-nota">
+          Actívalo solo después de cargar las llaves de Stripe como secretos de las Edge
+          Functions (ver <code>supabase/functions/README.md</code>). Mientras esté apagado,
+          el sitio se ve exactamente igual que antes de esta función.
+        </p>
+      </div>
     </section>
 
     <!-- ============ FILTROS ============ -->
@@ -213,6 +230,16 @@
             <option value="todos">Todas</option>
             <option value="con">Con decant</option>
             <option value="sin">Solo frasco completo</option>
+          </select>
+        </div>
+
+        <div class="filtro-campo">
+          <label for="filtro-stock">Stock</label>
+          <select id="filtro-stock">
+            <option value="todos">Todas</option>
+            <option value="en_stock">En stock</option>
+            <option value="bajo_pedido">Bajo pedido</option>
+            <option value="agotado">Agotadas</option>
           </select>
         </div>
 
@@ -344,6 +371,20 @@
           <input type="checkbox" data-campo="decant-input" />
           <span data-campo="decant-texto"></span>
         </label>
+        <!-- Stock de "Botella completa" para el carrito: decide si se
+             promete envío en 2 días, en 7-10 días (bajo pedido), o si no
+             se puede comprar (agotada). -->
+        <div class="fila-stock">
+          <select class="fila-stock-select" data-campo="stock-input" aria-label="Estado de stock">
+            <option value="bajo_pedido">📦 Bajo pedido (7-10 días)</option>
+            <option value="en_stock">✅ En stock (2 días)</option>
+            <option value="agotado">🚫 Agotado</option>
+          </select>
+          <label class="fila-stock-cantidad" data-campo="stock-cantidad-grupo" hidden>
+            Unidades
+            <input type="number" min="0" step="1" data-campo="stock-cantidad-input" />
+          </label>
+        </div>
         <label class="fila-toggle-activo">
           <input type="checkbox" class="fila-toggle-input" data-campo="toggle-activo" />
           <span class="fila-toggle-slider"></span>
