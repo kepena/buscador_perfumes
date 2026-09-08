@@ -80,7 +80,11 @@ window.PerfumesDB = (function () {
     margen_botella: 0.4,       // sobre el costo real puesto en Colombia
     descuento_set: 0.1,        // por llevar los tres decants
     minimo_decant_cop: 15000,  // piso comercial
-    ml_decant: 5               // tamaño del decant
+    ml_decant: 5,              // tamaño del decant
+    // Interruptor general del carrito/checkout con Stripe. Apagado (0) por
+    // defecto: hasta que Kike no confirme las llaves de Stripe cargadas, el
+    // sitio se ve y se comporta exactamente igual que antes de esta feature.
+    pagos_habilitados: 0
   };
   const BUCKET = "fotos-perfumes";
   const TIMEOUT_MS = 6000; // si la BD no responde, seguimos sin ella
@@ -102,6 +106,8 @@ window.PerfumesDB = (function () {
     volumenes: "perfumesPro_volumenes",
     verificados: "perfumesPro_verificados",
     decants: "perfumesPro_decants",
+    estadosStock: "perfumesPro_estadosStock",
+    cantidadesStock: "perfumesPro_cantidadesStock",
     // Clave del modelo anterior, de un solo precio. Se sigue leyendo para
     // poder recuperar lo que quedara guardado en el navegador de antes.
     preciosViejos: "perfumesPro_preciosOverride"
@@ -124,7 +130,11 @@ window.PerfumesDB = (function () {
   let promesaEnCurso = null;
 
   function cacheVacia() {
-    return { costos: {}, ventas: {}, imagenes: {}, activos: {}, volumenes: {}, verificados: {}, decants: {}, rangos: null };
+    return {
+      costos: {}, ventas: {}, imagenes: {}, activos: {}, volumenes: {},
+      verificados: {}, decants: {}, estadosStock: {}, cantidadesStock: {},
+      rangos: null
+    };
   }
 
   // Qué columnas tiene de verdad la tabla. Se aprende de la primera carga:
@@ -273,7 +283,9 @@ window.PerfumesDB = (function () {
       activos: leerLS(LS.activos),
       volumenes: leerLS(LS.volumenes),
       verificados: leerLS(LS.verificados),
-      decants: leerLS(LS.decants)
+      decants: leerLS(LS.decants),
+      estadosStock: leerLS(LS.estadosStock),
+      cantidadesStock: leerLS(LS.cantidadesStock)
     });
   }
 
@@ -294,6 +306,8 @@ window.PerfumesDB = (function () {
     escribirLS(LS.volumenes, datos.volumenes);
     escribirLS(LS.verificados, datos.verificados);
     escribirLS(LS.decants, datos.decants);
+    escribirLS(LS.estadosStock, datos.estadosStock);
+    escribirLS(LS.cantidadesStock, datos.cantidadesStock);
   }
 
   /* ============ LECTURA DE OVERRIDES ============ */
@@ -341,6 +355,17 @@ window.PerfumesDB = (function () {
       // columna todavía no existe, o la fila la trae vacía, la fragancia se
       // sigue ofreciendo en decant como hasta ahora.
       datos.decants[id] = fila.decant !== false;
+      // Estado de stock. Ante la duda (columna sin crear, fila sin marcar)
+      // se asume "bajo_pedido": no promete envío en 2 días de algo que
+      // nadie confirmó, pero tampoco bloquea la venta como sí lo haría
+      // "agotado".
+      const estados = ["en_stock", "bajo_pedido", "agotado"];
+      datos.estadosStock[id] = estados.indexOf(fila.estado_stock) !== -1
+        ? fila.estado_stock
+        : "bajo_pedido";
+      datos.cantidadesStock[id] = typeof fila.cantidad_stock === "number"
+        ? fila.cantidad_stock
+        : Number(fila.cantidad_stock) || 0;
       if (typeof fila.imagen_url === "string" && fila.imagen_url.trim() !== "") {
         datos.imagenes[id] = fila.imagen_url;
       }
@@ -575,6 +600,20 @@ window.PerfumesDB = (function () {
     return (cache.decants || {})[Number(id)] !== false;
   }
 
+  // Estado de stock de "Botella completa": 'en_stock' (envío en 2 días),
+  // 'bajo_pedido' (7-10 días) o 'agotado' (no se puede comprar). Ante la
+  // duda se asume 'bajo_pedido', igual que filasAMapas().
+  function estadoStockDe(id) {
+    return (cache.estadosStock || {})[Number(id)] || "bajo_pedido";
+  }
+
+  // Unidades físicas en mano. Solo importa cuando estadoStockDe() es
+  // 'en_stock'; en los otros dos estados no se usa para nada.
+  function cantidadStockDe(id) {
+    const v = (cache.cantidadesStock || {})[Number(id)];
+    return typeof v === "number" && v > 0 ? v : 0;
+  }
+
   // Redondeo a miles: un precio de 58.734 no se cobra, se cobra 59.000.
   function redondearCOP(n) {
     return Math.round(n / 1000) * 1000;
@@ -602,6 +641,17 @@ window.PerfumesDB = (function () {
     const bruto = (costoRealCop / volumen) * mililitros * c.multiplicador_decant + c.costo_vial_cop;
     const piso = c.minimo_decant_cop * (mililitros / c.ml_decant);
     return Math.max(redondearCOP(piso), redondearCOP(bruto));
+  }
+
+  // Precio de "Botella completa" para el carrito/checkout de EE.UU., en
+  // dólares y directo sobre el costo: el producto vendido ahí nunca pasa
+  // por Colombia, así que no hay TRM ni "importación a Colombia" que
+  // aplicar (a diferencia de botellaCop, más abajo, que sigue sirviendo a
+  // las pantallas de Probar/Set Ocasión). Reusa el mismo margen_botella.
+  function precioBotellaUsd(id) {
+    const costoUsd = (cache.costos || {})[Number(id)];
+    if (typeof costoUsd !== "number") return null;
+    return Math.round(costoUsd * (1 + config.margen_botella) * 100) / 100;
   }
 
   function preciosDe(id) {
@@ -676,7 +726,8 @@ window.PerfumesDB = (function () {
   const GRUPOS_COLUMNAS = [
     { clave: "precios", columnas: "costo_usd,venta_usd" },
     { clave: "volumen", columnas: "volumen_ml,verificado" },
-    { clave: "decant", columnas: "decant" }
+    { clave: "decant", columnas: "decant" },
+    { clave: "stock", columnas: "estado_stock,cantidad_stock" }
   ];
 
   function verificarEsquema() {
@@ -778,6 +829,8 @@ window.PerfumesDB = (function () {
       volumen_ml: typeof cache.volumenes[idNum] === "number" ? cache.volumenes[idNum] : null,
       verificado: cache.verificados[idNum] === true,
       decant: cache.decants[idNum] !== false,
+      estado_stock: cache.estadosStock[idNum] || "bajo_pedido",
+      cantidad_stock: typeof cache.cantidadesStock[idNum] === "number" ? cache.cantidadesStock[idNum] : 0,
       activo: typeof activo === "boolean" ? activo : null,
       imagen_url: typeof imagen === "string" && imagen !== "" ? imagen : null
     };
@@ -839,7 +892,8 @@ window.PerfumesDB = (function () {
     const mapa = {
       costo: "costos", venta: "ventas", activo: "activos",
       imagen: "imagenes", volumen: "volumenes", verificado: "verificados",
-      decant: "decants"
+      decant: "decants", estado_stock: "estadosStock",
+      cantidad_stock: "cantidadesStock"
     };
     const destino = mapa[campo];
     if (!destino) return Promise.reject(new Error("Campo desconocido: " + campo));
@@ -1083,6 +1137,9 @@ window.PerfumesDB = (function () {
     volumenDe: volumenDe,
     estaVerificado: estaVerificado,
     hayDecant: hayDecant,
+    estadoStockDe: estadoStockDe,
+    cantidadStockDe: cantidadStockDe,
+    precioBotellaUsd: precioBotellaUsd,
     huboFalloDeCarga: function () { return cargaFallida; },
     formatearCOP: formatearCOP,
     guardarCampo: guardarCampo,

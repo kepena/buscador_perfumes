@@ -1,0 +1,17 @@
+project_id = "evqifaeeamvrttuildkz"
+
+# El webhook lo llama Stripe, no un navegador con la sesión de Supabase, así
+# que no trae el JWT que Supabase exige por defecto en cada función. Sin
+# esto, cada evento de Stripe llegaría con 401 antes de que el código de la
+# función alcance a correr.
+[functions.webhook-stripe]
+verify_jwt = false
+
+# Estas dos sí las llama el navegador con la clave pública de db.js
+# (apikey / Authorization: Bearer <anon key>), así que se quedan con la
+# verificación por defecto.
+[functions.crear-checkout]
+verify_jwt = true
+
+[functions.estado-orden]
+verify_jwt = true
